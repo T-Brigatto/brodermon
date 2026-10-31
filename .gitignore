@@ -10,3 +10,7 @@ desktop.ini
 *.tmp
 *.log
 node_modules/
+
+# Build e cobertura
+dist/
+coverage/

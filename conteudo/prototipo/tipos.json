@@ -1,0 +1,9 @@
+{
+  "normal":   { "nome": "Normal",   "cor": "#f4f4f4", "fundo": "#30344d", "eficacia": { "rocha": 0.5 } },
+  "fogo":     { "nome": "Fogo",     "cor": "#ef7d57", "fundo": "#46213c", "eficacia": { "planta": 2, "agua": 0.5, "rocha": 0.5, "fogo": 0.5 } },
+  "agua":     { "nome": "Água",     "cor": "#41a6f6", "fundo": "#1f3566", "eficacia": { "fogo": 2, "rocha": 0.5, "agua": 0.5, "planta": 0.5 } },
+  "planta":   { "nome": "Planta",   "cor": "#a7f070", "fundo": "#173f45", "eficacia": { "agua": 2, "rocha": 2, "fogo": 0.5, "planta": 0.5, "ar": 0.5 } },
+  "eletrico": { "nome": "Elétrico", "cor": "#ffcd75", "fundo": "#463826", "eficacia": { "agua": 2, "ar": 2, "eletrico": 0.5, "planta": 0.5, "rocha": 0 } },
+  "rocha":    { "nome": "Rocha",    "cor": "#94b0c2", "fundo": "#2b3451", "eficacia": { "fogo": 2, "eletrico": 2, "ar": 2, "planta": 0.5, "rocha": 0.5 } },
+  "ar":       { "nome": "Ar",       "cor": "#73eff7", "fundo": "#1b4260", "eficacia": { "planta": 2, "eletrico": 0.5, "rocha": 0.5 } }
+}

@@ -2,30 +2,51 @@
 
 Design e protótipo de um jogo mobile de criaturas colecionáveis com **batalha em tempo real**. "Brodermon" é o codinome da pasta; dentro do jogo o título é **VALE DAS CRIATURAS** (chaves de `localStorage` usam o prefixo `vdc-`).
 
-Ainda não há código de produção. O que existe são páginas de design feitas no **Claude Design** (`.dc.html`) e duas páginas HTML autossuficientes. Tudo é em **pt-BR**: interface, nomes de criaturas e golpes, comentários e respostas ao usuário.
+O jogo está sendo refeito em **TypeScript + Vite com núcleo determinístico**; a arquitetura está em [docs/arquitetura.md](docs/arquitetura.md). O que existe hoje:
+- o núcleo da batalha, com testes, portado da Arena;
+- o conteúdo do protótipo em dicionários JSON;
+- um visualizador de depuração;
+- as páginas de design do **Claude Design** (`.dc.html`), que são a referência visual e a especificação executável.
+
+Tudo é em **pt-BR**: interface, nomes, identificadores, comentários e respostas ao usuário.
 
 ## Estrutura
 
 ```
+conteudo/      dicionários do jogo (tipos, golpes, espécies, batalhas, regras) — ver conteudo/LEIAME.md
+src/nucleo/    batalha pura: comandos entram, eventos saem (sem DOM, relógio ou Math.random)
+src/conteudo/  esquema Zod + registro dos pacotes
+src/app/       entrada no navegador (hoje: visualizador de depuração)
+testes/        Vitest
 design/        páginas do Claude Design (.dc.html) + runtime support.js + icones/
 exportados/    HTML autossuficientes (abrem sem o runtime)
 origem/        zip original "Redesign da interface do jogo" — não editar
 docs/          referência detalhada (ler antes de mexer no assunto)
 ```
 
-- [docs/inventario.md](docs/inventario.md) — o que é cada arquivo, status e dependências
-- [docs/jogo.md](docs/jogo.md) — regras da Arena, criaturas, golpes, tabela de tipos, fórmula de dano
-- [docs/sistema-visual.md](docs/sistema-visual.md) — paletas, cores por tipo, fontes, ícones, card de golpe
+- [docs/arquitetura.md](docs/arquitetura.md): decisão, princípios, fluxo comando → evento, diferenças em relação à Arena e problemas conhecidos
+- [conteudo/LEIAME.md](conteudo/LEIAME.md): como editar e criar tipos, golpes, espécies e pacotes
+- [docs/inventario.md](docs/inventario.md): o que é cada arquivo de design, status e dependências
+- [docs/jogo.md](docs/jogo.md): regras da Arena, criaturas, golpes, tabela de tipos e fórmula de dano
+- [docs/sistema-visual.md](docs/sistema-visual.md): paletas, cores por tipo, fontes, ícones e card de golpe
 
-## Como abrir
+## Como rodar
 
-Servidor local na raiz (Python 3.12 instalado; Node **não** está):
+O Node 26 LTS está instalado. Depois de instalar o Node, reabra o terminal para o PATH ser atualizado.
 
 ```bash
-python -m http.server 8123
+npm run dev      # visualizador do núcleo em http://localhost:5173 (preview "jogo")
+npm test         # testes
+npm run check    # verificação de tipos
 ```
 
-Depois abrir `http://localhost:8123/design/Arena.dc.html` (ou qualquer outra página). No app, o preview já está configurado em `.claude/launch.json` com o nome `brodermon`. Abrir via `file://` funciona em parte, mas o runtime faz `fetch` e o navegador bloqueia. Precisa de internet: o React 18.3.1 vem do unpkg e as fontes do Google Fonts.
+As páginas de design usam o servidor Python: `python -m http.server 8123`, depois `http://localhost:8123/design/Arena.dc.html`. O preview correspondente se chama `brodermon`. Elas precisam de internet, porque o React 18.3.1 vem do unpkg e as fontes do Google Fonts. No `launch.json`, o preview `jogo` aponta para `C:\Program Files\nodejs\node.exe` porque o app foi aberto antes da instalação do Node.
+
+## Regras do código
+
+- `src/nucleo/` não usa `Math.random`, `Date`, `performance`, `window`, `document`, timers nem imports de fora (só `../conteudo/esquema` para tipos). O teste `testes/pureza.test.ts` confere isso.
+- Conteúdo novo entra **só nos JSON** de `conteudo/`. O motor não decide regra de conteúdo: a categoria é um rótulo, e o que vale são `dano`, `buff` e `contato` no golpe.
+- Toda regra nova vem com teste. Rode `npm test` e `npm run check` antes de dar algo por pronto.
 
 ## Formato `.dc.html` (Claude Design)
 
@@ -58,5 +79,5 @@ Depois abrir `http://localhost:8123/design/Arena.dc.html` (ou qualquer outra pá
 
 - Pixel art: `image-rendering: pixelated`; bordas de 2px feitas com `box-shadow` nos 4 lados (sem `border-radius` na Arena); usar as cores da paleta documentada.
 - Acessibilidade já presente na Arena (`aria-label`, `role`, foco visível `#ffcd75`): manter ao editar.
-- Não adicionar dependências nem build sem perguntar; o projeto hoje é HTML puro.
+- Dependências atuais: Vite, TypeScript, Vitest, Zod e @types/node. Perguntar antes de adicionar outras; o Preact entra junto com o HUD.
 - A skill `fakemon-firered` gera sprites para este jogo (96×96, tira de 4 quadros, data-URI e dados da espécie).

@@ -1,0 +1,8 @@
+{
+  "perereca": { "nome": "Briserecs", "tipos": ["ar"],              "hp": 100, "ataque": 14, "defesa": 12, "velocidade": 59, "golpes": ["ventania", "bolha", "investida", "brisa"] },
+  "gotinha":  { "nome": "Gotinha",   "tipos": ["agua"],            "hp": 105, "ataque": 13, "defesa": 13, "velocidade": 55, "golpes": ["jato", "gota", "investida", "aqua-muro"] },
+  "brasino":  { "nome": "Brasino",   "tipos": ["fogo"],            "hp": 95,  "ataque": 16, "defesa": 10, "velocidade": 61, "golpes": ["labareda", "brasa", "investida", "fervor"] },
+  "brotinho": { "nome": "Brotinho",  "tipos": ["planta"],          "hp": 110, "ataque": 12, "defesa": 14, "velocidade": 50, "golpes": ["folhada", "semente", "investida", "raiz"] },
+  "faisca":   { "nome": "Faísca",    "tipos": ["eletrico"],        "hp": 90,  "ataque": 15, "defesa": 10, "velocidade": 64, "golpes": ["raio", "choque", "investida", "carga"] },
+  "pedrisco": { "nome": "Pedrisco",  "tipos": ["rocha", "planta"], "hp": 120, "ataque": 14, "defesa": 16, "velocidade": 46, "golpes": ["pedrada", "cascalho", "investida", "casca"] }
+}

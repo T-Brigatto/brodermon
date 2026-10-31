@@ -1,0 +1,27 @@
+{
+  "investida": { "nome": "Investida", "tipo": "normal",   "categoria": "fisico",   "recarga": 2.0, "alcance": 23, "contato": true, "dano": { "poder": 35 }, "animacao": "slash" },
+
+  "ventania":  { "nome": "Ventania",  "tipo": "ar",       "categoria": "magico",   "recarga": 2.5, "alcance": 95, "dano": { "poder": 45 }, "animacao": "slash" },
+  "bolha":     { "nome": "Bolha",     "tipo": "ar",       "categoria": "magico",   "recarga": 1.6, "alcance": 75, "dano": { "poder": 28 }, "animacao": "shoot" },
+  "brisa":     { "nome": "Brisa",     "tipo": "ar",       "categoria": "especial", "recarga": 6.0, "buff": { "atributo": "defesa", "valor": 6, "duracao": 3 }, "animacao": "buff" },
+
+  "jato":      { "nome": "Jato",      "tipo": "agua",     "categoria": "magico",   "recarga": 2.5, "alcance": 95, "dano": { "poder": 45 } },
+  "gota":      { "nome": "Gota",      "tipo": "agua",     "categoria": "magico",   "recarga": 1.6, "alcance": 75, "dano": { "poder": 28 } },
+  "aqua-muro": { "nome": "Aqua Muro", "tipo": "agua",     "categoria": "especial", "recarga": 6.0, "buff": { "atributo": "defesa", "valor": 6, "duracao": 3 } },
+
+  "labareda":  { "nome": "Labareda",  "tipo": "fogo",     "categoria": "magico",   "recarga": 2.8, "alcance": 88, "dano": { "poder": 50 } },
+  "brasa":     { "nome": "Brasa",     "tipo": "fogo",     "categoria": "magico",   "recarga": 1.8, "alcance": 68, "dano": { "poder": 30 } },
+  "fervor":    { "nome": "Fervor",    "tipo": "fogo",     "categoria": "especial", "recarga": 5.5, "buff": { "atributo": "ataque", "valor": 5, "duracao": 3 } },
+
+  "folhada":   { "nome": "Folhada",   "tipo": "planta",   "categoria": "magico",   "recarga": 2.6, "alcance": 90, "dano": { "poder": 45 } },
+  "semente":   { "nome": "Semente",   "tipo": "planta",   "categoria": "magico",   "recarga": 1.7, "alcance": 75, "dano": { "poder": 28 } },
+  "raiz":      { "nome": "Raiz",      "tipo": "planta",   "categoria": "especial", "recarga": 6.0, "buff": { "atributo": "defesa", "valor": 6, "duracao": 3 } },
+
+  "raio":      { "nome": "Raio",      "tipo": "eletrico", "categoria": "magico",   "recarga": 2.6, "alcance": 90, "dano": { "poder": 48 } },
+  "choque":    { "nome": "Choque",    "tipo": "eletrico", "categoria": "magico",   "recarga": 1.5, "alcance": 75, "dano": { "poder": 28 } },
+  "carga":     { "nome": "Carga",     "tipo": "eletrico", "categoria": "especial", "recarga": 5.5, "buff": { "atributo": "ataque", "valor": 5, "duracao": 3 } },
+
+  "pedrada":   { "nome": "Pedrada",   "tipo": "rocha",    "categoria": "magico",   "recarga": 3.0, "alcance": 85, "dano": { "poder": 50 } },
+  "cascalho":  { "nome": "Cascalho",  "tipo": "rocha",    "categoria": "magico",   "recarga": 1.9, "alcance": 70, "dano": { "poder": 30 } },
+  "casca":     { "nome": "Casca",     "tipo": "rocha",    "categoria": "especial", "recarga": 6.0, "buff": { "atributo": "defesa", "valor": 7, "duracao": 3 } }
+}

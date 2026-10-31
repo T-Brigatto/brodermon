@@ -1,0 +1,9 @@
+{
+  "treino": {
+    "nome": "Treino na Arena",
+    "equipes": [
+      { "piloto": "jogador", "time": ["perereca", "gotinha", "brasino", "brotinho", "faisca", "pedrisco"] },
+      { "piloto": "ia",      "time": ["brasino", "faisca", "pedrisco", "brotinho"] }
+    ]
+  }
+}
