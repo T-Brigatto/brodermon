@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&amp;family=Press+Start+2P&amp;display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;height:100%;background:#0c0d16;overflow:hidden}
+button{-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:2px solid #ffcd75;outline-offset:3px}
+a{color:#ffcd75}a:hover{color:#f4f4f4}
+</style>
+</helmet>
+<div style="position: relative; width: 100vw; height: 100dvh; background: #0c0d16; display: flex; align-items: center; justify-content: center; overflow: hidden">
+<div data-screen-label="Arena" style="position: relative; flex: none; width: 390px; height: 844px; overflow: hidden; background: #141625; display: flex; flex-direction: column; font-family: 'Pixelify Sans', monospace; color: #f4f4f4; -webkit-font-smoothing: none; user-select: none; -webkit-user-select: none; touch-action: manipulation; transform: scale({{scale}}); transform-origin: center center">
+
+  <div style="height: 72px; flex: none; box-sizing: border-box; padding: 0 12px; display: flex; align-items: center; gap: 12px; background: #141625; box-shadow: inset 0 -2px 0 0 #262b44">
+    <button type="button" aria-label="Pausar (Esc)" onClick="{{pause}}" style="flex: none; width: 40px; height: 40px; margin: 2px; padding: 0; border: 0; border-radius: 0; background: #262b44; cursor: pointer; opacity: {{pauseOp}}; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57, inset 0 -4px 0 0 #1d2035" style-active="transform: translateY(2px)">
+      <span style="display: block; width: 4px; height: 14px; background: #f4f4f4"></span>
+      <span style="display: block; width: 4px; height: 14px; background: #f4f4f4"></span>
+    </button>
+    <span style="flex: none; width: 48px; height: 48px; margin: 2px; background: #40203f; box-shadow: 0 -2px 0 0 #5d275d, 0 2px 0 0 #5d275d, -2px 0 0 0 #5d275d, 2px 0 0 0 #5d275d">
+      <canvas ref="{{e.ref}}" width="24" height="24" aria-hidden="true" style="display: block; width: 48px; height: 48px; image-rendering: pixelated"></canvas>
+    </span>
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 9px">
+      <div style="display: flex; align-items: center; gap: 6px; height: 18px">
+        <span style="font-size: 16px; line-height: 16px; font-weight: 700; letter-spacing: .5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{e.name}}</span>
+        <sc-for list="{{e.chips}}" as="t" hint-placeholder-count="1">
+          <span style="flex: none; position: relative; display: block; width: 16px; height: 16px; background: {{t.bg}}"><span style="position: absolute; left: 3px; top: 3px; width: 1px; height: 1px; box-shadow: {{t.ico}}"></span></span>
+        </sc-for>
+        <sc-if value="{{e.buff}}" hint-placeholder-val="{{ false }}">
+          <span style="flex: none; font-size: 12px; line-height: 12px; font-weight: 700; padding: 2px 4px; background: #ffcd75; color: #1a1c2c">{{e.buffText}}</span>
+        </sc-if>
+        <span style="flex: 1"></span>
+        <span role="img" aria-label="Rival: {{rLeft}} de {{rTotal}} criaturas de pé" style="flex: none; display: flex; gap: 4px">
+          <sc-for list="{{orbs}}" as="o" hint-placeholder-count="4">
+            <span style="display: block; width: 10px; height: 10px; margin: 1px; background: {{o.bg}}; box-shadow: 0 0 0 1px {{o.bc}}, inset -2px -2px 0 0 rgba(26,28,44,.35), inset 2px 2px 0 0 rgba(244,244,244,.35)"></span>
+          </sc-for>
+        </span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="position: relative; flex: 1; display: block; height: 8px; background: #10121e; box-shadow: 0 0 0 2px #333c57">
+          <span style="position: absolute; left: 0; top: 0; bottom: 0; width: {{e.lagW}}; background: #b13e53"></span>
+          <span style="position: absolute; left: 0; top: 0; bottom: 0; width: {{e.hpW}}; background: {{e.hpCol}}; box-shadow: inset 0 2px 0 0 rgba(244,244,244,.35)"></span>
+          <span style="position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 15px, rgba(16,18,30,.55) 15px 16px)"></span>
+        </span>
+        <span style="flex: none; min-width: 52px; text-align: right; font-size: 12px; line-height: 12px; color: #c0cbdc">{{e.hpText}}</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="position: relative; flex: none; width: 390px; height: 336px">
+    <canvas ref="{{setCv}}" width="{{cvW}}" height="{{cvH}}" role="img" aria-label="Arena de batalha. Toque para mover sua criatura." onPointerDown="{{arenaDown}}" onPointerMove="{{arenaMove}}" onPointerUp="{{arenaUp}}" onPointerCancel="{{arenaUp}}" style="display: block; width: 390px; height: 336px; touch-action: none; cursor: crosshair"></canvas>
+    <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+      <div aria-live="polite" style="position: absolute; left: 0; right: 0; top: 14px; display: flex; justify-content: center; pointer-events: none">
+        <span style="margin: 2px; padding: 8px 12px; background: #1a1c2c; color: {{toastCol}}; font-size: 14px; line-height: 14px; font-weight: 700; letter-spacing: .5px; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57">{{toast}}</span>
+      </div>
+    </sc-if>
+    <sc-if value="{{showHint}}" hint-placeholder-val="{{ false }}">
+      <div style="position: absolute; left: 0; right: 0; bottom: 14px; display: flex; justify-content: center; pointer-events: none">
+        <span style="margin: 2px; padding: 8px 12px 8px 10px; display: flex; align-items: center; gap: 8px; background: rgba(26,28,44,.9); color: #f4f4f4; font-size: 13px; line-height: 13px; font-weight: 600; box-shadow: 0 -2px 0 0 #ffcd75, 0 2px 0 0 #ffcd75, -2px 0 0 0 #ffcd75, 2px 0 0 0 #ffcd75">
+          <span style="position: relative; display: block; width: 16px; height: 16px"><span style="position: absolute; left: -2px; top: -2px; width: 2px; height: 2px; box-shadow: {{gl.target}}"></span></span>
+          Toque na arena para mover
+        </span>
+      </div>
+    </sc-if>
+    <sc-if value="{{showReady}}" hint-placeholder-val="{{ false }}">
+      <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; background: rgba(20,22,37,.35)">
+        <span style="font-size: 44px; line-height: 44px; font-weight: 700; letter-spacing: 2px; color: #ffcd75; text-shadow: 0 4px 0 #b13e53, 4px 4px 0 #b13e53, 0 8px 0 #1a1c2c, 4px 8px 0 #1a1c2c">{{readyText}}</span>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: #1a1c2c; box-shadow: inset 0 2px 0 0 #2a2f4a">
+    <div style="height: 72px; flex: none; box-sizing: border-box; padding: 0 12px; display: flex; align-items: center; gap: 12px">
+      <span style="flex: none; width: 48px; height: 48px; margin: 2px; background: #2f3d7a; box-shadow: 0 -2px 0 0 #3b5dc9, 0 2px 0 0 #3b5dc9, -2px 0 0 0 #3b5dc9, 2px 0 0 0 #3b5dc9">
+        <canvas ref="{{p.ref}}" width="24" height="24" aria-hidden="true" style="display: block; width: 48px; height: 48px; image-rendering: pixelated"></canvas>
+      </span>
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 9px">
+        <div style="display: flex; align-items: center; gap: 6px; height: 18px">
+          <span style="font-size: 16px; line-height: 16px; font-weight: 700; letter-spacing: .5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{p.name}}</span>
+          <sc-for list="{{p.chips}}" as="t" hint-placeholder-count="1">
+            <span style="flex: none; position: relative; display: block; width: 16px; height: 16px; background: {{t.bg}}"><span style="position: absolute; left: 3px; top: 3px; width: 1px; height: 1px; box-shadow: {{t.ico}}"></span></span>
+          </sc-for>
+          <sc-if value="{{p.buff}}" hint-placeholder-val="{{ false }}">
+            <span style="flex: none; font-size: 12px; line-height: 12px; font-weight: 700; padding: 2px 4px; background: #ffcd75; color: #1a1c2c">{{p.buffText}}</span>
+          </sc-if>
+          <span style="flex: 1"></span>
+          <span style="flex: none; font-size: 12px; line-height: 12px; letter-spacing: 1px; color: #ffcd75">VOCÊ</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span style="position: relative; flex: 1; display: block; height: 8px; background: #10121e; box-shadow: 0 0 0 2px #333c57">
+            <span style="position: absolute; left: 0; top: 0; bottom: 0; width: {{p.lagW}}; background: #b13e53"></span>
+            <span style="position: absolute; left: 0; top: 0; bottom: 0; width: {{p.hpW}}; background: {{p.hpCol}}; box-shadow: inset 0 2px 0 0 rgba(244,244,244,.35)"></span>
+            <span style="position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 15px, rgba(16,18,30,.55) 15px 16px)"></span>
+          </span>
+          <span style="flex: none; min-width: 52px; text-align: right; font-size: 12px; line-height: 12px; color: #c0cbdc">{{p.hpText}}</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex: 1; min-height: 0; box-sizing: border-box; padding: 4px 12px 18px; display: flex; flex-direction: column; justify-content: space-between">
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 2px">
+        <sc-for list="{{moves}}" as="m" hint-placeholder-count="4">
+          <button type="button" onPointerDown="{{m.down}}" onClick="{{m.click}}" aria-label="{{m.aria}}" style="position: relative; height: 66px; margin: 0; padding: 10px 10px 0; border: 0; border-radius: 0; background: {{m.bg}}; color: #f4f4f4; font-family: inherit; text-align: left; display: flex; flex-direction: column; gap: 9px; cursor: pointer; touch-action: none; box-shadow: 0 -2px 0 0 {{m.bc}}, 0 2px 0 0 {{m.bc}}, -2px 0 0 0 {{m.bc}}, 2px 0 0 0 {{m.bc}}" style-active="transform: translateY(2px)">
+            <span style="display: flex; align-items: center; gap: 8px; height: 22px; width: 100%">
+              <span style="position: relative; flex: none; display: block; width: 22px; height: 22px; background: {{m.icoBg}}"><span style="position: absolute; left: 1px; top: 1px; width: 2px; height: 2px; box-shadow: {{m.ico}}"></span></span>
+              <span style="flex: 1; min-width: 0; font-size: 15px; line-height: 16px; font-weight: 700; letter-spacing: .5px; color: {{m.ncol}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{m.name}}</span>
+              <sc-if value="{{m.hasEff}}" hint-placeholder-val="{{ false }}">
+                <span style="flex: none; font-size: 12px; line-height: 12px; font-weight: 700; padding: 3px 4px; background: {{m.effBg}}; color: {{m.effCol}}">{{m.effText}}</span>
+              </sc-if>
+            </span>
+            <span style="display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%; font-size: 12px; line-height: 12px">
+              <span style="color: {{m.metaCol}}; white-space: nowrap">{{m.meta}}</span>
+              <span style="color: {{m.stCol}}; font-weight: 700; white-space: nowrap">{{m.status}}</span>
+            </span>
+            <span style="position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: #10121e"><span style="display: block; height: 4px; width: {{m.cdW}}; background: {{m.barCol}}"></span></span>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; justify-content: space-between; align-items: center; height: 12px; font-size: 12px; line-height: 12px">
+          <span style="color: #94b0c2; letter-spacing: 1px">SEU TIME · {{pLeft}}/6</span>
+          <span style="color: {{swCol}}; letter-spacing: .5px">{{swText}}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 2px 2px 6px">
+          <sc-for list="{{team}}" as="o" hint-placeholder-count="6">
+            <button type="button" onPointerDown="{{o.down}}" onClick="{{o.click}}" aria-label="{{o.aria}}" style="display: flex; flex-direction: column; gap: 8px; width: 52px; padding: 0; border: 0; border-radius: 0; background: transparent; cursor: pointer; touch-action: none; opacity: {{o.op}}; transform: translateY({{o.lift}})">
+              <span style="position: relative; display: block; width: 52px; height: 52px; background: {{o.bg}}; box-shadow: 0 -2px 0 0 {{o.bc}}, 0 2px 0 0 {{o.bc}}, -2px 0 0 0 {{o.bc}}, 2px 0 0 0 {{o.bc}}, 0 6px 0 0 #10121e">
+                <canvas ref="{{o.ref}}" width="26" height="26" aria-hidden="true" style="display: block; width: 52px; height: 52px; image-rendering: pixelated"></canvas>
+                <span style="position: absolute; right: -4px; bottom: -4px; display: flex; gap: 2px">
+                  <sc-for list="{{o.chips}}" as="t" hint-placeholder-count="1">
+                    <span style="position: relative; display: block; width: 14px; height: 14px; background: {{t.bg}}; box-shadow: 0 0 0 2px #1a1c2c"><span style="position: absolute; left: 2px; top: 2px; width: 1px; height: 1px; box-shadow: {{t.ico}}"></span></span>
+                  </sc-for>
+                </span>
+                <sc-if value="{{o.good}}" hint-placeholder-val="{{ false }}">
+                  <span aria-hidden="true" style="position: absolute; left: -4px; top: -4px; width: 16px; height: 12px; background: #1a1c2c; box-shadow: 0 0 0 2px #38b764"><span style="position: absolute; left: 1px; top: 1px; width: 2px; height: 2px; box-shadow: {{o.mIco}}"></span></span>
+                </sc-if>
+                <sc-if value="{{o.bad}}" hint-placeholder-val="{{ false }}">
+                  <span aria-hidden="true" style="position: absolute; left: -4px; top: -4px; width: 16px; height: 12px; background: #1a1c2c; box-shadow: 0 0 0 2px #b13e53"><span style="position: absolute; left: 1px; top: 1px; width: 2px; height: 2px; box-shadow: {{o.mIco}}"></span></span>
+                </sc-if>
+                <sc-if value="{{o.dead}}" hint-placeholder-val="{{ false }}">
+                  <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; line-height: 13px; font-weight: 700; color: #ef7d57">KO</span>
+                </sc-if>
+              </span>
+              <span style="display: block; width: 52px; height: 4px; background: #262b44"><span style="display: block; height: 4px; width: {{o.hpW}}; background: {{o.hpCol}}"></span></span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; gap: 10px; align-items: center; height: 12px; font-size: 12px; line-height: 12px">
+          <span style="flex: none; color: #94b0c2; letter-spacing: 1px">TÁTICA</span>
+          <span style="min-width: 0; color: #c0cbdc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{stanceDesc}}</span>
+        </div>
+        <div role="radiogroup" aria-label="Tática de movimento" style="margin: 2px; height: 40px; display: flex; background: #141625; box-shadow: 0 -2px 0 0 #2a2f4a, 0 2px 0 0 #2a2f4a, -2px 0 0 0 #2a2f4a, 2px 0 0 0 #2a2f4a">
+          <sc-for list="{{stances}}" as="s" hint-placeholder-count="4">
+            <button type="button" role="radio" aria-checked="{{s.on}}" onPointerDown="{{s.down}}" onClick="{{s.click}}" style="flex: 1; min-width: 0; padding: 0; border: 0; border-radius: 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: inherit; font-size: 12px; line-height: 12px; font-weight: 700; letter-spacing: .5px; color: {{s.col}}; background: {{s.bg}}; cursor: pointer; touch-action: none">
+              <span style="position: relative; flex: none; display: block; width: 8px; height: 8px"><span style="position: absolute; left: -1px; top: -1px; width: 1px; height: 1px; box-shadow: {{s.ico}}"></span></span>
+              {{s.label}}
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{showChoose}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; left: 0; right: 0; top: 0; height: 408px; background: rgba(12,13,22,.45); pointer-events: none"></div>
+    <div role="dialog" aria-label="Escolha a próxima criatura" style="position: absolute; left: 0; right: 0; top: 408px; bottom: 0; box-sizing: border-box; padding: 18px 14px 16px; background: #141625; box-shadow: inset 0 2px 0 0 #ffcd75; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; flex-direction: column; gap: 8px; padding: 0 2px">
+        <span style="font-size: 12px; line-height: 12px; letter-spacing: 1px; color: #ef7d57">{{fallen}} DESMAIOU</span>
+        <span style="font-size: 18px; line-height: 18px; font-weight: 700">Quem entra contra {{foeName}}?</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <sc-for list="{{chooseList}}" as="c" hint-placeholder-count="3">
+          <button type="button" onClick="{{c.pick}}" aria-label="{{c.aria}}" style="margin: 2px; height: 56px; padding: 0 12px 0 4px; border: 0; border-radius: 0; background: #1d2035; color: #f4f4f4; font-family: inherit; text-align: left; display: flex; align-items: center; gap: 12px; cursor: pointer; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57" style-hover="background: #262b44" style-active="transform: translateY(2px)">
+            <span style="flex: none; width: 48px; height: 48px; background: #252c52"><canvas ref="{{c.ref}}" width="24" height="24" aria-hidden="true" style="display: block; width: 48px; height: 48px; image-rendering: pixelated"></canvas></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 9px">
+              <span style="display: flex; align-items: center; gap: 6px">
+                <span style="font-size: 15px; line-height: 15px; font-weight: 700; letter-spacing: .5px">{{c.name}}</span>
+                <sc-for list="{{c.chips}}" as="t" hint-placeholder-count="1">
+                  <span style="flex: none; position: relative; display: block; width: 14px; height: 14px; background: {{t.bg}}"><span style="position: absolute; left: 2px; top: 2px; width: 1px; height: 1px; box-shadow: {{t.ico}}"></span></span>
+                </sc-for>
+              </span>
+              <span style="display: flex; align-items: center; gap: 8px">
+                <span style="flex: 1; display: block; height: 6px; background: #10121e"><span style="display: block; height: 6px; width: {{c.hpW}}; background: {{c.hpCol}}"></span></span>
+                <span style="flex: none; font-size: 12px; line-height: 12px; color: #c0cbdc">{{c.hpText}}</span>
+              </span>
+            </span>
+            <span style="flex: none; width: 92px; text-align: center; padding: 4px 0; font-size: 12px; line-height: 12px; font-weight: 700; background: {{c.muBg}}; color: {{c.muCol}}">{{c.muText}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{showTitle}}" hint-placeholder-val="{{ true }}">
+    <div style="position: absolute; inset: 0; display: flex; flex-direction: column">
+      <div style="height: 72px; flex: none; background: #141625; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 -2px 0 0 #262b44">
+        <span style="font-size: 13px; line-height: 13px; font-weight: 600; letter-spacing: 4px; color: #94b0c2">VALE DAS CRIATURAS</span>
+      </div>
+      <div style="height: 336px; flex: none; box-sizing: border-box; padding-top: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; background: linear-gradient(180deg, rgba(20,22,37,.25) 0%, rgba(20,22,37,0) 45%, rgba(20,22,37,.75) 100%); pointer-events: none">
+        <span style="font-family: 'Press Start 2P', monospace; font-size: 44px; line-height: 44px; color: #ffcd75; text-shadow: 0 4px 0 #b13e53, 4px 4px 0 #b13e53, 0 8px 0 #1a1c2c, 4px 8px 0 #1a1c2c">ARENA</span>
+        <span style="padding: 7px 10px; background: #1a1c2c; font-size: 13px; line-height: 13px; font-weight: 700; letter-spacing: 2px; color: #f4f4f4">BATALHA EM TEMPO REAL</span>
+      </div>
+      <div style="flex: 1; box-sizing: border-box; padding: 22px 16px 20px; background: #141625; box-shadow: inset 0 2px 0 0 #2a2f4a; display: flex; flex-direction: column; justify-content: space-between">
+        <div style="display: flex; flex-direction: column; gap: 22px">
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; line-height: 12px; letter-spacing: 1px"><span style="color: #94b0c2">SEU TIME</span><span style="color: #c0cbdc">6 CRIATURAS</span></div>
+            <div style="display: flex; justify-content: space-between; padding: 2px">
+              <sc-for list="{{tTeam}}" as="o" hint-placeholder-count="6">
+                <span role="img" aria-label="{{o.aria}}" style="position: relative; display: block; width: 52px; height: 52px; background: #252c52; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57">
+                  <canvas ref="{{o.ref}}" width="26" height="26" aria-hidden="true" style="display: block; width: 52px; height: 52px; image-rendering: pixelated"></canvas>
+                  <span style="position: absolute; right: -4px; bottom: -4px; display: flex; gap: 2px">
+                    <sc-for list="{{o.chips}}" as="t" hint-placeholder-count="1">
+                      <span style="position: relative; display: block; width: 14px; height: 14px; background: {{t.bg}}; box-shadow: 0 0 0 2px #141625"><span style="position: absolute; left: 2px; top: 2px; width: 1px; height: 1px; box-shadow: {{t.ico}}"></span></span>
+                    </sc-for>
+                  </span>
+                </span>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; line-height: 12px; letter-spacing: 1px"><span style="color: #94b0c2">RIVAL</span><span style="color: #c0cbdc">{{rTotal}} CRIATURAS</span></div>
+            <div style="display: flex; gap: 10px; padding: 2px">
+              <sc-for list="{{tRival}}" as="o" hint-placeholder-count="4">
+                <span role="img" aria-label="{{o.aria}}" style="position: relative; display: block; width: 52px; height: 52px; background: #40203f; box-shadow: 0 -2px 0 0 #5d275d, 0 2px 0 0 #5d275d, -2px 0 0 0 #5d275d, 2px 0 0 0 #5d275d">
+                  <canvas ref="{{o.ref}}" width="26" height="26" aria-hidden="true" style="display: block; width: 52px; height: 52px; image-rendering: pixelated"></canvas>
+                  <span style="position: absolute; right: -4px; bottom: -4px; display: flex; gap: 2px">
+                    <sc-for list="{{o.chips}}" as="t" hint-placeholder-count="1">
+                      <span style="position: relative; display: block; width: 14px; height: 14px; background: {{t.bg}}; box-shadow: 0 0 0 2px #141625"><span style="position: absolute; left: 2px; top: 2px; width: 1px; height: 1px; box-shadow: {{t.ico}}"></span></span>
+                    </sc-for>
+                  </span>
+                </span>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px">
+          <button type="button" onClick="{{start}}" style="margin: 2px; height: 58px; padding: 0 20px; border: 0; border-radius: 0; background: #a7f070; color: #1a1c2c; font-family: 'Press Start 2P', monospace; font-size: 16px; line-height: 16px; cursor: pointer; box-shadow: 0 -2px 0 0 #f4f4f4, 0 2px 0 0 #f4f4f4, -2px 0 0 0 #f4f4f4, 2px 0 0 0 #f4f4f4, inset 0 -5px 0 0 #38b764, inset 0 2px 0 0 rgba(244,244,244,.5)" style-hover="filter: brightness(1.06)" style-active="transform: translateY(2px)">BATALHAR</button>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+            <button type="button" onClick="{{openHow}}" style="margin: 2px; height: 46px; padding: 0 12px; border: 0; border-radius: 0; background: #262b44; color: #f4f4f4; font-family: inherit; font-size: 14px; line-height: 14px; font-weight: 700; letter-spacing: 1px; cursor: pointer; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57, inset 0 -4px 0 0 #1d2035" style-hover="background: #333c57" style-active="transform: translateY(2px)">COMO JOGAR</button>
+            <button type="button" onClick="{{openTypes}}" style="margin: 2px; height: 46px; padding: 0 12px; border: 0; border-radius: 0; background: #262b44; color: #f4f4f4; font-family: inherit; font-size: 14px; line-height: 14px; font-weight: 700; letter-spacing: 1px; cursor: pointer; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57, inset 0 -4px 0 0 #1d2035" style-hover="background: #333c57" style-active="transform: translateY(2px)">TABELA DE TIPOS</button>
+          </div>
+          <span style="text-align: center; font-size: 12px; line-height: 16px; color: #94b0c2">Teclado: WASD move · 1–4 golpes · Esc pausa</span>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{showPause}}" hint-placeholder-val="{{ false }}">
+    <div role="dialog" aria-label="Pausa" style="position: absolute; inset: 0; background: rgba(12,13,22,.88); display: flex; align-items: center; justify-content: center">
+      <div style="width: 300px; margin: 2px; box-sizing: border-box; padding: 26px 20px 20px; background: #1a1c2c; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 14px; padding-bottom: 10px">
+          <span style="font-family: 'Press Start 2P', monospace; font-size: 22px; line-height: 22px; color: #f4f4f4; text-shadow: 3px 3px 0 #333c57">PAUSA</span>
+          <span style="font-size: 13px; line-height: 13px; color: #94b0c2">{{pauseSub}}</span>
+        </div>
+        <button type="button" onClick="{{resume}}" style="margin: 2px; height: 52px; border: 0; border-radius: 0; background: #a7f070; color: #1a1c2c; font-family: 'Press Start 2P', monospace; font-size: 14px; line-height: 14px; cursor: pointer; box-shadow: 0 -2px 0 0 #f4f4f4, 0 2px 0 0 #f4f4f4, -2px 0 0 0 #f4f4f4, 2px 0 0 0 #f4f4f4, inset 0 -5px 0 0 #38b764" style-active="transform: translateY(2px)">CONTINUAR</button>
+        <button type="button" onClick="{{openHow}}" style="margin: 2px; height: 44px; border: 0; border-radius: 0; background: #262b44; color: #f4f4f4; font-family: inherit; font-size: 14px; line-height: 14px; font-weight: 700; letter-spacing: 1px; cursor: pointer; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57, inset 0 -4px 0 0 #1d2035" style-hover="background: #333c57" style-active="transform: translateY(2px)">COMO JOGAR</button>
+        <button type="button" onClick="{{openTypes}}" style="margin: 2px; height: 44px; border: 0; border-radius: 0; background: #262b44; color: #f4f4f4; font-family: inherit; font-size: 14px; line-height: 14px; font-weight: 700; letter-spacing: 1px; cursor: pointer; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57, inset 0 -4px 0 0 #1d2035" style-hover="background: #333c57" style-active="transform: translateY(2px)">TABELA DE TIPOS</button>
+        <button type="button" onClick="{{toggleMute}}" aria-pressed="{{soundOn}}" style="margin: 2px; height: 44px; border: 0; border-radius: 0; background: #262b44; color: #f4f4f4; font-family: inherit; font-size: 14px; line-height: 14px; font-weight: 700; letter-spacing: 1px; cursor: pointer; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57, inset 0 -4px 0 0 #1d2035" style-hover="background: #333c57" style-active="transform: translateY(2px)">{{muteText}}</button>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+          <button type="button" onClick="{{restart}}" style="margin: 2px; height: 44px; border: 0; border-radius: 0; background: transparent; color: #c0cbdc; font-family: inherit; font-size: 13px; line-height: 13px; font-weight: 700; letter-spacing: 1px; cursor: pointer; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57" style-hover="color: #f4f4f4" style-active="transform: translateY(2px)">RECOMEÇAR</button>
+          <button type="button" onClick="{{toMenu}}" style="margin: 2px; height: 44px; border: 0; border-radius: 0; background: transparent; color: #c0cbdc; font-family: inherit; font-size: 13px; line-height: 13px; font-weight: 700; letter-spacing: 1px; cursor: pointer; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57" style-hover="color: #f4f4f4" style-active="transform: translateY(2px)">SAIR</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{showOver}}" hint-placeholder-val="{{ false }}">
+    <div role="dialog" aria-label="Fim da batalha" style="position: absolute; inset: 0; box-sizing: border-box; padding: 40px 20px 28px; background: #141625; display: flex; flex-direction: column; justify-content: space-between">
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; padding-bottom: 24px">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 18px; padding-bottom: 4px">
+          <span style="font-size: 48px; line-height: 48px; font-weight: 700; letter-spacing: 2px; color: {{overCol}}; text-shadow: 0 4px 0 #333c57, 4px 4px 0 #333c57, 0 8px 0 #10121e, 4px 8px 0 #10121e">{{overTitle}}</span>
+          <span style="font-size: 15px; line-height: 15px; color: #c0cbdc">{{overSub}}</span>
+        </div>
+        <div style="width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+          <div style="margin: 2px; padding: 14px 12px; background: #1a1c2c; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57; display: flex; flex-direction: column; gap: 10px">
+            <span style="font-size: 12px; line-height: 12px; letter-spacing: 1px; color: #94b0c2">TEMPO</span>
+            <span style="font-size: 22px; line-height: 22px; font-weight: 700">{{stTime}}</span>
+          </div>
+          <div style="margin: 2px; padding: 14px 12px; background: #1a1c2c; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57; display: flex; flex-direction: column; gap: 10px">
+            <span style="font-size: 12px; line-height: 12px; letter-spacing: 1px; color: #94b0c2">NOCAUTES</span>
+            <span style="font-size: 22px; line-height: 22px; font-weight: 700">{{stKos}}</span>
+          </div>
+          <div style="margin: 2px; padding: 14px 12px; background: #1a1c2c; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57; display: flex; flex-direction: column; gap: 10px">
+            <span style="font-size: 12px; line-height: 12px; letter-spacing: 1px; color: #94b0c2">DANO</span>
+            <span style="font-size: 22px; line-height: 22px; font-weight: 700">{{stDmg}}</span>
+          </div>
+        </div>
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 12px">
+          <span style="font-size: 12px; line-height: 12px; letter-spacing: 1px; color: #94b0c2">SEU TIME</span>
+          <div style="display: flex; justify-content: space-between; padding: 2px">
+            <sc-for list="{{oTeam}}" as="o" hint-placeholder-count="6">
+              <span role="img" aria-label="{{o.aria}}" style="position: relative; display: block; width: 52px; height: 52px; background: {{o.bg}}; opacity: {{o.op}}; box-shadow: 0 -2px 0 0 {{o.bc}}, 0 2px 0 0 {{o.bc}}, -2px 0 0 0 {{o.bc}}, 2px 0 0 0 {{o.bc}}">
+                <canvas ref="{{o.ref}}" width="26" height="26" aria-hidden="true" style="display: block; width: 52px; height: 52px; image-rendering: pixelated"></canvas>
+              </span>
+            </sc-for>
+          </div>
+        </div>
+        <sc-if value="{{hasMvp}}" hint-placeholder-val="{{ false }}">
+          <div style="width: 100%; box-sizing: border-box; margin: 2px; padding: 10px 14px 10px 10px; background: #1a1c2c; box-shadow: 0 -2px 0 0 #ffcd75, 0 2px 0 0 #ffcd75, -2px 0 0 0 #ffcd75, 2px 0 0 0 #ffcd75; display: flex; align-items: center; gap: 14px">
+            <span style="flex: none; width: 48px; height: 48px; background: #2f3d7a"><canvas ref="{{mvpRef}}" width="24" height="24" aria-hidden="true" style="display: block; width: 48px; height: 48px; image-rendering: pixelated"></canvas></span>
+            <span style="flex: 1; display: flex; flex-direction: column; gap: 8px">
+              <span style="font-size: 12px; line-height: 12px; letter-spacing: 1px; color: #ffcd75">DESTAQUE DA BATALHA</span>
+              <span style="font-size: 16px; line-height: 16px; font-weight: 700">{{mvpName}}</span>
+            </span>
+            <span style="flex: none; font-size: 13px; line-height: 13px; color: #c0cbdc">{{mvpDmg}}</span>
+          </div>
+        </sc-if>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <button type="button" onClick="{{start}}" style="margin: 2px; height: 58px; border: 0; border-radius: 0; background: #a7f070; color: #1a1c2c; font-family: 'Press Start 2P', monospace; font-size: 16px; line-height: 16px; cursor: pointer; box-shadow: 0 -2px 0 0 #f4f4f4, 0 2px 0 0 #f4f4f4, -2px 0 0 0 #f4f4f4, 2px 0 0 0 #f4f4f4, inset 0 -5px 0 0 #38b764, inset 0 2px 0 0 rgba(244,244,244,.5)" style-hover="filter: brightness(1.06)" style-active="transform: translateY(2px)">REVANCHE</button>
+        <button type="button" onClick="{{toMenu}}" style="margin: 2px; height: 46px; border: 0; border-radius: 0; background: #262b44; color: #f4f4f4; font-family: inherit; font-size: 14px; line-height: 14px; font-weight: 700; letter-spacing: 1px; cursor: pointer; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57, inset 0 -4px 0 0 #1d2035" style-hover="background: #333c57" style-active="transform: translateY(2px)">MENU INICIAL</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{showHelp}}" hint-placeholder-val="{{ false }}">
+    <div role="dialog" aria-label="Ajuda" style="position: absolute; inset: 0; background: #141625; display: flex; flex-direction: column">
+      <div style="height: 72px; flex: none; box-sizing: border-box; padding: 0 14px; display: flex; align-items: center; gap: 10px; box-shadow: inset 0 -2px 0 0 #262b44">
+        <div role="tablist" style="flex: 1; display: flex; gap: 10px">
+          <button type="button" role="tab" aria-selected="{{helpComo}}" onClick="{{setComo}}" style="margin: 2px; height: 36px; padding: 0 12px; border: 0; border-radius: 0; background: {{tabComo.bg}}; color: {{tabComo.col}}; font-family: inherit; font-size: 13px; line-height: 13px; font-weight: 700; letter-spacing: 1px; cursor: pointer; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57">COMO JOGAR</button>
+          <button type="button" role="tab" aria-selected="{{helpTipos}}" onClick="{{setTipos}}" style="margin: 2px; height: 36px; padding: 0 12px; border: 0; border-radius: 0; background: {{tabTipos.bg}}; color: {{tabTipos.col}}; font-family: inherit; font-size: 13px; line-height: 13px; font-weight: 700; letter-spacing: 1px; cursor: pointer; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57">TIPOS</button>
+        </div>
+        <button type="button" aria-label="Fechar (Esc)" onClick="{{closeHelp}}" style="flex: none; position: relative; width: 40px; height: 40px; margin: 2px; padding: 0; border: 0; border-radius: 0; background: #262b44; cursor: pointer; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57, inset 0 -4px 0 0 #1d2035" style-active="transform: translateY(2px)">
+          <span style="position: absolute; left: 10px; top: 10px; width: 2px; height: 2px; box-shadow: {{gl.close}}"></span>
+        </button>
+      </div>
+
+      <div style="flex: 1; min-height: 0; overflow-y: auto; box-sizing: border-box; padding: 20px 18px">
+        <sc-if value="{{helpComo}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 18px">
+            <div style="display: flex; gap: 14px; align-items: flex-start">
+              <span style="flex: none; position: relative; width: 40px; height: 40px; margin: 2px; background: #262b44; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57"><span style="position: absolute; left: 5px; top: 5px; width: 3px; height: 3px; box-shadow: {{gl.target}}"></span></span>
+              <span style="display: flex; flex-direction: column; gap: 7px; padding-top: 2px">
+                <span style="font-size: 15px; line-height: 15px; font-weight: 700; letter-spacing: .5px; color: #ffcd75">MOVA-SE</span>
+                <span style="font-size: 14px; line-height: 19px; color: #c0cbdc; text-wrap: pretty">Toque num ponto da arena e sua criatura vai até lá. Segure e arraste para guiar.</span>
+              </span>
+            </div>
+            <div style="display: flex; gap: 14px; align-items: flex-start">
+              <span style="flex: none; position: relative; width: 40px; height: 40px; margin: 2px; background: #262b44; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57"><span style="position: absolute; left: 5px; top: 5px; width: 3px; height: 3px; box-shadow: {{gl.golpe}}"></span></span>
+              <span style="display: flex; flex-direction: column; gap: 7px; padding-top: 2px">
+                <span style="font-size: 15px; line-height: 15px; font-weight: 700; letter-spacing: .5px; color: #ffcd75">OS GOLPES SAEM SOZINHOS</span>
+                <span style="font-size: 14px; line-height: 19px; color: #c0cbdc; text-wrap: pretty">Cada golpe dispara quando recarrega e o rival está ao alcance. Toque num golpe para que ele seja o próximo.</span>
+              </span>
+            </div>
+            <div style="display: flex; gap: 14px; align-items: flex-start">
+              <span style="flex: none; position: relative; width: 40px; height: 40px; margin: 2px; background: #262b44; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57"><span style="position: absolute; left: 5px; top: 5px; width: 3px; height: 3px; box-shadow: {{gl.tipo}}"></span></span>
+              <span style="display: flex; flex-direction: column; gap: 7px; padding-top: 2px">
+                <span style="font-size: 15px; line-height: 15px; font-weight: 700; letter-spacing: .5px; color: #ffcd75">TIPOS FAZEM DIFERENÇA</span>
+                <span style="font-size: 14px; line-height: 19px; color: #c0cbdc; text-wrap: pretty">O selo no golpe mostra o efeito contra o rival em campo: x2 é o dobro de dano, x0.5 a metade, x0 nada. Golpe do mesmo tipo da criatura causa 50% a mais.</span>
+              </span>
+            </div>
+            <div style="display: flex; gap: 14px; align-items: flex-start">
+              <span style="flex: none; position: relative; width: 40px; height: 40px; margin: 2px; background: #262b44; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57"><span style="position: absolute; left: 5px; top: 5px; width: 3px; height: 3px; box-shadow: {{gl.troca}}"></span></span>
+              <span style="display: flex; flex-direction: column; gap: 7px; padding-top: 2px">
+                <span style="font-size: 15px; line-height: 15px; font-weight: 700; letter-spacing: .5px; color: #ffcd75">TROQUE NA HORA CERTA</span>
+                <span style="font-size: 14px; line-height: 19px; color: #c0cbdc; text-wrap: pretty">Toque numa criatura do time para trocar. Seta verde: vantagem contra o rival em campo; seta vermelha: desvantagem. Entre trocas, espere 3 segundos.</span>
+              </span>
+            </div>
+            <div style="display: flex; gap: 14px; align-items: flex-start">
+              <span style="flex: none; position: relative; width: 40px; height: 40px; margin: 2px; background: #262b44; box-shadow: 0 -2px 0 0 #333c57, 0 2px 0 0 #333c57, -2px 0 0 0 #333c57, 2px 0 0 0 #333c57"><span style="position: absolute; left: 5px; top: 5px; width: 3px; height: 3px; box-shadow: {{gl.tatica}}"></span></span>
+              <span style="display: flex; flex-direction: column; gap: 7px; padding-top: 2px">
+                <span style="font-size: 15px; line-height: 15px; font-weight: 700; letter-spacing: .5px; color: #ffcd75">ESCOLHA A TÁTICA</span>
+                <span style="font-size: 14px; line-height: 19px; color: #c0cbdc; text-wrap: pretty">Define como sua criatura se move quando você não está guiando: avançar, manter distância, ficar firme ou esquivar.</span>
+              </span>
+            </div>
+            <div style="margin: 2px; padding: 14px; background: #1a1c2c; box-shadow: 0 -2px 0 0 #262b44, 0 2px 0 0 #262b44, -2px 0 0 0 #262b44, 2px 0 0 0 #262b44; display: flex; flex-direction: column; gap: 10px">
+              <span style="font-size: 12px; line-height: 12px; letter-spacing: 1px; color: #94b0c2">NO TECLADO</span>
+              <span style="font-size: 14px; line-height: 20px; color: #c0cbdc">WASD ou setas movem · 1 a 4 escolhem o golpe · Shift + 1 a 6 troca · Esc pausa</span>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{helpTipos}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 16px">
+            <span style="font-size: 14px; line-height: 19px; color: #c0cbdc; text-wrap: pretty">Linha: tipo do golpe. Coluna: tipo de quem recebe.</span>
+            <div style="display: flex; flex-direction: column; gap: 3px">
+              <div style="display: flex; gap: 3px">
+                <span style="flex: none; width: 86px"></span>
+                <sc-for list="{{chartHead}}" as="h" hint-placeholder-count="7">
+                  <span role="img" aria-label="{{h.label}}" style="flex: 1; height: 30px; display: flex; align-items: center; justify-content: center; background: {{h.bg}}"><span style="position: relative; display: block; width: 16px; height: 16px"><span style="position: absolute; left: -2px; top: -2px; width: 2px; height: 2px; box-shadow: {{h.ico}}"></span></span></span>
+                </sc-for>
+              </div>
+              <sc-for list="{{chart}}" as="r" hint-placeholder-count="7">
+                <div style="display: flex; gap: 3px">
+                  <span style="flex: none; width: 86px; height: 30px; box-sizing: border-box; padding: 0 6px; display: flex; align-items: center; gap: 5px; background: {{r.bg}}; color: #1a1c2c; font-size: 12px; line-height: 12px; font-weight: 700">
+                    <span style="position: relative; flex: none; display: block; width: 8px; height: 8px"><span style="position: absolute; left: -1px; top: -1px; width: 1px; height: 1px; box-shadow: {{r.ico}}"></span></span>
+                    {{r.label}}
+                  </span>
+                  <sc-for list="{{r.cells}}" as="c" hint-placeholder-count="7">
+                    <span style="flex: 1; height: 30px; display: flex; align-items: center; justify-content: center; background: {{c.bg}}; color: {{c.col}}; font-size: 12px; line-height: 12px; font-weight: 700">{{c.text}}</span>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; line-height: 13px; color: #c0cbdc">
+              <span style="display: flex; align-items: center; gap: 6px"><span style="padding: 3px 4px; background: #ffcd75; color: #1a1c2c; font-weight: 700; font-size: 12px; line-height: 12px">2x</span>super eficaz</span>
+              <span style="display: flex; align-items: center; gap: 6px"><span style="padding: 3px 4px; background: #333c57; color: #c0cbdc; font-weight: 700; font-size: 12px; line-height: 12px">.5x</span>pouco eficaz</span>
+              <span style="display: flex; align-items: center; gap: 6px"><span style="padding: 3px 4px; background: #b13e53; color: #f4f4f4; font-weight: 700; font-size: 12px; line-height: 12px">0x</span>sem efeito</span>
+            </div>
+            <span style="font-size: 14px; line-height: 19px; color: #c0cbdc; text-wrap: pretty">Criaturas com dois tipos multiplicam os valores. Pedrisco é rocha e planta: fogo faz 0.5x em rocha e 2x em planta, então causa dano normal (1x).</span>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="flex: none; padding: 14px 16px 18px; box-shadow: inset 0 2px 0 0 #262b44">
+        <button type="button" onClick="{{closeHelp}}" style="width: calc(100% - 4px); margin: 2px; height: 52px; border: 0; border-radius: 0; background: #a7f070; color: #1a1c2c; font-family: 'Press Start 2P', monospace; font-size: 14px; line-height: 14px; cursor: pointer; box-shadow: 0 -2px 0 0 #f4f4f4, 0 2px 0 0 #f4f4f4, -2px 0 0 0 #f4f4f4, 2px 0 0 0 #f4f4f4, inset 0 -5px 0 0 #38b764" style-active="transform: translateY(2px)">ENTENDI</button>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;difficulty&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;fácil&quot;,&quot;normal&quot;,&quot;difícil&quot;],&quot;default&quot;:&quot;normal&quot;,&quot;tsType&quot;:&quot;'fácil' | 'normal' | 'difícil'&quot;,&quot;section&quot;:&quot;Jogo&quot;},&quot;assist&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Jogo&quot;},&quot;speed&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0.75,&quot;max&quot;:1.5,&quot;step&quot;:0.05,&quot;default&quot;:1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Jogo&quot;}}">
+class Component extends DCLogic {
+  state = { t: 0, scale: 1, K: 2, help: null };
+
+  init() {
+    if (this.g) return;
+    var self = this;
+    var mv = function (name, type, power, cd, range, extra) { return Object.assign({ name: name, type: type, power: power, cd: cd, range: range }, extra || {}); };
+    var hit = function () { return mv('Investida', 'normal', 35, 2.0, 23, { melee: true, anim: 'slash' }); };
+    this.D = {
+      W: 400, H: 310,
+      AR: { cx: 200, yb: 150, yf: 280, wb: 270, wf: 350, X: 320, Z: 130, x0: 12, x1: 308, z0: 6, z1: 124, hb: 70, hf: 90, zMin: 1.3, zMax: 2.4 },
+      TC: { agua: '#41a6f6', fogo: '#ef7d57', planta: '#a7f070', eletrico: '#ffcd75', rocha: '#94b0c2', ar: '#73eff7', normal: '#f4f4f4' },
+      TL: { agua: 'ÁGUA', fogo: 'FOGO', planta: 'PLANTA', eletrico: 'ELÉTRICO', rocha: 'ROCHA', ar: 'AR', normal: 'NORMAL' },
+      TINT: { agua: '#1f3566', fogo: '#46213c', planta: '#173f45', eletrico: '#463826', rocha: '#2b3451', ar: '#1b4260', normal: '#30344d' },
+      TYPES: ['normal', 'fogo', 'agua', 'planta', 'eletrico', 'rocha', 'ar'],
+      RAMP: { normal: ['#f4f4f4', '#c0cbdc', '#94b0c2'], agua: ['#73eff7', '#41a6f6', '#3b5dc9'], fogo: ['#ffcd75', '#ef7d57', '#b13e53'], planta: ['#a7f070', '#38b764', '#257179'], eletrico: ['#f4f4f4', '#ffcd75', '#ef7d57'], rocha: ['#f4f4f4', '#94b0c2', '#566c86'], ar: ['#f4f4f4', '#73eff7', '#41a6f6'] },
+      EFF: {
+        agua: { fogo: 2, rocha: 0.5, agua: 0.5, planta: 0.5 },
+        fogo: { planta: 2, agua: 0.5, rocha: 0.5, fogo: 0.5 },
+        planta: { agua: 2, rocha: 2, fogo: 0.5, planta: 0.5, ar: 0.5 },
+        eletrico: { agua: 2, ar: 2, eletrico: 0.5, planta: 0.5, rocha: 0 },
+        rocha: { fogo: 2, eletrico: 2, ar: 2, planta: 0.5, rocha: 0.5 },
+        ar: { planta: 2, eletrico: 0.5, rocha: 0.5 },
+        normal: { rocha: 0.5 }
+      },
+      SHEET: { src: '/_blob/e19be4fbcf47d7118afaa4f4256df2e3', cw: 56, ch: 32, ax: 24, fy: 30, portrait: 21 },
+      ANIM: {
+        idle: { f: [0, 1, 2, 3], d: 0.22, loop: true },
+        walk: { f: [4, 5, 6, 7], d: 0.11, loop: true },
+        slash: { f: [8, 9, 10, 11], d: 0.08 },
+        shoot: { f: [12, 13, 14, 15], d: 0.08 },
+        buff: { f: [16, 17, 16], d: 0.2 },
+        hurt: { f: [18], d: 0.28 },
+        ko: { f: [19], d: 1, loop: true },
+        win: { f: [20], d: 1, loop: true }
+      },
+      SP: {
+        perereca: { name: 'Briserecs', type: 'ar', types: ['ar'], hp: 100, atk: 14, def: 12, spd: 59, sheetable: true,
+          pal: [null, '#1a1c2c', '#f4f4f4', '#73eff7', '#41a6f6', '#3b5dc9', '#ef7d57'],
+          spr: ['000000000000000000000000', '000000000000000000000000', '000000000000000000000000', '000000000000000000000000', '000111100011110000000000', '001222210122221000000000', '001112210111221000000000', '001112311111233100000000', '013333333333333311000000', '013333333333333344101110', '133333333333333344112221', '136633333333333444122231', '133333333333334444112331', '111111133333334444411110', '012222211333344444410000', '012222221333344454441000', '001222221333444454441000', '001322221334444544441000', '001332213344444544441000', '014111133444445544451000', '014441444444455444551000', '144441444411144445551000', '111111111110011111111000', '000000000000000000000000'],
+          moves: [mv('Ventania', 'ar', 45, 2.5, 95, { anim: 'slash' }), mv('Bolha', 'ar', 28, 1.6, 75, { anim: 'shoot' }), hit(), mv('Brisa', 'ar', 0, 6.0, 499, { buff: 'def', buffAmt: 6, buffDur: 3, anim: 'buff' })] },
+        gotinha: { name: 'Gotinha', type: 'agua', hp: 105, atk: 13, def: 13, spd: 55,
+          pal: [null, '#1a1c2c', '#73eff7', '#41a6f6', '#f4f4f4', '#3b5dc9', '#ef7d57'],
+          spr: ['000000000000000000000000', '000000000000110000000000', '000000000001221000000000', '000000000001221000000000', '000000000012223100000000', '000000000122223100000000', '000000001222233310000000', '000000001222333310000000', '000000012223333331000000', '000000122223333331000000', '000001222233333333100000', '000001222333333333310000', '000012223333333333331000', '000122214333314333335100', '000122211333311333335100', '000122311333311333335100', '000122333333333333335100', '000126333333333363355100', '000152333311333333555100', '000015333333333335551000', '000001533333333355510000', '000000155553555555100000', '000000015555555551000000', '000000001111511110000000'],
+          moves: [mv('Jato', 'agua', 45, 2.5, 95), mv('Gota', 'agua', 28, 1.6, 75), hit(), mv('Aqua Muro', 'agua', 0, 6.0, 499, { buff: 'def', buffAmt: 6, buffDur: 3 })] },
+        brasino: { name: 'Brasino', type: 'fogo', hp: 95, atk: 16, def: 10, spd: 61,
+          pal: [null, '#1a1c2c', '#b13e53', '#ef7d57', '#ffcd75', '#f4f4f4', '#1a1c2c', '#f4f4f4'],
+          spr: ['000000001014410100000000', '000000014114411410000000', '000000014145541410000000', '000000144445544441000000', '000000145445544541000000', '000001445455554544100000', '000001445455554544100000', '000001444444444444100000', '000001134333333333110000', '000013444443333333321000', '000134444444333333322100', '001333674443673333322210', '001333664333663333322210', '013333663333663333322221', '013333663333663333222221', '013333333333333332222221', '013344333333334422222221', '001333331113333222222210', '001222223132222222222210', '000122222222222222222100', '000012222222222222221000', '000001222222222222110000', '000001222112221222100000', '000000111001110111000000'],
+          moves: [mv('Labareda', 'fogo', 50, 2.8, 88), mv('Brasa', 'fogo', 30, 1.8, 68), hit(), mv('Fervor', 'fogo', 0, 5.5, 499, { buff: 'atk', buffAmt: 5, buffDur: 3 })] },
+        brotinho: { name: 'Brotinho', type: 'planta', hp: 110, atk: 12, def: 14, spd: 50,
+          pal: [null, '#1a1c2c', '#a7f070', '#38b764', '#257179', '#ffcd75', '#f4f4f4'],
+          spr: ['000000000000000000000000', '000000000000000000000000', '000000000000000111000000', '000000111000011222110000', '000011222110122222221000', '000122222221122223344100', '001222223312412334444100', '001442334412414444441000', '000144444411111444110000', '000011441155555111000000', '000000115555555551100000', '000001555555222225510000', '000015555522222222251000', '000015516222216222221000', '000155511222211222223100', '000155511222211222223100', '000155222222222222233100', '000155222222222222233100', '000015222211222222331000', '000013312222222213331000', '000001121122221121110000', '000014244413314244410000', '000014444413314444410000', '000001141101101141100000'],
+          moves: [mv('Folhada', 'planta', 45, 2.6, 90), mv('Semente', 'planta', 28, 1.7, 75), hit(), mv('Raiz', 'planta', 0, 6.0, 499, { buff: 'def', buffAmt: 6, buffDur: 3 })] },
+        faisca: { name: 'Faísca', type: 'eletrico', hp: 90, atk: 15, def: 10, spd: 64,
+          pal: [null, '#1a1c2c', '#ffcd75', '#ef7d57', '#f4f4f4', '#333c57'],
+          spr: ['000000000000111000000000', '000000000001233100000000', '000000000012222100000000', '000000000012221100000000', '000000000132233310000000', '000000000011133100000000', '000000000111211100000000', '000000001222222210000000', '000001112222222221110000', '000012222222222222221000', '000122222222222222222100', '001222222222222222222310', '001222222222222222223310', '001222214222214222222310', '000122211222211222222100', '001222211222211222222210', '001222222222222222222310', '012222222212122222222331', '001323222221222223233310', '001333332222222333333310', '000113133333333333131100', '000001011333333311010000', '000000155111111155100000', '000000155510001555100000'],
+          moves: [mv('Raio', 'eletrico', 48, 2.6, 90), mv('Choque', 'eletrico', 28, 1.5, 75), hit(), mv('Carga', 'eletrico', 0, 5.5, 499, { buff: 'atk', buffAmt: 5, buffDur: 3 })] },
+        pedrisco: { name: 'Pedrisco', type: 'rocha', types: ['rocha', 'planta'], hp: 120, atk: 14, def: 16, spd: 46,
+          pal: [null, '#1a1c2c', '#a7f070', '#257179', '#94b0c2', '#566c86', '#333c57', '#f4f4f4'],
+          spr: ['000000000000000000000000', '000000000000000000000000', '000000000000000000000000', '000000000001000100000000', '000000001112111211000000', '000000012222222333100000', '000000133323333333100000', '000000113333333311100000', '000001441113111155510000', '000014444551555555561000', '000144445555555555551000', '000144455555555555551000', '001444517555517555556100', '001444511555511555556100', '001445511555511555556100', '001446555555555655556100', '001445555555555655566100', '001645555111155555566100', '000145555555555555661000', '000015555555555556661000', '000016666666666666610000', '000001666666666666100000', '000000111111111111000000', '000000000000000000000000'],
+          moves: [mv('Pedrada', 'rocha', 50, 3.0, 85), mv('Cascalho', 'rocha', 30, 1.9, 70), hit(), mv('Casca', 'rocha', 0, 6.0, 499, { buff: 'def', buffAmt: 7, buffDur: 3 })] }
+      },
+      ICON: { agua: ['...##...', '...##...', '..####..', '.######.', '.######.', '.######.', '..####..', '........'], fogo: ['...#....', '..##....', '..###.#.', '.######.', '.######.', '########', '.######.', '..####..'], planta: ['.##..##.', '###..###', '###..###', '.######.', '...##...', '...##...', '...##...', '........'], eletrico: ['....##..', '...##...', '..##....', '.######.', '....##..', '...##...', '..##....', '........'], rocha: ['........', '...##...', '..####..', '.######.', '########', '########', '.######.', '........'], ar: ['..###...', '.#...#..', '.....#..', '#####...', '........', '#######.', '.......#', '.....##.'], normal: ['...##...', '...##...', '########', '.######.', '..####..', '.##..##.', '.#....#.', '........'] },
+      GLYPH: {
+        up: ['..#..', '.###.', '#####'],
+        down: ['#####', '.###.', '..#..'],
+        close: ['##....##', '###..###', '.######.', '..####..', '..####..', '.######.', '###..###', '##....##'],
+        target: ['..####..', '.#....#.', '#..##..#', '#.####.#', '#.####.#', '#..##..#', '.#....#.', '..####..'],
+        golpe: ['........', '........', '....###.', '##.#####', '...#####', '##.#####', '....###.', '........'],
+        troca: ['..#.....', '.##.....', '#######.', '.##.....', '.....##.', '.#######', '.....##.', '.....#..'],
+        perseguir: ['#...#...', '##..##..', '.##..##.', '..##..##', '.##..##.', '##..##..', '#...#...', '........'],
+        manter: ['........', '..#..#..', '.##..##.', '########', '.##..##.', '..#..#..', '........', '........'],
+        parado: ['........', '.######.', '.#....#.', '.#.##.#.', '.#.##.#.', '.#....#.', '.######.', '........'],
+        evasivo: ['...#....', '..##....', '.#######', '########', '.#######', '..##....', '...#....', '........']
+      },
+      PARTY: ['perereca', 'gotinha', 'brasino', 'brotinho', 'faisca', 'pedrisco'],
+      RIVAL: ['brasino', 'faisca', 'pedrisco', 'brotinho'],
+      FONT: {
+        A:'010101111101101',B:'110101110101110',C:'011100100100011',D:'110101101101110',E:'111100110100111',
+        F:'111100110100100',G:'011100101101011',H:'101101111101101',I:'111010010010111',J:'001001001101010',
+        K:'101101110101101',L:'100100100100111',M:'101111111101101',N:'110101101101101',O:'010101101101010',
+        P:'110101110100100',Q:'010101101110011',R:'110101110101101',S:'011100010001110',T:'111010010010010',
+        U:'101101101101111',V:'101101101101010',W:'101101111111101',X:'101101010101101',Y:'101101010010010',
+        Z:'111001010100111','0':'111101101101111','1':'010110010010111','2':'110001010100111','3':'110001010001110',
+        '4':'101101111001001','5':'111100110001110','6':'011100111101111','7':'111001010010010','8':'111101111101111',
+        '9':'111101111001110','!':'010010010000010','+':'000010111010000','-':'000000111000000','.':'000000000000010',
+        ',':'000000000010100'
+      },
+      STANCES: [['perseguir', 'AVANÇAR', 'Vai pra cima e luta de perto.'], ['manter', 'DISTÂNCIA', 'Fica a meia distância e ataca de longe.'], ['parado', 'FIRME', 'Não se move; ataca o que estiver ao alcance.'], ['evasivo', 'ESQUIVAR', 'Foge do rival e ataca quando dá.']]
+    };
+    var SP = this.D.SP;
+    Object.keys(SP).forEach(function (k) { var s = SP[k]; s.types = s.types || [s.type]; self.measure(s); });
+    this.pressed = { u: false, d: false, l: false, r: false };
+    this.g = { screen: 'title', stance: 'perseguir', party: [], rival: [], pi: 0, ri: 0, proj: [], parts: [], texts: [], forced: -1, winner: -1, overT: 0, shake: 0, swCD: 0, sw: null, msg: '', msgT: 0, msgCol: '#f4f4f4', nextT: 0, chooseT: 0, readyT: 0, time: 0, touch: null, way: null, fallen: '', cam: { x: 200, y: 200, z: 1.35 }, attT: 0 };
+    this.sprites = {}; this.pc = {}; this.refs = {}; this.iconCache = {};
+    this.bg = null; this.sheet = null; this.sheetW = null; this.sheetG = null;
+    this.muted = false; this.seenHint = false;
+    try { this.muted = localStorage.getItem('vdc-arena-mute') === '1'; this.seenHint = localStorage.getItem('vdc-arena-hint') === '1'; } catch (e) {}
+    if (typeof Image !== 'undefined') {
+      var im = new Image();
+      im.onload = function () {
+        var tint = function (col) {
+          var w = document.createElement('canvas'); w.width = im.width; w.height = im.height;
+          var wx = w.getContext('2d'); wx.drawImage(im, 0, 0);
+          wx.globalCompositeOperation = 'source-in'; wx.fillStyle = col; wx.fillRect(0, 0, w.width, w.height);
+          return w;
+        };
+        self.sheet = im; self.sheetW = tint('#f4f4f4'); self.sheetG = tint('#333c57');
+        var s = SP.perereca; s.sheet = true; s.h = 22; s.foot = 0;
+        self.pcSig = {}; self.paintPortraits();
+      };
+      im.src = this.D.SHEET.src;
+    }
+    var tap = function (fn) {
+      return {
+        down: function (ev) { if (ev && ev.pointerType === 'mouse' && ev.button !== 0) return; if (ev && ev.preventDefault) ev.preventDefault(); fn(); },
+        click: function (ev) { if (ev && ev.detail === 0) fn(); }
+      };
+    };
+    this.H = {
+      setCv: function (el) { self.cv = el; if (el) self.draw(); },
+      arenaDown: function (ev) { self.touchAt(ev, true); },
+      arenaMove: function (ev) { if (self.g.touch) self.touchAt(ev, false); },
+      arenaUp: function () { var g = self.g; if (g.touch) { g.way = { x: g.touch.x, y: g.touch.y }; g.touch = null; } },
+      start: function () { self.start(); },
+      pause: function () { self.pauseGame(); },
+      resume: function () { self.resume(); },
+      toMenu: function () { self.toMenu(); },
+      toggleMute: function () { self.toggleMute(); },
+      openHow: function () { self.sfx('tap'); self.setState({ help: 'como' }); },
+      openTypes: function () { self.sfx('tap'); self.setState({ help: 'tipos' }); },
+      setComo: function () { self.setState({ help: 'como' }); },
+      setTipos: function () { self.setState({ help: 'tipos' }); },
+      closeHelp: function () { self.setState({ help: null }); },
+      moves: [0, 1, 2, 3].map(function (i) { return tap(function () { self.queueMove(i); }); }),
+      bench: [0, 1, 2, 3, 4, 5].map(function (i) { return tap(function () { self.trySwitch(i); }); }),
+      pick: [0, 1, 2, 3, 4, 5].map(function (i) { return function () { self.trySwitch(i); }; }),
+      stance: this.D.STANCES.map(function (s) { return tap(function () { self.setStance(s[0]); }); })
+    };
+    this.newBattle();
+  }
+
+  measure(s) {
+    var first = -1, last = -1, left = 99, right = -1;
+    s.spr.forEach(function (row, i) {
+      if (/[^0]/.test(row)) { if (first < 0) first = i; last = i; }
+      for (var j = 0; j < row.length; j++) if (row[j] !== '0') { if (j < left) left = j; if (j > right) right = j; }
+    });
+    s.foot = last; s.h = last - first + 1; s.top = first; s.cx = (left + right + 1) / 2;
+  }
+
+  kick() { this.setState({ t: Math.random() }); }
+  me() { return this.g.party[this.g.pi]; }
+  foe() { return this.g.rival[this.g.ri]; }
+  actives() { return [this.me(), this.foe()]; }
+
+  refFor(key) {
+    var self = this;
+    if (!this.refs[key]) this.refs[key] = function (el) {
+      if (el) { self.pc[key] = el; el._sig = ''; self.paintOne(key); } else delete self.pc[key];
+    };
+    return this.refs[key];
+  }
+
+  resolve(key) {
+    var g = this.g;
+    if (key === 'E') return [this.foe(), false];
+    if (key === 'P') return [this.me(), true];
+    if (key === 'mvp') return [this.mvp(), true, true];
+    var m = /^(b|t|o|ch|tr)(\d)$/.exec(key);
+    if (!m) return [null, false];
+    if (m[1] === 'tr') return [g.rival[+m[2]], false];
+    return [g.party[+m[2]], true];
+  }
+
+  paintOne(key) {
+    var el = this.pc[key];
+    if (!el || !this.g) return;
+    var r = this.resolve(key), c = r[0];
+    var dead = c && c.dead && !r[2];
+    var sig = c ? c.id + (dead ? 'x' : 'o') + (c.sp.sheet ? 's' : '') + (r[1] ? 'R' : 'L') : '-';
+    if (el._sig === sig) return;
+    el._sig = sig;
+    this.paintP(el, c, r[1], dead);
+  }
+
+  paintPortraits() { for (var k in this.pc) this.paintOne(k); }
+
+  paintP(el, c, faceRight, dead) {
+    var x = el.getContext && el.getContext('2d');
+    if (!x) return;
+    var S = el.width;
+    x.imageSmoothingEnabled = false;
+    x.clearRect(0, 0, S, S);
+    if (!c) return;
+    var sp = c.sp;
+    if (sp.sheet && this.sheet) {
+      var SH = this.D.SHEET, img = dead ? this.sheetG : this.sheet;
+      var sy = SH.fy - sp.h - Math.floor((S - sp.h) / 2);
+      var sx = SH.portrait * SH.cw + SH.ax - Math.floor(S / 2);
+      if (faceRight) x.drawImage(img, sx, sy, S, S, 0, 0, S, S);
+      else { x.save(); x.scale(-1, 1); x.drawImage(img, sx, sy, S, S, -S, 0, S, S); x.restore(); }
+      return;
+    }
+    var N = sp.spr.length;
+    var center = faceRight ? N - sp.cx : sp.cx;
+    x.drawImage(this.sprite(c.id, faceRight, dead ? '#333c57' : false), Math.round(S / 2 - center), Math.round((S - sp.h) / 2) - sp.top);
+  }
+
+  mvp() {
+    var best = null;
+    this.g.party.forEach(function (c) { if (c.dealt > 0 && (!best || c.dealt > best.dealt)) best = c; });
+    return best;
+  }
+
+  touchAt(ev, first) {
+    if (!this.cv || !ev || this.g.screen !== 'play') return;
+    if (ev.preventDefault) ev.preventDefault();
+    if (first && ev.currentTarget && ev.currentTarget.setPointerCapture && ev.pointerId != null) { try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (e) {} }
+    var r = this.cv.getBoundingClientRect();
+    if (!r.width) return;
+    var cam = this.g.cam, cssX = (ev.clientX - r.left) / r.width * 390, cssY = (ev.clientY - r.top) / r.height * 336;
+    var tx = cam.x + (cssX - 195) / cam.z, ty = cam.y + (cssY - 168) / cam.z;
+    var A = this.D.AR, w = this.unproj(tx, ty + 4);
+    this.g.touch = { x: Math.max(A.x0, Math.min(A.x1, w.x)), y: Math.max(A.z0, Math.min(A.z1, w.y)) };
+    this.g.way = null;
+    if (first && !this.seenHint) { this.seenHint = true; try { localStorage.setItem('vdc-arena-hint', '1'); } catch (e) {} }
+  }
+
+  mkC(id, team) {
+    var sp = this.D.SP[id];
+    var d = this.props.difficulty || 'normal';
+    var am = team === 1 ? (d === 'fácil' ? 0.8 : d === 'difícil' ? 1.2 : 1) : 1;
+    var hm = team === 1 ? (d === 'fácil' ? 0.9 : d === 'difícil' ? 1.1 : 1) : 1;
+    var hp = Math.round(sp.hp * hm);
+    return {
+      id: id, sp: sp, team: team, name: sp.name, type: sp.type, types: sp.types,
+      hp: hp, maxHp: hp, hpLag: hp, lagT: 0, atk: Math.round(sp.atk * am), def: sp.def, spd: sp.spd,
+      x: team === 0 ? 115 : 205, y: 70, alt: 0, vx: 0, vy: 0, facing: team === 0 ? 1 : -1, stance: 'perseguir',
+      moves: sp.moves.map(function (m) { return Object.assign({}, m, { timer: 0, firedT: 0 }); }),
+      gcd: 0, gcdMax: 1, castT: 0, flashT: 0, inT: 0, dealt: 0,
+      buffType: null, buffAmt: 0, buffTimer: 0, animT: team * 0.3, dead: false,
+      act: null, actT: 0
+    };
+  }
+
+  newBattle() {
+    var g = this.g, self = this;
+    g.party = this.D.PARTY.map(function (id) { return self.mkC(id, 0); });
+    g.rival = this.D.RIVAL.map(function (id) { return self.mkC(id, 1); });
+    g.pi = 0; g.ri = 0;
+    g.proj = []; g.parts = []; g.texts = [];
+    g.forced = -1; g.winner = -1; g.overT = 0; g.shake = 0;
+    g.swCD = 0; g.sw = null; g.msg = ''; g.msgT = 0; g.nextT = 0; g.chooseT = 0;
+    g.time = 0; g.touch = null; g.way = null; g.fallen = '';
+    this.me().inT = 0.3; this.foe().inT = 0.3;
+    for (var k in this.pc) if (this.pc[k]) this.pc[k]._sig = '';
+  }
+
+  start() {
+    this.ensureAudio();
+    this.newBattle();
+    this.g.screen = 'ready'; this.g.readyT = 1.5;
+    this.g.cam = { x: this.D.AR.cx, y: 195, z: 1.3 };
+    for (var q = 0; q < 4; q++) this.pressed['udlr'[q]] = false;
+    this.sfx('ready');
+    this.setState({ help: null });
+  }
+
+  pauseGame() {
+    var g = this.g;
+    if (g.screen !== 'play') return;
+    g.screen = 'pause'; g.touch = null;
+    for (var q = 0; q < 4; q++) this.pressed['udlr'[q]] = false;
+    this.sfx('tap'); this.kick();
+  }
+
+  resume() {
+    if (this.g.screen !== 'pause') return;
+    this.g.screen = 'play'; this.last = performance.now();
+    this.sfx('tap'); this.setState({ help: null });
+  }
+
+  toMenu() { this.newBattle(); this.g.screen = 'title'; this.setState({ help: null }); }
+
+  toggleMute() {
+    this.muted = !this.muted;
+    try { localStorage.setItem('vdc-arena-mute', this.muted ? '1' : '0'); } catch (e) {}
+    this.ensureAudio(); this.sfx('tap'); this.kick();
+  }
+
+  queueMove(i) {
+    var g = this.g;
+    if (g.screen !== 'play') return;
+    g.forced = g.forced === i ? -1 : i;
+    this.sfx('tap'); this.kick();
+  }
+
+  setStance(id) {
+    if (this.g.stance !== id) { this.g.stance = id; this.sfx('tap'); }
+    this.kick();
+  }
+
+  say(s, col) { this.g.msg = s; this.g.msgT = 1.8; this.g.msgCol = col || '#f4f4f4'; }
+
+  place(c, from) {
+    c.x = from ? from.x : (c.team === 0 ? 115 : 205);
+    c.y = from ? from.y : 70;
+    c.vx = 0; c.vy = 0; c.act = null; c.inT = 0.3; c.gcd = 0.6; c.gcdMax = 0.6;
+    this.burstAt(c, 6, '#f4f4f4', 10);
+  }
+
+  trySwitch(i) {
+    var g = this.g, c = g.party[i];
+    if (!c || c.dead || i === g.pi) return;
+    if (g.screen === 'choose') {
+      g.pi = i; this.place(c, null); g.screen = 'play'; g.forced = -1; g.way = null; this.last = performance.now();
+      this.say('VAI, ' + c.name.toUpperCase() + '!', '#a7f070'); this.sfx('switch'); this.kick(); return;
+    }
+    if (g.screen !== 'play' || g.sw || g.swCD > 0 || g.winner >= 0 || g.chooseT > 0 || this.me().dead) return;
+    var old = this.me();
+    g.sw = { t: 0.3, to: i };
+    old.flashT = 0.3;
+    this.burstAt(old, 6, '#f4f4f4', 8);
+    this.say(old.name.toUpperCase() + ', VOLTA!');
+    this.sfx('switch'); this.kick();
+  }
+
+  enterChoose() {
+    var g = this.g, alive = [];
+    g.party.forEach(function (c, i) { if (!c.dead) alive.push(i); });
+    if (alive.length === 1) {
+      g.pi = alive[0]; this.place(this.me(), null); g.forced = -1; g.way = null;
+      this.say('ÚLTIMA CHANCE: ' + this.me().name.toUpperCase() + '!', '#ffcd75'); this.sfx('switch');
+      return;
+    }
+    g.screen = 'choose'; g.touch = null; g.way = null;
+    for (var q = 0; q < 4; q++) this.pressed['udlr'[q]] = false;
+    this.kick();
+  }
+
+  play(c, name) {
+    if (!c.sp.sheet || !name) return;
+    if (c.act && c.act !== 'hurt' && name === 'hurt') return;
+    c.act = name; c.actT = 0;
+  }
+
+  frameOf(c) {
+    var A = this.D.ANIM, name, t;
+    if (c.dead) { name = 'ko'; t = 0; }
+    else if (this.g.winner === c.team) { name = 'win'; t = 0; }
+    else if (c.act) { name = c.act; t = c.actT; }
+    else { name = Math.abs(c.vx) + Math.abs(c.vy) > 6 ? 'walk' : 'idle'; t = c.animT; }
+    var a = A[name], i = Math.floor(t / a.d);
+    return a.f[a.loop ? i % a.f.length : Math.min(i, a.f.length - 1)];
+  }
+
+  componentDidMount() {
+    this.init();
+    var self = this;
+    this.last = performance.now();
+    this.hudT = 0;
+    var step = function (ts) {
+      var dt = Math.min(0.05, Math.max(0, (ts - self.last) / 1000));
+      self.last = ts;
+      var g = self.g, spd = +(self.props.speed != null ? self.props.speed : 1) || 1;
+      if (g.screen === 'play') self.update(dt * spd);
+      else if (g.screen === 'ready') {
+        g.readyT -= dt; self.fx(dt);
+        if (g.readyT <= 0) { g.screen = 'play'; self.say('VAI, ' + self.me().name.toUpperCase() + '!', '#a7f070'); self.sfx('go'); self.kick(); }
+      }
+      else if (g.screen !== 'pause') self.fx(dt);
+      if (g.screen !== 'pause') self.camera(dt);
+      self.draw();
+      self.hudT += dt;
+      if ((g.screen === 'play' || g.screen === 'ready') && self.hudT > 0.08) { self.hudT = 0; self.kick(); }
+      self.raf = requestAnimationFrame(step);
+    };
+    this.raf = requestAnimationFrame(step);
+    this.onResize = function () { self.fit(); };
+    this.onKeyDown = function (ev) { self.onKey(ev, true); };
+    this.onKeyUp = function (ev) { self.onKey(ev, false); };
+    this.onVis = function () { if (document.hidden) self.pauseGame(); };
+    window.addEventListener('resize', this.onResize);
+    window.addEventListener('keydown', this.onKeyDown);
+    window.addEventListener('keyup', this.onKeyUp);
+    document.addEventListener('visibilitychange', this.onVis);
+    this.fit();
+  }
+
+  componentWillUnmount() {
+    if (this.raf) cancelAnimationFrame(this.raf);
+    window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('keydown', this.onKeyDown);
+    window.removeEventListener('keyup', this.onKeyUp);
+    document.removeEventListener('visibilitychange', this.onVis);
+  }
+
+  componentDidUpdate() { this.paintPortraits(); }
+
+  fit() {
+    var w = window.innerWidth, h = window.innerHeight;
+    if (!w || !h) return;
+    var s = Math.min(w / 390, h / 844);
+    s = s >= 1 ? Math.max(1, Math.floor(s * 2) / 2) : s;
+    var K = Math.max(2, Math.min(4, Math.ceil((window.devicePixelRatio || 1) * s - 0.01)));
+    if (Math.abs(s - this.state.scale) > 0.001 || K !== this.state.K) this.setState({ scale: s, K: K });
+  }
+
+  onKey(ev, down) {
+    var g = this.g, k = ev.key, code = ev.code;
+    var map = { ArrowUp: 'u', KeyW: 'u', ArrowDown: 'd', KeyS: 'd', ArrowLeft: 'l', KeyA: 'l', ArrowRight: 'r', KeyD: 'r' };
+    var dir = map[code];
+    if (dir) {
+      if (g.screen === 'play' && !this.state.help) { this.pressed[dir] = down; if (down) g.way = null; ev.preventDefault(); }
+      else if (!down) this.pressed[dir] = false;
+      return;
+    }
+    if (!down || ev.repeat) return;
+    var onButton = ev.target && ev.target.tagName === 'BUTTON';
+    if ((k === 'Enter' || code === 'Space') && onButton) return;
+    if (this.state.help) { if (k === 'Escape') { ev.preventDefault(); this.setState({ help: null }); } return; }
+    var n = /^Digit([1-6])$/.exec(code), num = n ? +n[1] : 0;
+    if (g.screen === 'title') { if (k === 'Enter' || code === 'Space') { ev.preventDefault(); this.start(); } return; }
+    if (g.screen === 'play') {
+      if (k === 'Escape' || code === 'KeyP') { ev.preventDefault(); this.pauseGame(); return; }
+      if (num) { ev.preventDefault(); if (ev.shiftKey) this.trySwitch(num - 1); else if (num <= 4) this.queueMove(num - 1); }
+      return;
+    }
+    if (g.screen === 'pause') { if (k === 'Escape' || code === 'KeyP') { ev.preventDefault(); this.resume(); } return; }
+    if (g.screen === 'choose') { if (num) { ev.preventDefault(); this.trySwitch(num - 1); } return; }
+    if (g.screen === 'over') { if (k === 'Enter' || code === 'Space') { ev.preventDefault(); this.start(); } }
+  }
+
+  ensureAudio() {
+    if (this.ac) { if (this.ac.state === 'suspended') this.ac.resume(); return; }
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try { this.ac = new AC(); } catch (e) {}
+  }
+
+  tone(f1, f2, dur, type, vol, delay) {
+    var A = this.ac;
+    if (!A) return;
+    var t0 = A.currentTime + (delay || 0);
+    var o = A.createOscillator(), gn = A.createGain();
+    o.type = type || 'square';
+    o.frequency.setValueAtTime(f1, t0);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+    gn.gain.setValueAtTime(vol || 0.04, t0);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(gn); gn.connect(A.destination);
+    o.start(t0); o.stop(t0 + dur + 0.02);
+  }
+
+  sfx(name) {
+    if (this.muted || !this.ac) return;
+    var self = this, T = function (a, b, c, d, e, f) { self.tone(a, b, c, d, e, f); };
+    if (name === 'tap') T(880, 0, 0.035, 'square', 0.025);
+    else if (name === 'shoot') T(760, 420, 0.06, 'square', 0.015);
+    else if (name === 'hit') T(220, 70, 0.1, 'square', 0.045);
+    else if (name === 'super') { T(320, 80, 0.16, 'sawtooth', 0.05); T(1250, 620, 0.1, 'square', 0.025, 0.02); }
+    else if (name === 'weak') T(160, 120, 0.08, 'triangle', 0.05);
+    else if (name === 'buff') T(520, 1040, 0.16, 'triangle', 0.05);
+    else if (name === 'switch') T(400, 800, 0.1, 'square', 0.03);
+    else if (name === 'faint') T(440, 60, 0.45, 'square', 0.045);
+    else if (name === 'ready') T(440, 0, 0.08, 'square', 0.035);
+    else if (name === 'go') { T(660, 0, 0.08, 'square', 0.035); T(990, 0, 0.16, 'square', 0.035, 0.09); }
+    else if (name === 'win') [523, 659, 784, 1047].forEach(function (f, i) { T(f, 0, 0.16, 'square', 0.04, i * 0.11); });
+    else if (name === 'lose') [392, 330, 262, 196].forEach(function (f, i) { T(f, 0, 0.2, 'triangle', 0.06, i * 0.16); });
+  }
+
+  eff(a, d) { var t = this.D.EFF[a]; return (t && t[d] != null) ? t[d] : 1; }
+  effOn(a, c) { var self = this; return c.types.reduce(function (m, d) { return m * self.eff(a, d); }, 1); }
+
+  matchup(c, foe) {
+    var self = this;
+    var off = Math.max.apply(null, c.types.map(function (t) { return self.effOn(t, foe); }));
+    var def = Math.max.apply(null, foe.types.map(function (t) { return self.effOn(t, c); }));
+    var s = (off >= 2 ? 1 : off < 1 ? -1 : 0) + (def >= 2 ? -1 : def < 1 ? 1 : 0);
+    return s > 0 ? 1 : s < 0 ? -1 : 0;
+  }
+
+  dmg(a, d, m) {
+    if (m.power <= 0) return 0;
+    var e = this.effOn(m.type, d);
+    if (e === 0) return 0;
+    var stab = a.types.indexOf(m.type) >= 0 ? 1.5 : 1;
+    var rnd = 0.9 + Math.random() * 0.2;
+    var at = a.atk + (a.buffType === 'atk' && a.buffTimer > 0 ? a.buffAmt : 0);
+    var df = d.def + (d.buffType === 'def' && d.buffTimer > 0 ? d.buffAmt : 0);
+    return Math.max(1, Math.floor(m.power / 18 * at / df * 3 * e * stab * rnd * 0.9));
+  }
+
+  fire(c, t, m) {
+    m.timer = m.cd;
+    c.gcd = c.gcdMax = m.buff ? 1.2 : 0.9;
+    c.castT = 0.2;
+    if (c.team === 0) m.firedT = 0.25;
+    this.play(c, m.anim);
+    var mid = c.sp.h / 2;
+    if (c.team === 1) this.textAt(c, c.sp.h + 22, m.name, this.D.TC[m.type], 1, 0.8);
+    if (m.buff) {
+      c.buffType = m.buff; c.buffAmt = m.buffAmt; c.buffTimer = m.buffDur;
+      this.textAt(c, c.sp.h + 12, m.buff === 'atk' ? 'ATQ+' : 'DEF+', '#ffcd75', 1);
+      this.burstAt(c, mid, m.buff === 'atk' ? '#ef7d57' : '#73eff7', 10);
+      this.sfx('buff');
+      return;
+    }
+    if (m.melee) {
+      this.hit(t, this.dmg(c, t, m), m.type, c);
+      this.burstAt(t, t.sp.h / 2, '#f4f4f4', 8);
+    } else {
+      this.g.proj.push({ x: c.x + c.facing * 6, y: c.y, h: mid + (c.alt || 0), t: t, a: c, m: Object.assign({}, m) });
+      this.sfx('shoot');
+    }
+  }
+
+  hit(t, n, type, a) {
+    var g = this.g;
+    if (t.lagT <= 0) t.hpLag = Math.max(t.hpLag, t.hp);
+    t.hp = Math.max(0, t.hp - n);
+    t.lagT = 0.4;
+    t.flashT = 0.2;
+    if (a && a.team === 0) a.dealt += n;
+    this.play(t, 'hurt');
+    var e = this.effOn(type, t);
+    var col = e >= 2 ? '#ffcd75' : e < 1 ? '#94b0c2' : '#f4f4f4';
+    this.textAt(t, t.sp.h + 16, String(n), col, e >= 2 ? 3 : 2);
+    if (e >= 2) { this.textAt(t, -4, e >= 4 ? 'SUPER EFICAZ X4!' : 'SUPER EFICAZ!', '#ffcd75', 1, 1.2); g.shake = e >= 4 ? 0.4 : 0.25; this.sfx('super'); }
+    else if (e > 0 && e < 1) { this.textAt(t, -4, 'POUCO EFICAZ', '#94b0c2', 1, 1.2); this.sfx('weak'); }
+    else if (e === 0) { this.textAt(t, -4, 'SEM EFEITO', '#94b0c2', 1, 1.2); this.sfx('weak'); }
+    else this.sfx('hit');
+    if (t.hp <= 0 && !t.dead) this.faint(t);
+  }
+
+  faint(t) {
+    var g = this.g;
+    t.dead = true; t.buffTimer = 0;
+    this.burstAt(t, t.sp.h / 2, (this.D.RAMP[t.type] || ['#f4f4f4'])[1], 16);
+    this.burstAt(t, t.sp.h / 2, '#f4f4f4', 8);
+    this.say(t.name.toUpperCase() + ' DESMAIOU!', t.team === 0 ? '#ef7d57' : '#a7f070');
+    this.sfx('faint');
+    var team = t.team === 0 ? g.party : g.rival;
+    var alive = team.some(function (c) { return !c.dead; });
+    if (!alive) { g.winner = t.team === 0 ? 1 : 0; g.overT = 1.4; return; }
+    if (t.team === 1) g.nextT = 1.0;
+    else { g.fallen = t.name.toUpperCase(); g.chooseT = 0.9; g.forced = -1; g.way = null; if (g.sw) g.sw = null; }
+  }
+
+  proj(X, Z) {
+    var A = this.D.AR, t = Math.max(-0.3, Math.min(1.3, Z / A.Z));
+    var w = A.wb / (1 - (1 - A.wb / A.wf) * t);
+    return { x: A.cx + (X / A.X - 0.5) * w, y: A.yb + (A.yf - A.yb) * (w - A.wb) / (A.wf - A.wb), w: w };
+  }
+
+  unproj(sx, sy) {
+    var A = this.D.AR;
+    var w = Math.max(A.wb * 0.9, A.wb + (sy - A.yb) / (A.yf - A.yb) * (A.wf - A.wb));
+    var t = (1 - A.wb / w) / (1 - A.wb / A.wf);
+    return { x: ((sx - A.cx) / w + 0.5) * A.X, y: t * A.Z };
+  }
+
+  at(c, up) { var s = this.proj(c.x, c.y); return { x: s.x, y: s.y - (up || 0) - (c.alt || 0) }; }
+  burstAt(c, up, col, n) { var s = this.at(c, up); this.burst(s.x, s.y, col, n); }
+  textAt(c, up, str, col, sc, life) { var s = this.at(c, up); this.text(s.x, s.y, str, col, sc, life); }
+
+  text(x, y, s, col, sc, life) {
+    this.g.texts.push({ x: x, y: y, s: s, col: col, sc: sc, life: life || 0.9 });
+  }
+
+  burst(x, y, col, n) {
+    for (var i = 0; i < n; i++) {
+      var a = Math.random() * Math.PI * 2, s = 20 + Math.random() * 30;
+      this.g.parts.push({ x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 0.3 + Math.random() * 0.2, col: col, sz: Math.random() < 0.4 ? 2 : 1 });
+    }
+  }
+
+  moveTo(c, p, eps, f) {
+    var dx = p.x - c.x, dy = p.y - c.y, d = Math.hypot(dx, dy);
+    if (d > eps) { c.vx = dx / d * c.spd * (f || 1); c.vy = dy / d * c.spd * (f || 1); return false; }
+    c.vx = 0; c.vy = 0; return true;
+  }
+
+  stanceMove(c, t) {
+    if (!t || t.dead) { c.vx *= 0.8; c.vy *= 0.8; return; }
+    var dx = t.x - c.x, dy = t.y - c.y, dist = Math.hypot(dx, dy);
+    var nx = dist > 0.5 ? dx / dist : 0, ny = dist > 0.5 ? dy / dist : 0, s = c.spd;
+    if (c.stance === 'perseguir') {
+      if (dist > 47) { c.vx = nx * s; c.vy = ny * s; }
+      else if (dist < 27) { c.vx = -nx * s * 0.5; c.vy = -ny * s * 0.5; }
+      else { c.vx *= 0.85; c.vy *= 0.85; }
+    } else if (c.stance === 'manter') {
+      if (Math.abs(dist - 55) > 9) { var sg = dist > 55 ? 1 : -1; c.vx = nx * s * 0.6 * sg; c.vy = ny * s * 0.6 * sg; }
+      else { c.vx *= 0.9; c.vy *= 0.9; }
+    } else if (c.stance === 'parado') {
+      c.vx *= 0.85; c.vy *= 0.85;
+    } else {
+      var p = Math.sin(c.animT * 3);
+      c.vx = (-nx + ny * p * 0.7) * s * 0.8;
+      c.vy = (-ny - nx * p * 0.7) * s * 0.8;
+    }
+  }
+
+  ai(c, t) {
+    var dist = Math.hypot(t.x - c.x, t.y - c.y);
+    for (var i = 0; i < c.moves.length; i++) {
+      var m = c.moves[i];
+      if (m.timer > 0) continue;
+      if (m.buff) { if (c.hp > c.maxHp * 0.5 && c.buffTimer <= 0) return i; continue; }
+      if (dist > m.range) continue;
+      if (this.effOn(m.type, t) === 0) continue;
+      return i;
+    }
+    return -1;
+  }
+
+  tickMoves(c, dt) {
+    for (var j = 0; j < c.moves.length; j++) {
+      var m = c.moves[j];
+      if (m.timer > 0) m.timer = Math.max(0, m.timer - dt);
+      if (m.firedT > 0) m.firedT -= dt;
+    }
+  }
+
+  update(dt) {
+    var g = this.g, P = this.pressed, self = this;
+    g.time += dt;
+    var ix = (P.r ? 1 : 0) - (P.l ? 1 : 0), iy = (P.d ? 1 : 0) - (P.u ? 1 : 0);
+    g.party.forEach(function (c) { if (c !== self.me()) self.tickMoves(c, dt); });
+    if (g.swCD > 0) g.swCD = Math.max(0, g.swCD - dt);
+    if (g.msgT > 0) g.msgT -= dt;
+
+    if (g.sw) {
+      g.sw.t -= dt;
+      if (g.sw.t <= 0) {
+        var old = this.me(), nw = g.party[g.sw.to];
+        old.buffTimer = 0; old.act = null;
+        g.pi = g.sw.to; g.sw = null; g.swCD = 3; g.forced = -1; g.way = null;
+        this.place(nw, old);
+        this.say('VAI, ' + nw.name.toUpperCase() + '!', '#a7f070');
+      }
+    }
+    if (g.nextT > 0) {
+      g.nextT -= dt;
+      if (g.nextT <= 0) {
+        var idx = g.rival.findIndex(function (c) { return !c.dead; });
+        if (idx >= 0) { g.ri = idx; this.place(this.foe(), null); this.foe().x = 205; this.say('RIVAL ENVIOU ' + this.foe().name.toUpperCase() + '!', '#ffcd75'); this.sfx('switch'); }
+      }
+    }
+    if (g.chooseT > 0) {
+      g.chooseT -= dt;
+      if (g.chooseT <= 0 && g.winner < 0) { this.enterChoose(); if (g.screen !== 'play') return; }
+    }
+
+    var acts = this.actives();
+    for (var k = 0; k < 2; k++) {
+      var c = acts[k];
+      if (c.dead) { c.vx = 0; c.vy = 0; c.animT += dt; continue; }
+      var t = acts[1 - k];
+      var tgt = (t.dead || (k === 1 && g.sw)) ? null : t;
+      if (k === 0) c.stance = g.stance;
+      else c.stance = c.hp < c.maxHp * 0.3 ? 'evasivo' : 'perseguir';
+      var busy = (k === 0 && g.sw) || c.inT > 0;
+      var fm = k === 0 && g.forced >= 0 ? c.moves[g.forced] : null;
+      if (busy) { c.vx *= 0.7; c.vy *= 0.7; }
+      else if (k === 0 && (ix || iy)) { var L = Math.hypot(ix, iy); c.vx = ix / L * c.spd; c.vy = iy / L * c.spd; g.way = null; }
+      else if (k === 0 && g.touch) this.moveTo(c, g.touch, 2);
+      else if (k === 0 && g.way) { if (this.moveTo(c, g.way, 2.5)) g.way = null; }
+      else if (fm && fm.melee && tgt && Math.hypot(t.x - c.x, t.y - c.y) > fm.range - 4) this.moveTo(c, t, 2);
+      else this.stanceMove(c, tgt);
+      var AR = this.D.AR;
+      c.x = Math.max(AR.x0, Math.min(AR.x1, c.x + c.vx * dt));
+      c.y = Math.max(AR.z0, Math.min(AR.z1, c.y + c.vy * dt));
+      if (!t.dead) c.facing = t.x > c.x ? 1 : -1;
+      this.tickMoves(c, dt);
+      if (c.inT > 0) c.inT = Math.max(0, c.inT - dt);
+      if (c.gcd > 0) c.gcd = Math.max(0, c.gcd - dt);
+      if (c.castT > 0) c.castT = Math.max(0, c.castT - dt);
+      if (c.buffTimer > 0) c.buffTimer = Math.max(0, c.buffTimer - dt);
+      if (c.act) {
+        c.actT += dt;
+        var an = this.D.ANIM[c.act];
+        if (c.actT >= an.d * an.f.length) c.act = null;
+      }
+      if (tgt && !busy && c.gcd <= 0 && g.winner < 0) {
+        var mi = -1;
+        if (fm) {
+          var fd = Math.hypot(t.x - c.x, t.y - c.y);
+          if (fm.timer <= 0 && (!fm.melee || fd <= fm.range)) { mi = g.forced; g.forced = -1; }
+        }
+        if (mi < 0 && !(fm && fm.timer > 0 && fm.timer < 0.25)) mi = this.ai(c, t);
+        if (mi >= 0) this.fire(c, t, c.moves[mi]);
+      }
+      if (c.flashT > 0) c.flashT -= dt;
+      c.animT += dt;
+    }
+
+    for (var i = g.proj.length - 1; i >= 0; i--) {
+      var p = g.proj[i];
+      var live = acts.indexOf(p.t) >= 0 && !p.t.dead && !(p.t.team === 0 && g.sw);
+      if (!live) { var ms = this.proj(p.x, p.y); this.burst(ms.x, ms.y - p.h, '#94b0c2', 3); g.proj.splice(i, 1); continue; }
+      var th = p.t.sp.h / 2 + (p.t.alt || 0);
+      var dx = p.t.x - p.x, dy = p.t.y - p.y, d = Math.hypot(dx, dy);
+      if (d < 4) {
+        this.hit(p.t, this.dmg(p.a, p.t, p.m), p.m.type, p.a);
+        this.burstAt(p.t, p.t.sp.h / 2, this.D.TC[p.m.type], 8);
+        g.proj.splice(i, 1);
+      } else {
+        var kk = Math.min(1, 120 * dt / d);
+        p.x += dx * kk; p.y += dy * kk; p.h += (th - p.h) * kk;
+      }
+    }
+    this.fx(dt);
+    if (g.winner >= 0) {
+      g.overT -= dt;
+      if (g.overT <= 0) {
+        g.screen = 'over'; g.touch = null; g.way = null;
+        for (var q = 0; q < 4; q++) this.pressed['udlr'[q]] = false;
+        this.sfx(g.winner === 0 ? 'win' : 'lose');
+        this.kick();
+      }
+    }
+  }
+
+  fx(dt) {
+    var g = this.g, i;
+    for (i = g.parts.length - 1; i >= 0; i--) {
+      var p = g.parts[i];
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.9; p.vy *= 0.9; p.life -= dt;
+      if (p.life <= 0) g.parts.splice(i, 1);
+    }
+    for (i = g.texts.length - 1; i >= 0; i--) {
+      var t = g.texts[i];
+      t.y -= 15 * dt; t.life -= dt;
+      if (t.life <= 0) g.texts.splice(i, 1);
+    }
+    if (g.shake > 0) g.shake -= dt;
+    var all = g.party.concat(g.rival);
+    for (i = 0; i < all.length; i++) {
+      var c = all[i];
+      if (c.lagT > 0) c.lagT -= dt;
+      else if (c.hpLag > c.hp) c.hpLag = Math.max(c.hp, c.hpLag - c.maxHp * 0.7 * dt);
+    }
+    if (g.screen !== 'play') {
+      var a = this.actives();
+      for (i = 0; i < a.length; i++) if (a[i]) { a[i].animT += dt; if (a[i].flashT > 0) a[i].flashT -= dt; if (a[i].inT > 0) a[i].inT = Math.max(0, a[i].inT - dt); }
+    }
+  }
+
+  sprite(id, flip, white) {
+    var key = id + (flip ? 'R' : 'L') + (white ? String(white) : '');
+    if (this.sprites[key]) return this.sprites[key];
+    var sp = this.D.SP[id], N = sp.spr.length;
+    var c = document.createElement('canvas');
+    c.width = N; c.height = N;
+    var x = c.getContext('2d');
+    for (var r = 0; r < N; r++) for (var k = 0; k < N; k++) {
+      var ci = parseInt(sp.spr[r][k], 16);
+      if (!ci) continue;
+      x.fillStyle = white ? (white === true ? '#f4f4f4' : white) : sp.pal[ci];
+      x.fillRect(flip ? N - 1 - k : k, r, 1, 1);
+    }
+    this.sprites[key] = c;
+    return c;
+  }
+
+  makeBg() {
+    var W = this.D.W, H = this.D.H, A = this.D.AR, self = this;
+    var mk = function () { var c = document.createElement('canvas'); c.width = W; c.height = H; return c; };
+    var bgc = mk(), fgc = mk(), x = bgc.getContext('2d');
+    var px = function (col, a, b, w, h) { x.fillStyle = col; x.fillRect(Math.round(a), Math.round(b), Math.round(w), Math.round(h)); };
+    var seed = 7;
+    var rnd = function () { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    var ell = function (cx, cy, rx, ry, col) {
+      x.fillStyle = col;
+      for (var yy = Math.floor(cy - ry); yy <= cy + ry; yy++) for (var xx = Math.floor(cx - rx); xx <= cx + rx; xx++) {
+        var dx = (xx + 0.5 - cx) / rx, dy = (yy + 0.5 - cy) / ry;
+        if (dx * dx + dy * dy <= 1) x.fillRect(xx, yy, 1, 1);
+      }
+    };
+    var poly = function (pts, col) {
+      var ys = pts.map(function (p) { return p[1]; });
+      var y0 = Math.floor(Math.min.apply(null, ys)), y1 = Math.ceil(Math.max.apply(null, ys));
+      x.fillStyle = col;
+      for (var yy = y0; yy < y1; yy++) {
+        var yc = yy + 0.5, xs = [];
+        for (var i = 0; i < pts.length; i++) {
+          var p1 = pts[i], p2 = pts[(i + 1) % pts.length];
+          if ((p1[1] <= yc && p2[1] > yc) || (p2[1] <= yc && p1[1] > yc)) xs.push(p1[0] + (yc - p1[1]) / (p2[1] - p1[1]) * (p2[0] - p1[0]));
+        }
+        xs.sort(function (m, n) { return m - n; });
+        for (var j = 0; j + 1 < xs.length; j += 2) { var xa = Math.round(xs[j]), xb = Math.round(xs[j + 1]); if (xb > xa) x.fillRect(xa, yy, xb - xa, 1); }
+      }
+    };
+    var seg = function (p, q, col, th) {
+      var n = Math.ceil(Math.max(Math.abs(q[0] - p[0]), Math.abs(q[1] - p[1])));
+      x.fillStyle = col;
+      for (var i = 0; i <= n; i++) { var t = n ? i / n : 0; x.fillRect(Math.round(p[0] + (q[0] - p[0]) * t), Math.round(p[1] + (q[1] - p[1]) * t), 1, th || 1); }
+    };
+    var P = function (X, Z) { var s = self.proj(X, Z); return [s.x, s.y]; };
+    var lerp = function (p, q, t) { return p + (q - p) * t; };
+    var bush = function (bx, by, r) { ell(bx, by + 2, r, r * 0.65, '#1e5f5a'); ell(bx, by, r, r * 0.65, '#257179'); ell(bx - 2, by - 2, r * 0.55, r * 0.35, '#38a57a'); };
+    var flower = function (fx, fy, fc) { px(fc, fx, fy - 1, 1, 1); px(fc, fx - 1, fy, 1, 1); px(fc, fx + 1, fy, 1, 1); px(fc, fx, fy + 1, 1, 1); px('#ffcd75', fx, fy, 1, 1); };
+    var hb = A.hb, hf = A.hf;
+    var bl = P(0, 0), br = P(A.X, 0), fl = P(0, A.Z), fr = P(A.X, A.Z);
+
+    px('#38b764', 0, 0, W, H);
+    for (var i = 0; i < 1500; i++) px(rnd() < 0.6 ? '#2f9e57' : '#4fc272', Math.floor(rnd() * W), Math.floor(rnd() * H), 2, 1);
+    px('#173e44', 0, 0, W, 42);
+    var rowA = [], rowB = [], k;
+    for (k = -1; k < 26; k++) rowA.push([k * 17 + (k % 2) * 5, 22 + (k % 3) * 4, 16 + (k % 2) * 3]);
+    for (k = -1; k < 31; k++) rowB.push([k * 14 + 6 + (k % 3) * 3, 52 + (k % 2) * 4, 12 + (k % 3) * 2]);
+    [rowA, rowB].forEach(function (row) {
+      row.forEach(function (q) { ell(q[0], q[1] + 3, q[2], q[2] - 1, '#173e44'); });
+      row.forEach(function (q) { ell(q[0], q[1], q[2], q[2] - 1, '#1e5f5a'); });
+      row.forEach(function (q) { ell(q[0] - 2, q[1] - 2, q[2] - 4, q[2] - 5, '#257179'); });
+      row.forEach(function (q) { ell(q[0] - 4, q[1] - 5, q[2] - 8, q[2] - 9, '#38a57a'); });
+    });
+    [[12, 96], [40, 84], [8, 150], [16, 214], [390, 96], [362, 84], [392, 150], [384, 214], [6, 300], [394, 300]].forEach(function (q) { bush(q[0], q[1], 10); });
+    for (var f = 0; f < 30; f++) {
+      var fx = Math.floor(rnd() * W), fy = 70 + Math.floor(rnd() * (H - 70));
+      var inside = fy > 76 && fy < 292 && fx > 18 && fx < W - 18;
+      if (inside && fy < 288 && fx > lerp(bl[0], fl[0], (fy - 76) / 214) - 8 && fx < lerp(br[0], fr[0], (fy - 76) / 214) + 8) continue;
+      flower(fx, fy, ['#f4f4f4', '#ffcd75', '#ef7d57'][f % 3]);
+    }
+
+    var x0 = Math.round(bl[0]), x1 = Math.round(br[0]), yt = Math.round(bl[1] - hb), yb = Math.round(bl[1]);
+    px('#566c86', x0, yt, x1 - x0, yb - yt);
+    for (var ry = 0, row = 0; ry < hb; ry += 7, row++) {
+      px('#333c57', x0, yt + ry + 6, x1 - x0, 1);
+      for (var bx = x0 + (row % 2 ? 0 : 8); bx < x1; bx += 16) { px('#333c57', bx, yt + ry, 1, 6); px('#94b0c2', bx + 1, yt + ry, 4, 1); }
+    }
+    px('#333c57', x0, yb - 6, x1 - x0, 6);
+    var banner = function (cx, base, shade, mark) {
+      var l = Math.round(cx - 9), t = yt + 6;
+      px('#8a5a3a', l - 3, t - 1, 24, 2);
+      px(base, l, t + 1, 18, 26); px(shade, l + 15, t + 1, 3, 26);
+      for (var q = 0; q < 3; q++) { px(base, l + q * 6 + 1, t + 27, 4, 2); px(base, l + q * 6 + 2, t + 29, 2, 1); }
+      px(mark, l + 7, t + 8, 4, 2); px(mark, l + 5, t + 10, 8, 4); px(mark, l + 7, t + 14, 4, 2);
+    };
+    banner(P(80, 0)[0], '#3b5dc9', '#29366f', '#73eff7');
+    banner(P(240, 0)[0], '#b13e53', '#5d275d', '#ffcd75');
+    px('#94b0c2', x0 - 1, yt - 3, x1 - x0 + 2, 3); px('#c0cbdc', x0 - 1, yt - 3, x1 - x0 + 2, 1);
+
+    var side = function (L) {
+      var b = L ? bl : br, fq = L ? fl : fr;
+      poly([[b[0], b[1] - hb], [fq[0], fq[1] - hf], [fq[0], fq[1]], [b[0], b[1]]], L ? '#333c57' : '#3d4866');
+      for (var r = 1; r < 10; r++) seg([b[0], b[1] - hb * r / 10], [fq[0], fq[1] - hf * r / 10], '#262b44');
+      for (var z = 1; z < 14; z++) {
+        var t = z / 14, ex = lerp(b[0], fq[0], t), ey = lerp(b[1], fq[1], t), hh = lerp(hb, hf, t);
+        for (var r2 = 0; r2 < 10; r2++) if ((z + r2) % 2 === 0) seg([ex, ey - hh * r2 / 10], [ex, ey - hh * (r2 + 1) / 10], '#262b44');
+      }
+      seg([b[0], b[1] - hb - 2], [fq[0], fq[1] - hf - 2], '#94b0c2', 3);
+      seg([b[0], b[1] - hb - 3], [fq[0], fq[1] - hf - 3], '#c0cbdc');
+    };
+    side(true); side(false);
+
+    poly([bl, br, fr, fl], '#d9a066');
+    var TX = 16, TZ = 10, sx = A.X / TX, sz = A.Z / TZ;
+    for (var ti = 0; ti < TX; ti++) for (var tj = 0; tj < TZ; tj++) if ((ti + tj) % 2) poly([P(ti * sx, tj * sz), P((ti + 1) * sx, tj * sz), P((ti + 1) * sx, (tj + 1) * sz), P(ti * sx, (tj + 1) * sz)], '#cf9660');
+    for (var sp = 0; sp < 700; sp++) { var q = P(rnd() * A.X, rnd() * A.Z); px(rnd() < 0.5 ? '#c08550' : '#e6b57e', q[0], q[1], rnd() < 0.3 ? 2 : 1, 1); }
+    seg(P(A.X / 2, 0), P(A.X / 2, A.Z), '#e6b57e');
+    for (var ang = 0; ang < 360; ang += 3) { var tr = ang * Math.PI / 180, cq = P(A.X / 2 + Math.cos(tr) * 26, A.Z / 2 + Math.sin(tr) * 20); px('#e6b57e', cq[0], cq[1], 2, 1); }
+    poly([bl, br, P(A.X, 4), P(0, 4)], '#b07a4a');
+    poly([bl, P(6, 0), P(6, A.Z), fl], '#c08550');
+    seg(bl, fl, '#8a5a3a'); seg(br, fr, '#8a5a3a');
+    px('#e6b57e', fl[0], fl[1] - 1, fr[0] - fl[0], 1);
+    px('#8a5a3a', fl[0], fl[1], fr[0] - fl[0], 7);
+    for (var lx = Math.round(fl[0]) + 6; lx < fr[0]; lx += 14) px('#6e4630', lx, fl[1] + 1, 1, 6);
+    px('#2a8a50', fl[0], fl[1] + 7, fr[0] - fl[0], 3);
+
+    var pillar = function (cx, base, w, h) {
+      var l = Math.round(cx - w / 2), t = Math.round(base - h);
+      px('#566c86', l, t, w, h); px('#94b0c2', l + 1, t, 2, h); px('#333c57', l + w - 2, t, 2, h);
+      px('#c0cbdc', l - 2, t - 3, w + 4, 3); px('#333c57', l - 2, t, w + 4, 1);
+      px('#333c57', l - 1, base - 3, w + 2, 3);
+    };
+    pillar(bl[0], bl[1] + 1, 8, hb + 6); pillar(br[0], br[1] + 1, 8, hb + 6);
+
+    x = fgc.getContext('2d');
+    pillar(fl[0] + 2, fl[1] + 7, 12, hf + 14); pillar(fr[0] - 2, fr[1] + 7, 12, hf + 14);
+    this.bg = bgc; this.fg = fgc;
+  }
+
+  drawText(x, s, cx, cy, col, sc, o) {
+    var F = this.D.FONT;
+    o = o || 1;
+    s = String(s).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    var w = s.length * 4 * sc - sc, W = x.canvas.width;
+    cx = Math.max(w / 2 + o, Math.min(W - w / 2 - o, cx));
+    var ox = Math.round(cx - w / 2), oy = Math.round(cy);
+    for (var pass = 0; pass < 2; pass++) {
+      x.fillStyle = pass ? col : '#1a1c2c';
+      for (var i = 0; i < s.length; i++) {
+        var gph = F[s[i]];
+        if (!gph) continue;
+        for (var r = 0; r < 5; r++) for (var k = 0; k < 3; k++) {
+          if (gph[r * 3 + k] !== '1') continue;
+          var X = ox + i * 4 * sc + k * sc, Y = oy + r * sc;
+          if (pass) x.fillRect(X, Y, sc, sc); else x.fillRect(X - o, Y - o, sc + o * 2, sc + o * 2);
+        }
+      }
+    }
+  }
+
+  camera(dt) {
+    var g = this.g, A = this.D.AR, cam = g.cam, self = this, VW = 390, VH = 336, tx, ty, tz;
+    if (g.screen === 'title') {
+      g.attT += dt;
+      tz = 1.35; tx = A.cx + Math.sin(g.attT * 0.2) * 70; ty = 200;
+    } else {
+      var minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+      this.actives().forEach(function (c) {
+        if (!c) return;
+        var p = self.proj(c.x, c.y), top = p.y - c.sp.h - (c.alt || 0);
+        minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
+        minY = Math.min(minY, top); maxY = Math.max(maxY, p.y);
+      });
+      var mx = 46, mt = 34, mb = 20;
+      var fit = Math.min(VW / (maxX - minX + mx * 2), VH / (maxY - minY + mt + mb));
+      tz = Math.min(A.zMax, fit >= A.zMin ? fit : Math.max(0.85, fit));
+      tx = (minX + maxX) / 2; ty = (minY - mt + maxY + mb) / 2;
+    }
+    var k = 1 - Math.exp(-dt * 3), kz = 1 - Math.exp(-dt * 2);
+    cam.z += (tz - cam.z) * kz;
+    cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k;
+    var W = this.D.W, H = this.D.H, hw = VW / 2 / cam.z, hh = VH / 2 / cam.z;
+    cam.x = W > hw * 2 ? Math.max(hw, Math.min(W - hw, cam.x)) : W / 2;
+    cam.y = H > hh * 2 ? Math.max(hh, Math.min(H - hh, cam.y)) : H / 2;
+  }
+
+  draw() {
+    var cv = this.cv;
+    if (!cv || !this.g) return;
+    var x = cv.getContext('2d');
+    if (!x) return;
+    var g = this.g, self = this, cam = g.cam;
+    if (!this.bg) this.makeBg();
+    var VW = cv.width, VH = cv.height, K = VW / 390, s = cam.z * K;
+    var ox = VW / 2 - cam.x * s, oy = VH / 2 - cam.y * s;
+    if (g.shake > 0) { ox += (Math.random() * 2 - 1) * 2 * K; oy += (Math.random() * 2 - 1) * 2 * K; }
+    ox = Math.round(ox); oy = Math.round(oy);
+    x.setTransform(1, 0, 0, 1, 0, 0);
+    x.imageSmoothingEnabled = false;
+    x.fillStyle = '#10121e'; x.fillRect(0, 0, VW, VH);
+    x.setTransform(s, 0, 0, s, ox, oy);
+    x.imageSmoothingEnabled = false;
+    x.drawImage(this.bg, 0, 0);
+
+    var wp = g.touch || g.way;
+    if (wp && g.screen === 'play') {
+      var wq = this.proj(wp.x, wp.y), wx = Math.round(wq.x), wy = Math.round(wq.y);
+      x.fillStyle = Math.floor(performance.now() / 180) % 2 ? '#f4f4f4' : '#ffcd75';
+      x.fillRect(wx - 4, wy - 3, 3, 1); x.fillRect(wx + 2, wy - 3, 3, 1);
+      x.fillRect(wx - 4, wy + 3, 3, 1); x.fillRect(wx + 2, wy + 3, 3, 1);
+      x.fillRect(wx - 6, wy - 2, 1, 5); x.fillRect(wx + 6, wy - 2, 1, 5);
+      x.fillRect(wx, wy, 1, 1);
+    }
+
+    var list = this.actives().filter(function (c) { return c && (!c.dead || c.sp.sheet); }).sort(function (a, b) { return a.y - b.y; });
+    list.forEach(function (c) {
+      if (c.team === 0 && g.sw && g.sw.t < 0.12) return;
+      var ps = self.proj(c.x, c.y), cx = Math.round(ps.x), cy = Math.round(ps.y), h = c.sp.h;
+      var sw = Math.max(5, Math.round(h * 0.35));
+      x.fillStyle = 'rgba(26,28,44,.3)';
+      x.fillRect(cx - sw + 2, cy - 1, sw * 2 - 4, 1); x.fillRect(cx - sw, cy, sw * 2, 1); x.fillRect(cx - sw + 2, cy + 1, sw * 2 - 4, 1);
+      cy -= Math.round(c.alt || 0);
+      var moving = Math.abs(c.vx) + Math.abs(c.vy) > 6;
+      var bob = c.dead ? 0 : Math.floor(c.animT / (moving ? 0.15 : 0.45)) % 2;
+      if (c.buffTimer > 0 && !c.dead) {
+        x.fillStyle = c.buffType === 'atk' ? '#ef7d57' : '#73eff7';
+        for (var q = 0; q < 4; q++) {
+          var a = c.animT * 4 + q * Math.PI / 2;
+          x.fillRect(Math.round(cx + Math.cos(a) * (h * 0.6)), Math.round(cy - h / 2 + Math.sin(a) * (h * 0.35)), 1, 1);
+        }
+      }
+      var white = (c.flashT > 0 && Math.floor(c.flashT * 20) % 2 === 1) || c.inT > 0.15;
+      var top;
+      if (c.sp.sheet && self.sheet) {
+        var S = self.D.SHEET, img = white ? self.sheetW : self.sheet;
+        top = cy - h;
+        var fi = self.frameOf(c);
+        if (c.facing > 0) x.drawImage(img, fi * S.cw, 0, S.cw, S.ch, cx - S.ax, cy - S.fy, S.cw, S.ch);
+        else { x.save(); x.scale(-1, 1); x.drawImage(img, fi * S.cw, 0, S.cw, S.ch, -(cx + 1 + S.ax), cy - S.fy, S.cw, S.ch); x.restore(); }
+        if (c.dead) return;
+      } else {
+        var N = c.sp.spr.length;
+        var lunge = c.castT > 0 ? c.facing * 2 : 0;
+        top = cy - h - bob;
+        x.drawImage(self.sprite(c.id, c.facing > 0, white), cx - N / 2 + lunge, cy - c.sp.foot - bob);
+      }
+      var bx = cx - 8, byy = top - 5, pct = c.hp / c.maxHp;
+      x.fillStyle = '#1a1c2c'; x.fillRect(bx, byy, 16, 3);
+      x.fillStyle = pct > 0.5 ? '#a7f070' : pct > 0.25 ? '#ffcd75' : '#ef7d57';
+      x.fillRect(bx + 1, byy + 1, Math.max(0, Math.round(14 * pct)), 1);
+      if (c.team === 0) { x.fillStyle = '#ffcd75'; x.fillRect(cx - 1, byy - 4, 3, 1); x.fillRect(cx, byy - 3, 1, 1); }
+    });
+
+    g.proj.forEach(function (p) {
+      var pc = p.m.type === 'fogo' ? ['#b13e53', '#ef7d57', Math.random() < 0.5 ? '#ffcd75' : '#f4f4f4']
+        : p.m.type === 'ar' ? ['#41a6f6', '#73eff7', '#f4f4f4']
+        : p.m.type === 'planta' ? ['#257179', '#38b764', '#a7f070']
+        : p.m.type === 'eletrico' ? ['#ef7d57', '#ffcd75', '#f4f4f4']
+        : p.m.type === 'rocha' ? ['#333c57', '#566c86', '#94b0c2']
+        : ['#3b5dc9', '#41a6f6', '#73eff7'];
+      var qs = self.proj(p.x, p.y), qx = qs.x, qy = qs.y - p.h;
+      var ts = self.at(p.t, p.t.sp.h / 2), ddx = ts.x - qx, ddy = ts.y - qy, dl = Math.hypot(ddx, ddy) || 1, ux = ddx / dl, uy = ddy / dl;
+      var hx = Math.round(qx), hy = Math.round(qy);
+      x.fillStyle = pc[0];
+      x.fillRect(Math.round(qx - ux * 4), Math.round(qy - uy * 4), 2, 2);
+      x.fillRect(Math.round(qx - ux * 7), Math.round(qy - uy * 7), 1, 1);
+      x.fillStyle = pc[1];
+      x.fillRect(hx - 1, hy - 1, 3, 3);
+      x.fillStyle = pc[2];
+      x.fillRect(hx, hy, 1, 1);
+    });
+
+    g.parts.forEach(function (p) {
+      x.fillStyle = p.col;
+      x.fillRect(Math.round(p.x), Math.round(p.y), p.sz, p.sz);
+    });
+    x.drawImage(this.fg, 0, 0);
+
+    x.setTransform(1, 0, 0, 1, 0, 0);
+    var o = Math.max(1, Math.round(K * 1.5));
+    g.texts.forEach(function (t) {
+      if (t.life < 0.25 && Math.floor(t.life * 24) % 2) return;
+      self.drawText(x, t.s, ox + t.x * s, oy + t.y * s, t.col, t.sc * 2 * K, o);
+    });
+    if (g.screen !== 'title') { this.drawArrows(x, ox, oy, s, K); this.drawMini(x, K); }
+  }
+
+  drawArrows(x, ox, oy, s, K) {
+    var self = this, VW = x.canvas.width, VH = x.canvas.height, m = 16 * K, u = 2 * K;
+    this.actives().forEach(function (c) {
+      if (!c || c.dead) return;
+      var p = self.at(c, c.sp.h / 2), sx = ox + p.x * s, sy = oy + p.y * s, hw = 12 * s, hh = c.sp.h / 2 * s;
+      if (sx - hw > 0 && sx + hw < VW && sy - hh > 0 && sy + hh < VH) return;
+      var ax = Math.max(m, Math.min(VW - m, sx)), ay = Math.max(m, Math.min(VH - m, sy));
+      var horiz = Math.abs(sx - ax) >= Math.abs(sy - ay), sg = horiz ? (sx > ax ? 1 : -1) : (sy > ay ? 1 : -1);
+      var col = c.team === 0 ? '#ffcd75' : '#ef7d57';
+      for (var pass = 0; pass < 2; pass++) {
+        x.fillStyle = pass ? col : '#1a1c2c';
+        var e = pass ? 0 : K;
+        for (var i = 0; i < 4; i++) {
+          var len = (7 - i * 2) * u, off = (i - 2) * u * sg;
+          if (horiz) x.fillRect(Math.round(ax + off) - e, Math.round(ay - len / 2) - e, u + e * 2, len + e * 2);
+          else x.fillRect(Math.round(ax - len / 2) - e, Math.round(ay + off) - e, len + e * 2, u + e * 2);
+        }
+      }
+    });
+  }
+
+  drawMini(x, K) {
+    var A = this.D.AR, mw = 64, mh = Math.round(64 * A.Z / A.X), L = 12 * K, T = x.canvas.height - (12 + mh) * K, self = this, cam = this.g.cam;
+    var R1 = (mw + 9) * K, T1 = T - 3 * K, hit = false;
+    this.actives().forEach(function (c) {
+      if (!c || c.dead) return;
+      var p = self.at(c, 0), cx = (x.canvas.width / 2) + (p.x - cam.x) * cam.z * K, cy = (x.canvas.height / 2) + (p.y - cam.y) * cam.z * K;
+      if (cx - 14 * cam.z * K < R1 && cy + 2 * K > T1 - (c.sp.h + 8) * cam.z * K * 0 && cy - (c.sp.h + 8) * cam.z * K < x.canvas.height && cy > T1 - 4 * K) hit = true;
+    });
+    x.globalAlpha = hit ? 0.25 : 1;
+    x.fillStyle = 'rgba(16,18,30,.72)'; x.fillRect(L - 3 * K, T - 3 * K, (mw + 6) * K, (mh + 6) * K);
+    x.fillStyle = 'rgba(217,160,102,.22)'; x.fillRect(L, T, mw * K, mh * K);
+    x.fillStyle = '#566c86';
+    x.fillRect(L, T, mw * K, K); x.fillRect(L, T + (mh - 1) * K, mw * K, K); x.fillRect(L, T, K, mh * K); x.fillRect(L + (mw - 1) * K, T, K, mh * K);
+    x.fillStyle = '#333c57'; x.fillRect(L + (mw / 2) * K, T + K, K, (mh - 2) * K);
+    this.actives().forEach(function (c) {
+      if (!c || c.dead) return;
+      var px = Math.round(L + c.x / A.X * mw * K), py = Math.round(T + c.y / A.Z * mh * K);
+      x.fillStyle = '#1a1c2c'; x.fillRect(px - 3 * K, py - 3 * K, 6 * K, 6 * K);
+      x.fillStyle = c.team === 0 ? '#ffcd75' : '#ef7d57'; x.fillRect(px - 2 * K, py - 2 * K, 4 * K, 4 * K);
+    });
+    x.globalAlpha = 1;
+  }
+
+  ic(rows, S, col) {
+    var key = rows.join('|') + S + col;
+    if (this.iconCache[key]) return this.iconCache[key];
+    var out = [];
+    for (var y = 0; y < rows.length; y++) for (var x = 0; x < rows[y].length; x++) if (rows[y][x] === '#') out.push(((x + 1) * S) + 'px ' + ((y + 1) * S) + 'px 0 0 ' + col);
+    return (this.iconCache[key] = out.join(', '));
+  }
+
+  hpCol(p) { return p > 0.5 ? '#a7f070' : p > 0.25 ? '#ffcd75' : '#ef7d57'; }
+
+  chips(c) {
+    var D = this.D, self = this;
+    return c.types.map(function (t) { return { bg: c.dead ? '#566c86' : D.TC[t], ico: self.ic(D.ICON[t], 1, '#1a1c2c'), label: D.TL[t] }; });
+  }
+
+  card(c, key) {
+    var pct = Math.max(0, c.hp / c.maxHp), lag = Math.max(pct, c.hpLag / c.maxHp);
+    return {
+      ref: this.refFor(key),
+      name: c.name.toUpperCase(),
+      chips: this.chips(c),
+      hpW: (pct * 100).toFixed(1) + '%',
+      lagW: (lag * 100).toFixed(1) + '%',
+      hpCol: this.hpCol(pct),
+      hpText: c.hp + '/' + c.maxHp,
+      buff: c.buffTimer > 0 && !c.dead,
+      buffText: (c.buffType === 'atk' ? 'ATQ+' : 'DEF+') + c.buffAmt
+    };
+  }
+
+  renderVals() {
+    this.init();
+    var self = this, g = this.g, D = this.D, H = this.H;
+    var me = this.me(), foe = this.foe();
+    var assist = this.props.assist !== false;
+    var scr = g.screen, help = this.state.help;
+    var foeUp = foe && !foe.dead;
+    var tl = function (c) { return c.types.map(function (t) { return D.TL[t]; }).join('/'); };
+
+    var moves = me.moves.map(function (m, i) {
+      var cooling = m.timer > 0, queued = g.forced === i;
+      var et = null;
+      if (assist && !m.buff && foeUp) {
+        var eff = self.effOn(m.type, foe);
+        if (eff >= 4) et = ['x4', '#ffcd75', '#1a1c2c'];
+        else if (eff >= 2) et = ['x2', '#ffcd75', '#1a1c2c'];
+        else if (eff === 0) et = ['x0', '#b13e53', '#f4f4f4'];
+        else if (eff < 1) et = ['x' + eff, '#333c57', '#c0cbdc'];
+      }
+      var meta = m.buff ? ((m.buff === 'atk' ? 'Ataque' : 'Defesa') + ' +' + m.buffAmt + ' · ' + m.buffDur + 's') : ('Poder ' + m.power + ' · ' + (m.melee ? 'Perto' : 'Longe'));
+      return {
+        name: m.name.toUpperCase(),
+        ncol: cooling ? '#94b0c2' : '#f4f4f4',
+        bg: cooling ? '#1d2035' : D.TINT[m.type],
+        bc: m.firedT > 0 ? '#f4f4f4' : queued ? '#ffcd75' : cooling ? '#333c57' : (m.type === 'normal' ? '#94b0c2' : D.TC[m.type]),
+        icoBg: cooling ? '#566c86' : D.TC[m.type],
+        ico: self.ic(D.ICON[m.type], 2, '#1a1c2c'),
+        meta: meta, metaCol: cooling ? '#94b0c2' : '#c0cbdc',
+        status: queued ? 'PRÓXIMO' : cooling ? m.timer.toFixed(1) + 's' : '',
+        stCol: queued ? '#ffcd75' : '#f4f4f4',
+        cdW: (cooling ? (1 - m.timer / m.cd) * 100 : 100).toFixed(1) + '%',
+        barCol: cooling ? '#566c86' : queued ? '#ffcd75' : D.TC[m.type],
+        hasEff: !!et, effText: et ? et[0] : '', effBg: et ? et[1] : '#333c57', effCol: et ? et[2] : '#c0cbdc',
+        down: H.moves[i].down, click: H.moves[i].click,
+        aria: 'Golpe ' + (i + 1) + ': ' + m.name + ', ' + D.TL[m.type] + ', ' + meta + (et ? ', efeito ' + et[0] : '') + (queued ? ', próximo da fila' : cooling ? ', recarregando' : ', pronto')
+      };
+    });
+
+    var canSwitch = scr === 'play' && !g.sw && g.swCD <= 0 && g.winner < 0 && g.chooseT <= 0 && !me.dead;
+    var team = g.party.map(function (c, i) {
+      var active = i === g.pi, pct = Math.max(0, c.hp / c.maxHp);
+      var canPick = !c.dead && !active && canSwitch;
+      var mu = (assist && !c.dead && !active && foeUp) ? self.matchup(c, foe) : 0;
+      return {
+        ref: self.refFor('b' + i),
+        bg: c.dead ? '#1d2035' : active ? '#2f3d7a' : '#252c52',
+        bc: active ? '#ffcd75' : c.dead ? '#262b44' : '#333c57',
+        lift: active ? '-4px' : '0px',
+        op: c.dead ? '0.55' : (active || canPick || scr !== 'play') ? '1' : '0.6',
+        chips: self.chips(c),
+        hpW: (pct * 100).toFixed(0) + '%', hpCol: self.hpCol(pct),
+        good: mu > 0, bad: mu < 0,
+        mIco: mu > 0 ? self.ic(D.GLYPH.up, 2, '#a7f070') : self.ic(D.GLYPH.down, 2, '#ef7d57'),
+        dead: c.dead,
+        down: H.bench[i].down, click: H.bench[i].click,
+        aria: c.name + ' (' + tl(c) + ')' + (c.dead ? ', desmaiado' : active ? ', em campo' : ', HP ' + c.hp + ' de ' + c.maxHp + (mu > 0 ? ', vantagem' : mu < 0 ? ', desvantagem' : ''))
+      };
+    });
+
+    var swText = 'TOQUE PARA TROCAR', swCol = '#c0cbdc';
+    if (g.sw) { swText = 'TROCANDO…'; swCol = '#ffcd75'; }
+    else if (g.swCD > 0) { swText = 'TROCA EM ' + g.swCD.toFixed(1) + 's'; swCol = '#94b0c2'; }
+
+    var orbs = g.rival.map(function (c, i) {
+      return { bg: c.dead ? '#262b44' : D.TC[c.type], bc: (i === g.ri && !c.dead) ? '#ffcd75' : '#10121e' };
+    });
+
+    var st = D.STANCES.filter(function (s) { return s[0] === g.stance; })[0] || D.STANCES[0];
+    var stances = D.STANCES.map(function (s, i) {
+      var on = g.stance === s[0];
+      return { label: s[1], on: on, col: on ? '#1a1c2c' : '#c0cbdc', bg: on ? '#73eff7' : 'transparent', ico: self.ic(D.GLYPH[s[0]], 1, on ? '#1a1c2c' : '#94b0c2'), down: H.stance[i].down, click: H.stance[i].click };
+    });
+
+    var chooseList = [];
+    g.party.forEach(function (c, i) {
+      if (c.dead || i === g.pi) return;
+      var pct = Math.max(0, c.hp / c.maxHp), mu = foeUp ? self.matchup(c, foe) : 0;
+      chooseList.push({
+        ref: self.refFor('ch' + i), name: c.name.toUpperCase(), chips: self.chips(c),
+        hpW: (pct * 100).toFixed(0) + '%', hpCol: self.hpCol(pct), hpText: c.hp + '/' + c.maxHp,
+        muText: mu > 0 ? 'VANTAGEM' : mu < 0 ? 'DESVANTAGEM' : 'NEUTRO',
+        muBg: mu > 0 ? '#38b764' : mu < 0 ? '#b13e53' : '#262b44',
+        muCol: mu > 0 ? '#1a1c2c' : mu < 0 ? '#f4f4f4' : '#c0cbdc',
+        pick: H.pick[i],
+        aria: c.name + ', HP ' + c.hp + ' de ' + c.maxHp + ', ' + (mu > 0 ? 'vantagem' : mu < 0 ? 'desvantagem' : 'neutro')
+      });
+    });
+
+    var pLeft = g.party.filter(function (c) { return !c.dead; }).length;
+    var rLeft = g.rival.filter(function (c) { return !c.dead; }).length;
+    var won = g.winner === 0;
+    var secs = Math.floor(g.time), dealt = g.party.reduce(function (s, c) { return s + c.dealt; }, 0);
+    var mvp = this.mvp();
+
+    var TY = D.TYPES;
+    var chartHead = TY.map(function (t) { return { bg: D.TC[t], ico: self.ic(D.ICON[t], 2, '#1a1c2c'), label: D.TL[t] }; });
+    var chart = TY.map(function (a) {
+      return {
+        label: D.TL[a], bg: D.TC[a], ico: self.ic(D.ICON[a], 1, '#1a1c2c'),
+        cells: TY.map(function (d) {
+          var v = self.eff(a, d);
+          return v >= 2 ? { text: '2x', bg: '#ffcd75', col: '#1a1c2c' } : v === 0 ? { text: '0x', bg: '#b13e53', col: '#f4f4f4' } : v < 1 ? { text: '.5x', bg: '#333c57', col: '#c0cbdc' } : { text: '', bg: '#1d2035', col: '#1d2035' };
+        })
+      };
+    });
+
+    return {
+      scale: this.state.scale, cvW: 390 * (this.state.K || 2), cvH: 336 * (this.state.K || 2), pauseOp: scr === 'play' ? '1' : '0.4',
+      pause: H.pause, resume: H.resume, start: H.start, toMenu: H.toMenu, restart: H.start, toggleMute: H.toggleMute,
+      openHow: H.openHow, openTypes: H.openTypes, setComo: H.setComo, setTipos: H.setTipos, closeHelp: H.closeHelp,
+      setCv: H.setCv, arenaDown: H.arenaDown, arenaMove: H.arenaMove, arenaUp: H.arenaUp,
+      e: this.card(foe, 'E'), p: this.card(me, 'P'),
+      orbs: orbs, rLeft: rLeft, rTotal: g.rival.length, pLeft: pLeft,
+      hasToast: g.msgT > 0 && !!g.msg && scr === 'play', toast: g.msg, toastCol: g.msgCol,
+      showHint: scr === 'play' && !this.seenHint && g.time < 14,
+      showReady: scr === 'ready', readyText: g.readyT > 0.55 ? 'PRONTO?' : 'JÁ!',
+      moves: moves, team: team, swText: swText, swCol: swCol,
+      stances: stances, stanceDesc: st[2],
+      showChoose: scr === 'choose' && !help, fallen: g.fallen, foeName: foe ? foe.name.toUpperCase() : '', chooseList: chooseList,
+      showTitle: scr === 'title' && !help,
+      tTeam: g.party.map(function (c, i) { return { ref: self.refFor('t' + i), chips: self.chips(c), aria: c.name + ' (' + tl(c) + ')' }; }),
+      tRival: g.rival.map(function (c, i) { return { ref: self.refFor('tr' + i), chips: self.chips(c), aria: c.name + ' (' + tl(c) + ')' }; }),
+      showPause: scr === 'pause' && !help,
+      pauseSub: 'Seu time ' + pLeft + '/6 · Rival ' + rLeft + '/' + g.rival.length,
+      muteText: this.muted ? 'SOM: DESLIGADO' : 'SOM: LIGADO', soundOn: !this.muted,
+      showOver: scr === 'over' && !help,
+      overTitle: won ? 'VITÓRIA!' : 'DERROTA',
+      overCol: won ? '#a7f070' : '#ef7d57',
+      overSub: won ? pLeft + ' de 6 criaturas ainda de pé' : 'Seu time inteiro desmaiou',
+      stTime: Math.floor(secs / 60) + ':' + (secs % 60 < 10 ? '0' : '') + (secs % 60),
+      stKos: (g.rival.length - rLeft) + '/' + g.rival.length,
+      stDmg: String(dealt),
+      oTeam: g.party.map(function (c, i) { return { ref: self.refFor('o' + i), op: c.dead ? '0.5' : '1', bg: c.dead ? '#1d2035' : '#252c52', bc: (mvp === c) ? '#ffcd75' : '#333c57', aria: c.name + (c.dead ? ', desmaiado' : ', de pé') }; }),
+      hasMvp: !!mvp, mvpRef: this.refFor('mvp'), mvpName: mvp ? mvp.name.toUpperCase() : '', mvpDmg: mvp ? mvp.dealt + ' de dano' : '',
+      showHelp: !!help, helpComo: help === 'como', helpTipos: help === 'tipos',
+      tabComo: { bg: help === 'como' ? '#f4f4f4' : 'transparent', col: help === 'como' ? '#1a1c2c' : '#c0cbdc' },
+      tabTipos: { bg: help === 'tipos' ? '#f4f4f4' : 'transparent', col: help === 'tipos' ? '#1a1c2c' : '#c0cbdc' },
+      gl: {
+        target: this.ic(D.GLYPH.target, scr === 'play' ? 2 : 3, scr === 'play' ? '#ffcd75' : '#ffcd75'),
+        golpe: this.ic(D.GLYPH.golpe, 3, '#73eff7'),
+        tipo: this.ic(D.ICON.eletrico, 3, '#ffcd75'),
+        troca: this.ic(D.GLYPH.troca, 3, '#a7f070'),
+        tatica: this.ic(D.GLYPH.perseguir, 3, '#73eff7'),
+        close: this.ic(D.GLYPH.close, 2, '#f4f4f4')
+      },
+      chartHead: chartHead, chart: chart
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+# Sistema
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Claude Code (configurações pessoais)
+.claude/settings.local.json
+
+# Temporários
+*.tmp
+*.log
+node_modules/

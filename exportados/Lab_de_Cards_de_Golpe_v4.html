@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lab de Cards de Golpe — UI/UX Refatorado</title>
+  <!-- Tailwind CSS para estrutura da página do Lab -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Urbanist (padrão de combate), Lexend e Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Urbanist:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --lab-font: 'Urbanist', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #0c0d16;
+      color: #f4f4f4;
+      font-family: var(--lab-font);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Números tabulares evitam que o contador trema durante a contagem regressiva */
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Estrutura base do Card (175 x 88px exatos no grid de 390px) */
+    .move-card {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      height: 88px;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 10px;
+      background: #1d2034;
+      color: #ffffff;
+      font-family: var(--lab-font);
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+      transition: transform 0.08s ease, box-shadow 0.15s ease;
+    }
+
+    .move-card:active {
+      transform: translateY(1.5px) scale(0.99);
+    }
+
+    /* Brilho interno sutil no topo do card para acabamento de botão de jogo */
+    .move-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 10px;
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.18);
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    /* Pílula unificada que agrupa Tipo + Categoria + Alcance sem poluição */
+    .attr-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      height: 26px;
+      padding: 0 8px;
+      border-radius: 6px;
+      background: rgba(8, 9, 16, 0.38);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(2px);
+    }
+
+    .attr-divider {
+      width: 1px;
+      height: 11px;
+      background: rgba(255, 255, 255, 0.2);
+      flex: none;
+    }
+
+    /* Barra inferior técnica limpa e integrada */
+    .meta-footer {
+      position: relative;
+      flex: none;
+      height: 21px;
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      background: rgba(8, 9, 16, 0.28);
+      border-top: 1px solid rgba(255, 255, 255, 0.09);
+      font-size: 11.5px;
+      line-height: 1;
+      white-space: nowrap;
+      z-index: 3;
+    }
+
+    /* Botões de controle do Lab */
+    .ctrl-btn {
+      padding: 6px 12px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #94b0c2;
+      background: #161829;
+      border: 1px solid #262a44;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .ctrl-btn:hover {
+      color: #f4f4f4;
+      border-color: #3b4268;
+    }
+
+    .ctrl-btn.active {
+      background: #ffcd75;
+      color: #141624;
+      border-color: #ffcd75;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="min-h-screen bg-[#0c0d16] text-[#f4f4f4]">
+    <!-- Barra Superior de Controle e Testes -->
+    <header class="sticky top-0 z-30 bg-[#0c0d16]/90 backdrop-blur-md border-b border-[#1f2338]">
+      <div class="max-w-[1320px] mx-auto px-5 py-3.5 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <span class="px-2.5 py-1 rounded-md bg-[#ffcd75]/15 border border-[#ffcd75]/40 text-[#ffcd75] text-xs font-extrabold tracking-wider uppercase">UI/UX Refatorado</span>
+          <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Lab de cards de golpe</h1>
+        </div>
+
+        <!-- Controles Interativos: Fonte, Velocidade e Disparo Geral -->
+        <div class="flex flex-wrap items-center gap-4">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-semibold uppercase tracking-wider text-[#6c7d93] mr-1">Fonte:</span>
+            <button type="button" data-font="Urbanist" class="ctrl-btn active">Urbanist</button>
+            <button type="button" data-font="Lexend" class="ctrl-btn">Lexend</button>
+            <button type="button" data-font="Outfit" class="ctrl-btn">Outfit</button>
+          </div>
+
+          <div class="h-4 w-[1px] bg-[#262a44] hidden sm:block"></div>
+
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-semibold uppercase tracking-wider text-[#6c7d93] mr-1">Recarga:</span>
+            <button type="button" data-speed="0.5" class="ctrl-btn">0.5x</button>
+            <button type="button" data-speed="1" class="ctrl-btn active">1x</button>
+            <button type="button" data-speed="2" class="ctrl-btn">2x</button>
+          </div>
+
+          <button type="button" id="btnTriggerAll" class="px-3 py-1.5 rounded-lg bg-[#252945] hover:bg-[#303559] border border-[#3d4470] text-xs font-bold uppercase tracking-wider text-[#ffcd75] transition cursor-pointer">
+            Simular Recarga Geral
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-[1320px] mx-auto px-5 sm:px-7 pt-8 pb-24 flex flex-col gap-12">
+      <!-- Resumo das melhorias visuais aplicadas -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-[#131524] border border-[#22263e] rounded-xl p-4">
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-[#ffcd75]">1. Ícones Unificados</span>
+          <span class="text-xs text-[#94b0c2] leading-relaxed">Família vetorial única (traço 2.2px) agrupada em uma pílula translúcida em vez de 4 tamanhos soltos.</span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-[#ffcd75]">2. Gradientes Limpos</span>
+          <span class="text-xs text-[#94b0c2] leading-relaxed">Remoção das listras/grades repetitivas que brigavam com os ícones; fundos suaves em 2 paradas com marca d'água discreta (8%).</span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-[#ffcd75]">3. Hierarquia Tipográfica</span>
+          <span class="text-xs text-[#94b0c2] leading-relaxed">Títulos fixos em 14px (peso 700), poder em 22px (peso 800) e tempos técnicos em peso 500 com números tabulares.</span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-[#ffcd75]">4. Cooldown & Fila Claros</span>
+          <span class="text-xs text-[#94b0c2] leading-relaxed">Badge sólido para "NA FILA" e transição suave no modo Revelar para não cortar textos ao meio.</span>
+        </div>
+      </div>
+
+      <!-- SEÇÃO 1: NO PAINEL DO JOGO (390px) -->
+      <section class="flex flex-col gap-4">
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-bold tracking-[2px] text-[#566c86] uppercase">NO PAINEL DO JOGO · TAMANHO REAL (390PX)</span>
+          <p class="text-sm text-[#94b0c2]">Toque em qualquer card para acionar a recarga; toque novamente durante a recarga para colocar <strong class="text-[#ffcd75]">NA FILA</strong>.</p>
+        </div>
+
+        <div class="flex flex-wrap gap-8 items-start">
+          <!-- Variante 1B: Relógio + Barra Inferior -->
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center gap-2.5">
+              <span class="text-xs font-extrabold px-2 py-1 rounded bg-[#ffcd75] text-[#1a1c2c]">1b</span>
+              <span class="text-lg font-bold">Relógio + Filete de Progresso</span>
+            </div>
+            <span class="text-xs text-[#94b0c2]">O card escurece, o selo do tipo gira e um filete de 2.5px preenche a base</span>
+
+            <!-- Container exato de 390px da Arena -->
+            <div style="width: 390px; max-width: 100%; padding: 16px 12px 18px; border-radius: 18px; background: #161829; box-shadow: inset 0 2px 0 0 #262b46, 0 12px 28px rgba(0,0,0,0.4)">
+              <div id="panel1b" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 2px"></div>
+            </div>
+          </div>
+
+          <!-- Variante 1C: Revelar Suave -->
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center gap-2.5">
+              <span class="text-xs font-extrabold px-2 py-1 rounded bg-[#ffcd75] text-[#1a1c2c]">1c</span>
+              <span class="text-lg font-bold">Revelar Suave</span>
+            </div>
+            <span class="text-xs text-[#94b0c2]">O card fica dessaturado e a cor retorna da esquerda para a direita com borda suave</span>
+
+            <!-- Container exato de 390px da Arena -->
+            <div style="width: 390px; max-width: 100%; padding: 16px 12px 18px; border-radius: 18px; background: #161829; box-shadow: inset 0 2px 0 0 #262b46, 0 12px 28px rgba(0,0,0,0.4)">
+              <div id="panel1c" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 2px"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SEÇÃO 2: ANATOMIA E LEGENDA UNIFICADA -->
+      <section class="flex flex-col gap-4">
+        <span class="text-xs font-bold tracking-[2px] text-[#566c86] uppercase">COMO LER O CARD · ANATOMIA VISUAL</span>
+
+        <div class="bg-[#131524] border border-[#22263e] rounded-2xl p-6 flex flex-wrap gap-8 items-center">
+          <!-- Card Exemplo com Callouts -->
+          <div class="flex items-center gap-3">
+            <div class="flex flex-col justify-between h-[88px] py-1.5 text-right">
+              <span class="px-2 py-0.5 rounded bg-[#252945] text-[#ffcd75] text-[11px] font-bold">Linha 1</span>
+              <span class="px-2 py-0.5 rounded bg-[#252945] text-[#ffcd75] text-[11px] font-bold">Linha 2</span>
+              <span class="px-2 py-0.5 rounded bg-[#252945] text-[#ffcd75] text-[11px] font-bold">Linha 3</span>
+            </div>
+            <div id="anatomyCard" style="width: 175px; flex: none"></div>
+          </div>
+
+          <!-- Explicação estruturada das 3 linhas e ícones -->
+          <div class="flex-1 min-w-[280px] grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-[#ffcd75] text-[#141624] text-xs font-extrabold flex items-center justify-center">1</span>
+                <span class="font-bold text-sm text-white">Nome Padronizado (14px)</span>
+              </div>
+              <p class="text-xs text-[#94b0c2] leading-relaxed">
+                Tamanho único em todos os cards para evitar desalinhamento no grid. O gradiente limpo em 2 paradas identifica o elemento instantaneamente.
+              </p>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-[#ffcd75] text-[#141624] text-xs font-extrabold flex items-center justify-center">2</span>
+                <span class="font-bold text-sm text-white">Pílula de Atributos & Poder</span>
+              </div>
+              <p class="text-xs text-[#94b0c2] leading-relaxed">
+                Agrupa <strong>Tipo + Categoria + Alcance</strong> em um container escuro de alto contraste à esquerda, liberando espaço para o <strong>Poder (22px)</strong> à direita.
+              </p>
+              <div id="legendIconsRow2" class="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-1 text-xs text-[#c0cbdc]"></div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-[#ffcd75] text-[#141624] text-xs font-extrabold flex items-center justify-center">3</span>
+                <span class="font-bold text-sm text-white">Rodapé Técnico & Fila</span>
+              </div>
+              <p class="text-xs text-[#94b0c2] leading-relaxed">
+                Tempos em peso 500 para não competir com o poder. Na recarga, o contador ganha destaque em amarelo (<code class="text-[#ffcd75]">#ffcd75</code>).
+              </p>
+              <div id="legendIconsRow3" class="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-1 text-xs text-[#c0cbdc]"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SEÇÃO 3: GALERIA DOS 10 ELEMENTOS -->
+      <section class="flex flex-col gap-4">
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-bold tracking-[2px] text-[#566c86] uppercase">UM FUNDO POR TIPO · PALETA ELEMENTAL LIMPA</span>
+          <p class="text-xs text-[#94b0c2]">Gradientes atmosféricos sem listras ou texturas ruidosas. Todos os cards abaixo também são interativos ao clique.</p>
+        </div>
+        <div id="galleryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, 175px); gap: 14px"></div>
+      </section>
+
+      <!-- SEÇÃO 4: COMPARATIVO DE ESTADOS FIXOS -->
+      <section class="flex flex-col gap-6">
+        <span class="text-xs font-bold tracking-[2px] text-[#566c86] uppercase">ESTADOS DE COMBATE (REFERÊNCIA ESTÁTICA)</span>
+
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          <!-- Estados 1b -->
+          <div class="bg-[#131524] border border-[#22263e] rounded-2xl p-5 flex flex-col gap-4">
+            <div class="flex items-center gap-2.5">
+              <span class="text-xs font-extrabold px-2 py-0.5 rounded bg-[#ffcd75] text-[#1a1c2c]">1b</span>
+              <span class="text-sm font-bold text-[#c0cbdc]">Estados · Variante Relógio + Barra</span>
+            </div>
+            <div id="states1b" style="display: grid; grid-template-columns: repeat(auto-fill, 175px); gap: 14px"></div>
+          </div>
+
+          <!-- Estados 1c -->
+          <div class="bg-[#131524] border border-[#22263e] rounded-2xl p-5 flex flex-col gap-4">
+            <div class="flex items-center gap-2.5">
+              <span class="text-xs font-extrabold px-2 py-0.5 rounded bg-[#ffcd75] text-[#1a1c2c]">1c</span>
+              <span class="text-sm font-bold text-[#c0cbdc]">Estados · Variante Revelar Suave</span>
+            </div>
+            <div id="states1c" style="display: grid; grid-template-columns: repeat(auto-fill, 175px); gap: 14px"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      // ============================================================================
+      // 1. SISTEMA DE ÍCONES UNIFICADOS (Traço consistente de 2.2px, viewBox 24x24)
+      // ============================================================================
+      function makeSvgDataUri(pathsHtml) {
+        var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">' + pathsHtml + '</svg>';
+        return 'data:image/svg+xml,' + encodeURIComponent(svg);
+      }
+
+      // Ícones Elementais (usados tanto no selo de 15px quanto na marca d'água de 56px)
+      var TYPE_PATHS = {
+        fogo: '<path d="M12 2.5c1.2 3.2 4.5 5 5.5 8.5a6 6 0 1 1-11.2 3c-.5-2.2.5-4.5 2.2-6 .3 1.6 1.2 2.6 2.3 3-.6-2.4.1-5.5 1.2-8.5Z" stroke="COLOR" stroke-width="2.2" fill="FILL"/>',
+        agua: '<path d="M12 3c3.5 4.5 6.5 8 6.5 12a6.5 6.5 0 1 1-13 0c0-4 3-7.5 6.5-12Z" stroke="COLOR" stroke-width="2.2" fill="FILL"/>',
+        ar: '<path d="M3 8.5h11.5a3 3 0 1 0-3-3M3 13h14.5a3 3 0 1 1-3 3M3 17.5h7.5" stroke="COLOR" stroke-width="2.2"/>',
+        terra: '<path d="M2.5 19.5 9 7.5l4.2 6.5 2.8-4.2 5.5 9.7H2.5Z" stroke="COLOR" stroke-width="2.2" fill="FILL"/>',
+        eletricidade: '<path d="M13.2 2.5 4.8 13.2h6.2l-1.2 8.3 9.4-11.7h-6.2l.2-7.3Z" stroke="COLOR" stroke-width="2.2" fill="FILL"/>',
+        natureza: '<path d="M19.5 4.5c-8.5 0-14 4.5-14 11.5 0 1.4.3 2.7.9 3.8 2.8-6 6.8-8.8 11.1-10.3-3.5 2.5-6.5 6-8.5 11 1 .3 2 .5 3 .5 6.5 0 9.5-6 7.5-16.5Z" stroke="COLOR" stroke-width="2.2" fill="FILL"/>',
+        mineral: '<path d="M12 2.5 19 9l-7 12.5L5 9l7-6.5Z" stroke="COLOR" stroke-width="2.2" fill="FILL"/><path d="M5 9h14M12 2.5V21.5" stroke="COLOR" stroke-width="1.8"/>',
+        arcano: '<path d="M12 2.5c1 5.2 3.8 8 9 9-5.2 1-8 3.8-9 9-1-5.2-3.8-8-9-9 5.2-1 8-3.8 9-9Z" stroke="COLOR" stroke-width="2.2" fill="FILL"/>',
+        primordial: '<path d="M12 12a1.5 1.5 0 1 0 1.5 1.5A3 3 0 1 1 9 11a4.8 4.8 0 1 1 5.5 4.8A6.8 6.8 0 1 1 18.8 9a8.8 8.8 0 1 1-9.8-6" stroke="COLOR" stroke-width="2.2"/>',
+        gelo: '<path d="M12 2.5v19M3.8 7.2l16.4 9.6M3.8 16.8l16.4-9.6M9.5 4l2.5 2.2L14.5 4M9.5 20l2.5-2.2 2.5 2.2" stroke="COLOR" stroke-width="2.2"/>'
+      };
+
+      // Paleta Elemental: Gradiente limpo em 2 paradas + Cor de destaque do selo
+      var ELEMENT_THEME = {
+        fogo:         { bg: 'linear-gradient(140deg, #d94b27 0%, #5e1914 100%)', accent: '#ffbe76' },
+        agua:         { bg: 'linear-gradient(140deg, #226bd4 0%, #0e285c 100%)', accent: '#82ccdd' },
+        ar:           { bg: 'linear-gradient(140deg, #2798a6 0%, #0f3d47 100%)', accent: '#9aecdb' },
+        terra:        { bg: 'linear-gradient(140deg, #9c6534 0%, #3d2412 100%)', accent: '#f5cd79' },
+        eletricidade: { bg: 'linear-gradient(140deg, #c79816 0%, #453309 100%)', accent: '#ffeaa7' },
+        natureza:     { bg: 'linear-gradient(140deg, #2b8543 0%, #10381c 100%)', accent: '#b8e994' },
+        mineral:      { bg: 'linear-gradient(140deg, #65758c 0%, #242b38 100%)', accent: '#d1d8e0' },
+        arcano:       { bg: 'linear-gradient(140deg, #8847cc 0%, #2d144d 100%)', accent: '#e0b0ff' },
+        primordial:   { bg: 'linear-gradient(140deg, #b52b4c 0%, #420e1d 100%)', accent: '#ff9ff3' },
+        gelo:         { bg: 'linear-gradient(140deg, #3c98bd 0%, #14374a 100%)', accent: '#c7ecee' }
+      };
+
+      function getTypeIcon(type, isWatermark) {
+        var tpl = TYPE_PATHS[type] || TYPE_PATHS.fogo;
+        var color = isWatermark ? '#ffffff' : (ELEMENT_THEME[type] ? ELEMENT_THEME[type].accent : '#ffffff');
+        var fill = isWatermark ? 'none' : 'rgba(255,255,255,0.16)';
+        return makeSvgDataUri(tpl.replace(/COLOR/g, color).replace(/FILL/g, fill));
+      }
+
+      // Ícones de Categoria (mesma família visual, traço 2.2px)
+      var CAT_ICONS = {
+        // Físico: Impacto / Garras de corte
+        'Físico': makeSvgDataUri('<path d="M12 2.5l2.2 5.3 5.6-1.6-3 5 4.7 3.3-5.7.6.4 5.8L12 16.7l-4.2 4.2.4-5.8-5.7-.6 4.7-3.3-3-5 5.6 1.6L12 2.5Z" stroke="#ffffff" stroke-width="2" fill="rgba(255,255,255,0.2)"/>'),
+        // Mágico: Orbe de energia com ondas
+        'Mágico': makeSvgDataUri('<circle cx="15.5" cy="12" r="4.5" stroke="#ffffff" stroke-width="2.2" fill="rgba(255,255,255,0.2)"/><path d="M2.5 12h6M4.5 7.5h5M4.5 16.5h5" stroke="#ffffff" stroke-width="2.2"/>'),
+        // Especial: Estrela / Chevron duplo ascendente
+        'Especial': makeSvgDataUri('<path d="M4.5 11 12 4.5 19.5 11M4.5 18 12 11.5 19.5 18" stroke="#ffffff" stroke-width="2.3"/>')
+      };
+
+      // Ícones de Alcance (mesma família visual, traço 2.2px)
+      var RANGE_ICONS = {
+        // Perto: Lâmina curta / combate corpo a corpo
+        'Perto': makeSvgDataUri('<path d="M4.5 19.5 19 5V3.5h-1.5L3 18M7 13.5l3.5 3.5M3.5 20.5l2-2" stroke="#ffffff" stroke-width="2.2"/>'),
+        // Longe: Mira de precisão
+        'Longe': makeSvgDataUri('<circle cx="12" cy="12" r="8" stroke="#ffffff" stroke-width="2.2"/><circle cx="12" cy="12" r="2.2" fill="#ffffff"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2" stroke="#ffffff" stroke-width="2"/>'),
+        // Em si: Aura / Usuário
+        'Proprio': makeSvgDataUri('<circle cx="12" cy="7" r="3.5" stroke="#ffffff" stroke-width="2.2"/><path d="M5 20c0-3.8 3.1-6.5 7-6.5s7 2.7 7 6.5" stroke="#ffffff" stroke-width="2.2"/>')
+      };
+
+      // Ícones de Tempo (Recarga e Conjuração)
+      var TIMER_ICONS = {
+        cdWhite: makeSvgDataUri('<path d="M20 12a8 8 0 1 1-2.3-5.6M20 3.5v4.5h-4.5" stroke="#ffffff" stroke-width="2.3"/>'),
+        cdGold:  makeSvgDataUri('<path d="M20 12a8 8 0 1 1-2.3-5.6M20 3.5v4.5h-4.5" stroke="#ffcd75" stroke-width="2.5"/>'),
+        cast:    makeSvgDataUri('<path d="M6.5 3.5h11M6.5 20.5h11M7.5 3.5c0 5 9 5 9 8.5s-9 3.5-9 8.5M16.5 3.5c0 5-9 5-9 8.5s9 3.5 9 8.5" stroke="#ffffff" stroke-width="2.1"/>')
+      };
+
+      // ============================================================================
+      // 2. DADOS DOS GOLPES
+      // ============================================================================
+      var ARENA_MOVES = [
+        { name: 'Labareda', type: 'fogo', cat: 'Mágico', pow: 60, range: 'Longe', cd: 2.5, cast: 0.4 },
+        { name: 'Garra de Pedra', type: 'terra', cat: 'Físico', pow: 75, range: 'Perto', cd: 3.2, cast: 0 },
+        { name: 'Raio Curto', type: 'eletricidade', cat: 'Especial', pow: 45, range: 'Longe', cd: 1.6, cast: 0.2 },
+        { name: 'Foco Arcano', type: 'arcano', cat: 'Especial', buff: 'Ataque', amt: 10, dur: 6, cd: 7.0, cast: 0.8 }
+      ];
+
+      var ALL_TYPES_MOVES = [
+        ARENA_MOVES[0],
+        { name: "Jato d'Água", type: 'agua', cat: 'Mágico', pow: 55, range: 'Longe', cd: 2.2, cast: 0.3 },
+        { name: 'Rajada', type: 'ar', cat: 'Especial', pow: 40, range: 'Longe', cd: 1.4, cast: 0 },
+        ARENA_MOVES[1],
+        ARENA_MOVES[2],
+        { name: 'Chicote de Cipó', type: 'natureza', cat: 'Físico', pow: 50, range: 'Perto', cd: 2.0, cast: 0 },
+        { name: 'Lâmina de Quartzo', type: 'mineral', cat: 'Físico', pow: 70, range: 'Perto', cd: 3.0, cast: 0.2 },
+        ARENA_MOVES[3],
+        { name: 'Eco Ancestral', type: 'primordial', cat: 'Mágico', pow: 80, range: 'Longe', cd: 5.0, cast: 1.0 },
+        { name: 'Sopro Gélido', type: 'gelo', cat: 'Mágico', pow: 50, range: 'Longe', cd: 2.4, cast: 0.5 }
+      ];
+
+      // ============================================================================
+      // 3. ESTADO INTERATIVO DE RECARGA E FILA
+      // ============================================================================
+      var state = {
+        speed: 1,
+        cd: {}, // key -> { start, dur }
+        q: {}   // key -> boolean
+      };
+
+      function triggerCard(key, move) {
+        if (!key) return;
+        var now = performance.now();
+        if (state.cd[key]) {
+          // Alterna estado "NA FILA" se já estiver em recarga
+          if (state.q[key]) delete state.q[key];
+          else state.q[key] = true;
+        } else {
+          state.cd[key] = {
+            start: now,
+            dur: (move.cd * 1000) / state.speed
+          };
+        }
+        renderAll();
+      }
+
+      // ============================================================================
+      // 4. CONSTRUTOR DE HTML DO CARD (1b e 1c)
+      // ============================================================================
+      function buildCardHtml(move, opts) {
+        var variant = opts.variant || '1b'; // '1b' (Relógio+Barra) ou '1c' (Revelar)
+        var rem = opts.rem || 0;
+        var frac = opts.frac || 0; // 1.0 = acabou de clicar, 0.0 = pronto
+        var cooling = rem > 0;
+        var queued = !!opts.queued;
+        var keyAttr = opts.key ? 'data-card-key="' + opts.key + '"' : '';
+
+        var theme = ELEMENT_THEME[move.type] || ELEMENT_THEME.fogo;
+        var typeIcon = getTypeIcon(move.type, false);
+        var watermarkIcon = getTypeIcon(move.type, true);
+        var catIcon = CAT_ICONS[move.cat];
+        var rangeKey = move.buff ? 'Proprio' : move.range;
+        var rangeIcon = RANGE_ICONS[rangeKey];
+
+        var cdIcon = cooling ? TIMER_ICONS.cdGold : TIMER_ICONS.cdWhite;
+        var cdText = cooling ? rem.toFixed(1) + 's' : move.cd.toFixed(1) + 's';
+        var castText = move.cast ? move.cast.toFixed(1) + 's' : 'inst.';
+        var powText = move.buff ? '+' + move.amt : String(move.pow);
+        var buffTag = move.buff ? (move.buff === 'Ataque' ? 'ATQ' : 'DEF') : '';
+
+        // Borda externa destaca estado "NA FILA"
+        var ringStyle = queued
+          ? '0 0 0 2px #ffcd75, 0 4px 14px rgba(255, 205, 117, 0.25)'
+          : '0 0 0 1px rgba(255, 255, 255, 0.09), 0 4px 10px rgba(0, 0, 0, 0.25)';
+
+        // Camadas de fundo segundo a variante (1b vs 1c)
+        var bgLayers = '';
+        if (variant === '1b') {
+          var dimAlpha = cooling ? 0.54 : 0;
+          var progressPct = cooling ? ((1 - frac) * 100).toFixed(1) : 0;
+          bgLayers =
+            '<span style="position:absolute;inset:0;background:' + theme.bg + '"></span>' +
+            '<span style="position:absolute;right:-6px;bottom:14px;width:58px;height:58px;opacity:0.08;background:center/contain no-repeat url(\'' + watermarkIcon + '\');pointer-events:none"></span>' +
+            '<span style="position:absolute;inset:0;background:rgba(8,9,16,' + dimAlpha + ');transition:background 0.15s"></span>' +
+            (cooling
+              ? '<span style="position:absolute;left:0;bottom:0;height:2.5px;width:' + progressPct + '%;background:#ffcd75;z-index:6;box-shadow:0 0 6px rgba(255,205,117,0.8)"></span>'
+              : '');
+        } else {
+          // 1c: Revelar suave com borda esfumada para não cortar letras ao meio
+          var revealPct = cooling ? ((1 - frac) * 100).toFixed(1) : 100;
+          var softEdgeStart = Math.max(0, revealPct - 4);
+          var softEdgeEnd = Math.min(100, Number(revealPct) + 4);
+          var maskStyle = cooling
+            ? '-webkit-mask-image:linear-gradient(90deg, #000 ' + softEdgeStart + '%, transparent ' + softEdgeEnd + '%);mask-image:linear-gradient(90deg, #000 ' + softEdgeStart + '%, transparent ' + softEdgeEnd + '%)'
+            : '';
+
+          bgLayers =
+            // Base dessaturada e escura
+            '<span style="position:absolute;inset:0;background:' + theme.bg + ';filter:grayscale(0.95) brightness(0.38)"></span>' +
+            // Camada colorida que revela da esquerda para a direita
+            '<span style="position:absolute;inset:0;background:' + theme.bg + ';' + maskStyle + '"></span>' +
+            '<span style="position:absolute;right:-6px;bottom:14px;width:58px;height:58px;opacity:0.08;background:center/contain no-repeat url(\'' + watermarkIcon + '\');pointer-events:none"></span>' +
+            (cooling
+              ? '<span style="position:absolute;top:0;bottom:0;left:' + revealPct + '%;width:2px;background:rgba(255,205,117,0.65);box-shadow:0 0 8px rgba(255,205,117,0.6);z-index:2;pointer-events:none"></span>'
+              : '');
+        }
+
+        // Sweep radial no ícone de tipo na variante 1b
+        var sweepOverlay = (variant === '1b' && cooling)
+          ? '<span style="position:absolute;inset:-2px;border-radius:4px;background:conic-gradient(rgba(8,9,16,0.82) ' + (frac * 360).toFixed(1) + 'deg, transparent 0)"></span>'
+          : '';
+
+        return (
+          '<button type="button" class="move-card" ' + keyAttr + ' style="box-shadow:' + ringStyle + '">' +
+            bgLayers +
+            // Corpo Principal (Linhas 1 e 2)
+            '<span style="position:relative;z-index:3;flex:1;padding:8px 10px 6px;display:flex;flex-direction:column;justify-content:space-between">' +
+              // Linha 1: Nome padronizado em 14px, peso 700, 1 linha
+              '<span style="display:block;font-size:14px;line-height:17px;font-weight:700;letter-spacing:0.35px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:' + (cooling ? 'rgba(255,255,255,0.88)' : '#ffffff') + ';text-shadow:0 1px 2px rgba(0,0,0,0.45)">' +
+                move.name.toUpperCase() +
+              '</span>' +
+
+              // Linha 2: Pílula Unificada à esquerda + Poder à direita
+              '<span style="display:flex;align-items:center;justify-content:space-between;gap:6px;height:26px">' +
+                '<span class="attr-pill" title="' + move.type.toUpperCase() + ' · ' + move.cat + ' · ' + (move.buff ? 'Em si' : move.range) + '">' +
+                  '<span style="position:relative;width:17px;height:17px;flex:none;background:center/contain no-repeat url(\'' + typeIcon + '\')">' +
+                    sweepOverlay +
+                  '</span>' +
+                  '<span class="attr-divider"></span>' +
+                  '<span style="width:16px;height:16px;flex:none;opacity:1;background:center/contain no-repeat url(\'' + catIcon + '\')"></span>' +
+                  '<span style="width:16px;height:16px;flex:none;opacity:1;background:center/contain no-repeat url(\'' + rangeIcon + '\')"></span>' +
+                '</span>' +
+
+                '<span style="display:inline-flex;align-items:center;gap:5px">' +
+                  (move.buff
+                    ? '<span style="font-size:9.5px;line-height:1;font-weight:800;letter-spacing:0.6px;padding:2.5px 4.5px;border-radius:4px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.22);color:#ffffff">' + buffTag + '</span>'
+                    : '') +
+                  '<span class="tabular-nums" style="font-size:22px;line-height:22px;font-weight:800;letter-spacing:-0.3px;color:' + (cooling ? 'rgba(255,255,255,0.85)' : '#ffffff') + ';text-shadow:0 1px 3px rgba(0,0,0,0.45)">' +
+                    powText +
+                  '</span>' +
+                '</span>' +
+              '</span>' +
+            '</span>' +
+
+            // Linha 3: Barra Técnica Inferior
+            '<span class="meta-footer tabular-nums">' +
+              '<span style="display:inline-flex;align-items:center;gap:4px;color:' + (cooling ? '#ffcd75' : 'rgba(255,255,255,0.86)') + ';font-weight:' + (cooling ? '700' : '500') + '">' +
+                '<span style="width:12px;height:12px;flex:none;background:center/contain no-repeat url(\'' + cdIcon + '\')"></span>' +
+                '<span>' + cdText + '</span>' +
+              '</span>' +
+
+              '<span style="display:inline-flex;align-items:center;gap:3.5px;color:rgba(255,255,255,0.68);font-weight:500">' +
+                '<span style="width:12px;height:12px;flex:none;opacity:0.85;background:center/contain no-repeat url(\'' + TIMER_ICONS.cast + '\')"></span>' +
+                '<span>' + castText + '</span>' +
+              '</span>' +
+
+              (queued
+                ? '<span style="margin-left:auto;padding:1.5px 5px;border-radius:3.5px;background:#ffcd75;color:#141624;font-size:9px;line-height:1;font-weight:800;letter-spacing:0.6px">NA FILA</span>'
+                : '') +
+            '</span>' +
+          '</button>'
+        );
+      }
+
+      // ============================================================================
+      // 5. RENDERIZAÇÃO DAS SEÇÕES
+      // ============================================================================
+      var keyMap = {}; // Mapeia data-card-key -> move object
+
+      function renderLivePanel(containerId, prefix, variant) {
+        var now = performance.now();
+        var html = ARENA_MOVES.map(function (m, idx) {
+          var key = prefix + '_' + idx;
+          keyMap[key] = m;
+          var c = state.cd[key];
+          var rem = 0, frac = 0;
+          if (c) {
+            var left = Math.max(0, c.start + c.dur - now);
+            rem = (left / 1000) * state.speed;
+            frac = left / c.dur;
+          }
+          return buildCardHtml(m, {
+            key: key,
+            variant: variant,
+            rem: rem,
+            frac: frac,
+            queued: state.q[key]
+          });
+        }).join('');
+        document.getElementById(containerId).innerHTML = html;
+      }
+
+      function renderGallery() {
+        var now = performance.now();
+        var html = ALL_TYPES_MOVES.map(function (m, idx) {
+          var key = 'gal_' + idx;
+          keyMap[key] = m;
+          var c = state.cd[key];
+          var rem = 0, frac = 0;
+          if (c) {
+            var left = Math.max(0, c.start + c.dur - now);
+            rem = (left / 1000) * state.speed;
+            frac = left / c.dur;
+          }
+          return buildCardHtml(m, {
+            key: key,
+            variant: '1b',
+            rem: rem,
+            frac: frac,
+            queued: state.q[key]
+          });
+        }).join('');
+        document.getElementById('galleryGrid').innerHTML = html;
+      }
+
+      function renderStaticSections() {
+        // Card de Anatomia
+        document.getElementById('anatomyCard').innerHTML = buildCardHtml(ARENA_MOVES[0], { variant: '1b' });
+
+        // Legenda de Ícones da Linha 2
+        var row2Items = [
+          { ico: CAT_ICONS['Físico'], label: 'Físico' },
+          { ico: CAT_ICONS['Mágico'], label: 'Mágico' },
+          { ico: CAT_ICONS['Especial'], label: 'Especial' },
+          { ico: RANGE_ICONS['Perto'], label: 'Perto' },
+          { ico: RANGE_ICONS['Longe'], label: 'Longe' },
+          { ico: RANGE_ICONS['Proprio'], label: 'Em si' }
+        ];
+        document.getElementById('legendIconsRow2').innerHTML = row2Items.map(function (it) {
+          return '<span class="inline-flex items-center gap-1.5 bg-[#1b1e32] px-2 py-1 rounded border border-[#282d4a]">' +
+            '<span style="width:13px;height:13px;background:center/contain no-repeat url(\'' + it.ico + '\')"></span>' +
+            '<span>' + it.label + '</span>' +
+          '</span>';
+        }).join('');
+
+        // Legenda de Ícones da Linha 3
+        var row3Items = [
+          { ico: TIMER_ICONS.cdWhite, label: 'Recarga padrão' },
+          { ico: TIMER_ICONS.cdGold, label: 'Em contagem' },
+          { ico: TIMER_ICONS.cast, label: 'Conjuração' }
+        ];
+        document.getElementById('legendIconsRow3').innerHTML = row3Items.map(function (it) {
+          return '<span class="inline-flex items-center gap-1.5 bg-[#1b1e32] px-2 py-1 rounded border border-[#282d4a]">' +
+            '<span style="width:13px;height:13px;background:center/contain no-repeat url(\'' + it.ico + '\')"></span>' +
+            '<span>' + it.label + '</span>' +
+          '</span>';
+        }).join('');
+
+        // Estados Estáticos (1b e 1c)
+        var staticStates = [
+          { label: '1. Pronto para uso', move: ARENA_MOVES[1], rem: 0, frac: 0, queued: false },
+          { label: '2. Recarregando (65%)', move: ARENA_MOVES[0], rem: 1.6, frac: 0.65, queued: false },
+          { label: '3. Na fila (próximo)', move: ARENA_MOVES[2], rem: 0.5, frac: 0.30, queued: true },
+          { label: '4. Golpe de Bônus (Buff)', move: ARENA_MOVES[3], rem: 0, frac: 0, queued: false }
+        ];
+
+        ['1b', '1c'].forEach(function (variant) {
+          var targetId = variant === '1b' ? 'states1b' : 'states1c';
+          document.getElementById(targetId).innerHTML = staticStates.map(function (st) {
+            return '<div class="flex flex-col gap-2">' +
+              '<span class="text-xs font-medium text-[#94b0c2]">' + st.label + '</span>' +
+              buildCardHtml(st.move, {
+                variant: variant,
+                rem: st.rem,
+                frac: st.frac,
+                queued: st.queued
+              }) +
+            '</div>';
+          }).join('');
+        });
+      }
+
+      function renderAll() {
+        renderLivePanel('panel1b', 'b', '1b');
+        renderLivePanel('panel1c', 'c', '1c');
+        renderGallery();
+      }
+
+      // ============================================================================
+      // 6. LOOP DE ANIMAÇÃO E EVENTOS DE INTERAÇÃO
+      // ============================================================================
+      setInterval(function () {
+        var now = performance.now();
+        var active = false;
+        Object.keys(state.cd).forEach(function (k) {
+          active = true;
+          var c = state.cd[k];
+          if (now >= c.start + c.dur) {
+            delete state.cd[k];
+            // Se estava NA FILA, dispara novamente automaticamente
+            if (state.q[k]) {
+              delete state.q[k];
+              state.cd[k] = { start: now, dur: c.dur };
+            }
+          }
+        });
+        if (active) renderAll();
+      }, 45);
+
+      // Delegação de clique para qualquer card interativo
+      document.addEventListener('click', function (e) {
+        var cardBtn = e.target.closest('[data-card-key]');
+        if (cardBtn) {
+          var key = cardBtn.getAttribute('data-card-key');
+          var move = keyMap[key];
+          if (move) triggerCard(key, move);
+          return;
+        }
+
+        // Troca de Fonte
+        var fontBtn = e.target.closest('[data-font]');
+        if (fontBtn) {
+          var fontName = fontBtn.getAttribute('data-font');
+          document.documentElement.style.setProperty('--lab-font', "'" + fontName + "', sans-serif");
+          document.querySelectorAll('[data-font]').forEach(function (b) {
+            b.classList.toggle('active', b === fontBtn);
+          });
+          return;
+        }
+
+        // Troca de Velocidade
+        var speedBtn = e.target.closest('[data-speed]');
+        if (speedBtn) {
+          state.speed = parseFloat(speedBtn.getAttribute('data-speed')) || 1;
+          document.querySelectorAll('[data-speed]').forEach(function (b) {
+            b.classList.toggle('active', b === speedBtn);
+          });
+          return;
+        }
+      });
+
+      // Botão "Simular Recarga Geral"
+      document.getElementById('btnTriggerAll').addEventListener('click', function () {
+        var now = performance.now();
+        ARENA_MOVES.forEach(function (m, i) {
+          state.cd['b_' + i] = { start: now, dur: (m.cd * 1000) / state.speed };
+          state.cd['c_' + i] = { start: now, dur: (m.cd * 1000) / state.speed };
+        });
+        state.q['b_2'] = true;
+        state.q['c_2'] = true;
+        renderAll();
+      });
+
+      // Inicialização
+      renderStaticSections();
+      renderAll();
+    })();
+  </script>
+</body>
+</html>

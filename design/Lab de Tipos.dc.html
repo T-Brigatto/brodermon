@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&amp;family=Press+Start+2P&amp;display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;background:#0c0d16;scroll-behavior:smooth}
+a:focus-visible{outline:2px solid #ffcd75;outline-offset:3px}
+a{color:#ffcd75}a:hover{color:#f4f4f4}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0c0d16; color: #f4f4f4; font-family: 'Pixelify Sans', monospace; -webkit-font-smoothing: none">
+  <header style="position: sticky; top: 0; z-index: 5; background: #141625; box-shadow: inset 0 -2px 0 0 #262b44; padding: 16px 24px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap">
+      <span style="font-family: 'Press Start 2P', monospace; font-size: 16px; line-height: 16px; color: #ffcd75">LAB DE SELOS</span>
+      <span style="font-size: 14px; line-height: 18px; color: #94b0c2">5 selos por tipo · grade 7×7, uma cor e um brilho</span>
+    </div>
+    <nav style="display: flex; flex-wrap: wrap; gap: 8px">
+      <sc-for list="{{types}}" as="t" hint-placeholder-count="10">
+        <a href="#{{t.id}}" style="display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px 0 6px; background: {{t.tint}}; color: {{t.base}}; text-decoration: none; font-family: 'Press Start 2P', monospace; font-size: 9px; line-height: 9px">
+          <img src="{{t.navIcon}}" alt="" style="width: {{t.navW}}px; image-rendering: pixelated">
+          <span>{{t.label}}</span>
+        </a>
+      </sc-for>
+    </nav>
+  </header>
+
+  <main style="max-width: 1240px; margin: 0 auto; padding: 28px 24px 80px; display: flex; flex-direction: column; gap: 44px">
+    <sc-for list="{{types}}" as="t" hint-placeholder-count="3">
+      <section id="{{t.id}}" data-screen-label="{{t.label}}" style="display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 130px">
+        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding-bottom: 12px; box-shadow: inset 0 -2px 0 0 #262b44">
+          <span style="font-family: 'Press Start 2P', monospace; font-size: 18px; line-height: 18px; color: {{t.base}}">{{t.label}}</span>
+          <div style="display: flex; gap: 4px">
+            <span title="{{t.c0}}" style="width: 14px; height: 14px; background: {{t.c0}}"></span>
+            <span title="{{t.base}}" style="width: 14px; height: 14px; background: {{t.base}}"></span>
+            <span title="{{t.tint}}" style="width: 14px; height: 14px; background: {{t.tint}}; box-shadow: 0 0 0 1px #333c57"></span>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px">
+          <sc-for list="{{t.glyphs}}" as="g" hint-placeholder-count="5">
+            <div style="margin: 2px; padding: 12px; background: #141625; box-shadow: 0 -2px 0 0 #262b44, 0 2px 0 0 #262b44, -2px 0 0 0 #262b44, 2px 0 0 0 #262b44; display: flex; flex-direction: column; gap: 14px">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <span style="padding: 3px 4px; background: #262b44; color: #ffcd75; font-family: 'Press Start 2P', monospace; font-size: 8px; line-height: 8px">S{{g.n}}</span>
+                <span style="font-size: 14px; line-height: 14px; color: #c0cbdc">{{g.name}}</span>
+              </div>
+              <div style="height: 76px; display: flex; align-items: center; justify-content: center">
+                <sc-if value="{{g.sq}}" hint-placeholder-val="{{ true }}">
+                  <span style="width: 68px; height: 68px; margin: 2px; background: {{t.tint}}; box-shadow: 0 -2px 0 0 {{t.base}}, 0 2px 0 0 {{t.base}}, -2px 0 0 0 {{t.base}}, 2px 0 0 0 {{t.base}}; display: flex; align-items: center; justify-content: center">
+                    <img src="{{g.src}}" alt="" style="width: {{g.wBig}}px; image-rendering: pixelated">
+                  </span>
+                </sc-if>
+                <sc-if value="{{g.chip}}" hint-placeholder-val="{{ false }}">
+                  <span style="height: 34px; padding: 0 10px 0 6px; background: {{t.tint}}; display: flex; align-items: center; gap: 8px; color: {{t.base}}; font-family: 'Press Start 2P', monospace; font-size: 9px; line-height: 9px">
+                    <img src="{{g.src}}" alt="" style="width: {{g.wSmall}}px; image-rendering: pixelated">
+                    <span>{{t.label}}</span>
+                  </span>
+                </sc-if>
+                <sc-if value="{{g.loose}}" hint-placeholder-val="{{ false }}">
+                  <img src="{{g.src}}" alt="" style="width: {{g.wBig}}px; image-rendering: pixelated">
+                </sc-if>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: center; gap: 12px">
+                <span style="width: 22px; height: 22px; background: {{t.tint}}; display: flex; align-items: center; justify-content: center">
+                  <img src="{{g.src}}" alt="" style="width: {{g.w2}}px; image-rendering: pixelated">
+                </span>
+                <span style="font-size: 12px; line-height: 12px; color: #566c86">tamanho no golpe</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </sc-for>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;selo&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;quadrado&quot;,&quot;chip&quot;,&quot;solto&quot;],&quot;default&quot;:&quot;quadrado&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Exibição&quot;}}">
+class Component extends DCLogic {
+  data() {
+    if (this._d) return this._d;
+    var TYPES = [
+      { id: 'fogo', label: 'FOGO', ramp: ['#ffcd75', '#ef7d57'], tint: '#46213c', glyphs: [
+        ['Chama', ['...B...', '..BB...', '..BBB.B', '.BBBBBB', 'BBBLBBB', 'BBLLLBB', '.BBBBB.']],
+        ['Brasa', ['...B...', '..BBB..', '.BBLBB.', 'BBLLLBB', '.BBLBB.', '..BBB..', '...B...']],
+        ['Sol', ['B..B..B', '.......', '..BBB..', 'B.BLB.B', '..BBB..', '.......', 'B..B..B']],
+        ['Vulcão', ['.L...L.', '..L.L..', '...L...', '..BBB..', '.BBBBB.', 'BBBBBBB']],
+        ['Fogueira', ['.B...B.', '.BB.BB.', 'BBB.BBB', 'BLBBBLB', 'BBBBBBB', '.BBBBB.']]] },
+      { id: 'agua', label: 'ÁGUA', ramp: ['#73eff7', '#41a6f6'], tint: '#1f3566', glyphs: [
+        ['Gota', ['...B...', '..BBB..', '.BBBBB.', 'BBBBBBB', 'BLBBBBB', '.BLBBB.', '..BBB..']],
+        ['Marola', ['.BB..BB', 'B..BB..', '.......', '.BB..BB', 'B..BB..']],
+        ['Bolhas', ['....BBB', '...B..B', '...BBBB', 'BBB....', 'B.B..B.', 'BBB.B.B', '.....B.']],
+        ['Redemoinho', ['.BBBBB.', 'B.....B', 'B.BBB.B', 'B.B.B.B', 'B.B...B', 'B.BBBBB']],
+        ['Chuva', ['.B...B.', 'BBB.BBB', 'BBB.BBB', '.B.B.B.', '..BBB..', '..BBB..', '...B...']]] },
+      { id: 'ar', label: 'AR', ramp: ['#f4f4f4', '#73eff7'], tint: '#1b4260', glyphs: [
+        ['Vento', ['BBBBBB.', '......B', 'BBBBBB.', '.......', 'BBBB...', '....B..', 'BBBB...']],
+        ['Pena', ['.....BB', '....BLB', '...BLB.', '..BLB..', '.BBB...', '.B.....', 'B......']],
+        ['Nuvem', ['..BBB..', '.BLLLB.', 'BLLLLLB', 'BBBBBBB']],
+        ['Asa', ['B......', 'BB.....', 'BBB..BB', '.BBBBB.', '.BBBB..', '..BB...']],
+        ['Tornado', ['BBBBBBB', '.BBBBB.', '..BBBB.', '..BBB..', '...BB..', '..BB...', '...B...']]] },
+      { id: 'terra', label: 'TERRA', ramp: ['#e3a86e', '#b06a3c'], tint: '#3d2a2a', glyphs: [
+        ['Montanha', ['...L...', '..BBB..', '..BBBB.', '.BBBBBB', 'BBBBBBB']],
+        ['Estratos', ['LLLLLLL', '.......', 'BBBBBBB', '.......', 'BBBBBBB']],
+        ['Fenda', ['BBB.BBB', 'BBB.BBB', 'BB.BBBB', 'BBB.BBB', 'BB.BBBB']],
+        ['Torrão', ['..BBB..', '.BLBBB.', 'BLBBBBB', 'BBBBBBB', '.BBBBB.']],
+        ['Pegada', ['B.B.B', '.....', '.BBB.', 'BBBBB', 'BBBBB', '.BBB.']]] },
+      { id: 'eletricidade', label: 'ELETRICIDADE', ramp: ['#f4f4f4', '#ffcd75'], tint: '#463826', glyphs: [
+        ['Raio', ['...BBB', '..BBB.', '.BBBBB', '...BB.', '..BB..', '.BB...', '.B....']],
+        ['Faísca', ['...B...', '...B...', '..BBB..', 'BBBLBBB', '..BBB..', '...B...', '...B...']],
+        ['Bateria', ['..BBB..', '.BBBBB.', '.B...B.', '.BBBBB.', '.BBBBB.', '.BBBBB.']],
+        ['Plugue', ['.B...B.', '.B...B.', 'BBBBBBB', 'BBBBBBB', '.BBBBB.', '...B...', '...B...']],
+        ['Carga', ['B.....B', '..BBB..', '.BBLBB.', '.BLLLB.', '.BBLBB.', '..BBB..', 'B.....B']]] },
+      { id: 'natureza', label: 'NATUREZA', ramp: ['#a7f070', '#38b764'], tint: '#173f45', glyphs: [
+        ['Folha', ['....BBB', '..BBBBB', '.BBBBLB', '.BBBLBB', '.BBLBB.', '.BLBB..', 'B......']],
+        ['Broto', ['BB...BB', 'BBB.BBB', '.BBBBB.', '...B...', '...B...', '.BBBBB.']],
+        ['Flor', ['.BB.BB.', 'BBBBBBB', '.BBLBB.', 'BBBBBBB', '.BB.BB.']],
+        ['Árvore', ['..BBB..', '.BBBBB.', 'BBBBBBB', '.BBBBB.', '...B...', '...B...']],
+        ['Semente', ['.BBBBB.', 'BBBBBBB', '.......', '.BBBBB.', '.BLBBB.', '..BBB..', '...B...']]] },
+      { id: 'mineral', label: 'MINERAL', ramp: ['#f4f4f4', '#94b0c2'], tint: '#2b3451', glyphs: [
+        ['Cristal', ['...B...', '..BBB..', '..BLB..', '..BLB..', '..BLB..', '..BBB..', '...B...']],
+        ['Gema', ['.BBBBB.', 'BLBBBBB', 'BBBBBBB', '.BBBBB.', '..BBB..', '...B...']],
+        ['Drusa', ['...B...', '.B.B...', '.BBBB.B', '.BLBB.B', 'BBLBBBB', 'BBBBBBB']],
+        ['Lingote', ['...BBBB', '..BLLB.', '.BBBBB.', 'BBBBBB.']],
+        ['Engrenagem', ['..B.B..', '.BBBBB.', 'BBB.BBB', '.BB.BB.', 'BBB.BBB', '.BBBBB.', '..B.B..']]] },
+      { id: 'arcano', label: 'ARCANO', ramp: ['#f4f4f4', '#a95cc6'], tint: '#3a2148', glyphs: [
+        ['Olho', ['..BBBBB..', '.B.....B.', 'B..BLB..B', '.B.....B.', '..BBBBB..']],
+        ['Estrela', ['...B...', '...B...', 'BBBBBBB', '.BBBBB.', '..BBB..', '.BB.BB.', '.B...B.']],
+        ['Lua', ['..BBB..', '.BBB...', 'BBB....', 'BBB....', 'BBB....', '.BBB...', '..BBB..']],
+        ['Runa', ['...B...', '..B.B..', '..B.B..', '.B.L.B.', '.B...B.', 'BBBBBBB']],
+        ['Orbe', ['..BBB..', '.BLBBB.', '.BBBBB.', '.BBBBB.', '..BBB..', '.BBBBB.']]] },
+      { id: 'primordial', label: 'PRIMORDIAL', ramp: ['#ef8a8a', '#b13e53'], tint: '#3e1a2e', glyphs: [
+        ['Osso', ['BB...BB', 'BBBBBBB', 'BB...BB']],
+        ['Garra', ['B.B.B..', 'B.B.B..', '.B.B.B.', '.B.B.B.', '..B.B.B']],
+        ['Ovo', ['..BBB..', '.BBBBB.', '.BLBBB.', 'BBBBBBB', 'BBBBBBB', '.BBBBB.', '..BBB..']],
+        ['Presa', ['BBBBBBB', 'BBB.BBB', '.BB.BB.', '.B...B.']],
+        ['Origem', ['.BBBBB.', 'B.....B', 'B.BBB.B', 'B.BLB.B', 'B.BBB.B', 'B.....B', '.BBBBB.']]] },
+      { id: 'gelo', label: 'GELO', ramp: ['#f4f4f4', '#a8e4f4'], tint: '#24405a', glyphs: [
+        ['Floco', ['B..B..B', '.B.B.B.', '..BBB..', 'BBBLBBB', '..BBB..', '.B.B.B.', 'B..B..B']],
+        ['Pingentes', ['BBBBBBB', 'BBB.BBB', '.B..BB.', '.B...B.', '.....B.']],
+        ['Cubo', ['BBBBBB', 'BLLLLB', 'BL...B', 'BL...B', 'BBBBBB']],
+        ['Pico', ['...L...', '..LLL..', '.LBBBB.', 'BBBBBBB']],
+        ['Prisma', ['...B...', '..B.B..', '.B...B.', 'B..L..B', '.B...B.', '..B.B..', '...B...']]] }
+    ];
+    this._d = TYPES;
+    return TYPES;
+  }
+
+  glyph(rows, ramp) {
+    var map = { L: ramp[0], B: ramp[1] };
+    var w = Math.max.apply(null, rows.map(function (r) { return r.length; })) + 2, h = rows.length + 2, col = [], x, y;
+    for (y = 0; y < h; y++) col.push(new Array(w).fill(null));
+    rows.forEach(function (r, i) { for (var j = 0; j < r.length; j++) if (map[r[j]]) col[i + 1][j + 1] = map[r[j]]; });
+    var g = function (x, y) { return x >= 0 && y >= 0 && x < w && y < h && col[y][x] && col[y][x] !== 'o'; };
+    for (y = 0; y < h; y++) for (x = 0; x < w; x++) if (!col[y][x] && (g(x - 1, y) || g(x + 1, y) || g(x, y - 1) || g(x, y + 1))) col[y][x] = 'o';
+    var c = document.createElement('canvas'); c.width = w; c.height = h;
+    var cx = c.getContext('2d');
+    for (y = 0; y < h; y++) for (x = 0; x < w; x++) if (col[y][x]) { cx.fillStyle = col[y][x] === 'o' ? '#1a1c2c' : col[y][x]; cx.fillRect(x, y, 1, 1); }
+    return { src: c.toDataURL(), w: w };
+  }
+
+  built() {
+    if (this._b) return this._b;
+    var self = this;
+    this._b = this.data().map(function (t) {
+      return { t: t, glyphs: t.glyphs.map(function (g, i) { var r = self.glyph(g[1], t.ramp); return { n: i + 1, name: g[0], src: r.src, w: r.w }; }) };
+    });
+    return this._b;
+  }
+
+  renderVals() {
+    var selo = this.props.selo ?? 'quadrado';
+    return {
+      types: this.built().map(function (b) {
+        var t = b.t;
+        return {
+          id: t.id, label: t.label, tint: t.tint, base: t.ramp[1], c0: t.ramp[0],
+          navIcon: b.glyphs[0].src, navW: b.glyphs[0].w * 2,
+          glyphs: b.glyphs.map(function (g) {
+            return { n: g.n, name: g.name, src: g.src, sq: selo === 'quadrado', chip: selo === 'chip', loose: selo === 'solto',
+              wBig: g.w * 6, wSmall: g.w * 3, w2: g.w * 2 };
+          })
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

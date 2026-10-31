@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;background:#0c0d16}
+a{color:#ffcd75}a:hover{color:#f4f4f4}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0c0d16; color: #f4f4f4; font-family: 'Tw Cen MT', 'Josefin Sans', sans-serif">
+  <main style="max-width: 1320px; margin: 0 auto; padding: 48px 28px 96px; display: flex; flex-direction: column; gap: 44px">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 34px; line-height: 38px; font-weight: 700">Lab de cards de golpe</span>
+      <span style="font-size: 17px; line-height: 22px; color: #94b0c2">Tamanho real do jogo: painel de 390px, cards de 175 × 72. Toque para usar.</span>
+    </div>
+    <section data-screen-label="No jogo" style="display: flex; flex-direction: column; gap: 18px">
+      <div style="display: flex; flex-wrap: wrap; gap: 36px">
+        <div id="1b" style="display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; align-items: center; gap: 10px"><span style="font-size: 14px; line-height: 14px; font-weight: 700; padding: 4px 7px; border-radius: 5px; background: #ffcd75; color: #1a1c2c">1b</span><span style="font-size: 22px; line-height: 22px; font-weight: 700">Relógio</span><span style="font-size: 15px; line-height: 18px; color: #94b0c2">escurece; o selo do tipo gira de volta</span></div>
+          <div data-screen-label="1b painel" style="width: 390px; box-sizing: border-box; padding: 16px 12px 18px; border-radius: 18px; background: #1a1c2c">
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 2px">
+              <sc-for list="{{liveB}}" as="c" hint-placeholder-count="4">
+                <button type="button" onClick="{{c.click}}" style="position: relative; overflow: hidden; box-sizing: border-box; width: 100%; height: 72px; margin: 0; padding: 10px 11px; border: 0; border-radius: 10px; background: #20233a; color: #ffffff; font-family: inherit; text-align: left; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; touch-action: manipulation; box-shadow: 0 0 0 2px {{c.ring}}" style-active="transform: translateY(2px)">
+            <span style="position: absolute; inset: 0; background: {{c.bg}}"></span><span style="position: absolute; inset: 0; background: rgba(8, 9, 16, {{c.dim}})"></span>
+            <span style="position: relative; display: flex; align-items: baseline; gap: 8px">
+              <span style="flex: 1; min-width: 0; font-size: {{c.nameSize}}; line-height: 20px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.name}}</span>
+              <span style="flex: none; font-size: 22px; line-height: 20px; font-weight: 700">{{c.pow}}</span>
+            </span>
+            <span style="position: relative; display: flex; align-items: center; gap: 4px">
+              <span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: transparent center / contain no-repeat url({{c.srcUrl}})"><span style="position: absolute; inset: 0; border-radius: 6px; background: {{c.sweep}}"></span></span>
+              <span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: #eef1f6 center / 14px 14px no-repeat url({{c.catUrl}})"></span>
+              <span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: #eef1f6 center / 14px 14px no-repeat url({{c.rangeD}})"></span>
+              <span style="flex: 1"></span>
+              <span style="flex: none; display: flex; align-items: center; gap: 3px; font-size: 13px; line-height: 13px; font-weight: 700; color: {{c.cdCol}}"><span style="flex: none; width: 10px; height: 10px; background: center / contain no-repeat url({{c.cdIco}})"></span>{{c.cdText}}</span>
+              <span style="flex: none; width: 4px"></span>
+              <span style="flex: none; display: flex; align-items: center; gap: 3px; font-size: 13px; line-height: 13px; font-weight: 700; color: rgba(255, 255, 255, .8)"><span style="flex: none; width: 10px; height: 10px; background: center / contain no-repeat url({{c.castIco}})"></span>{{c.castText}}</span>
+            </span>
+          </button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+        <div id="1c" style="display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; align-items: center; gap: 10px"><span style="font-size: 14px; line-height: 14px; font-weight: 700; padding: 4px 7px; border-radius: 5px; background: #ffcd75; color: #1a1c2c">1c</span><span style="font-size: 22px; line-height: 22px; font-weight: 700">Revelar</span><span style="font-size: 15px; line-height: 18px; color: #94b0c2">a cor volta da esquerda pra direita</span></div>
+          <div data-screen-label="1c painel" style="width: 390px; box-sizing: border-box; padding: 16px 12px 18px; border-radius: 18px; background: #1a1c2c">
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 2px">
+              <sc-for list="{{liveC}}" as="c" hint-placeholder-count="4">
+                <button type="button" onClick="{{c.click}}" style="position: relative; overflow: hidden; box-sizing: border-box; width: 100%; height: 72px; margin: 0; padding: 10px 11px; border: 0; border-radius: 10px; background: #20233a; color: #ffffff; font-family: inherit; text-align: left; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; touch-action: manipulation; box-shadow: 0 0 0 2px {{c.ring}}" style-active="transform: translateY(2px)">
+            <span style="position: absolute; inset: 0; background: {{c.bg}}; filter: grayscale(1) brightness(.4)"></span><span style="position: absolute; inset: 0; background: {{c.bg}}; clip-path: inset(0 {{c.clipR}} 0 0)"></span>
+            <span style="position: relative; display: flex; align-items: baseline; gap: 8px">
+              <span style="flex: 1; min-width: 0; font-size: {{c.nameSize}}; line-height: 20px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.name}}</span>
+              <span style="flex: none; font-size: 22px; line-height: 20px; font-weight: 700">{{c.pow}}</span>
+            </span>
+            <span style="position: relative; display: flex; align-items: center; gap: 4px">
+              <span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: transparent center / contain no-repeat url({{c.srcUrl}})"></span>
+              <span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: #eef1f6 center / 14px 14px no-repeat url({{c.catUrl}})"></span>
+              <span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: #eef1f6 center / 14px 14px no-repeat url({{c.rangeD}})"></span>
+              <span style="flex: 1"></span>
+              <span style="flex: none; display: flex; align-items: center; gap: 3px; font-size: 13px; line-height: 13px; font-weight: 700; color: {{c.cdCol}}"><span style="flex: none; width: 10px; height: 10px; background: center / contain no-repeat url({{c.cdIco}})"></span>{{c.cdText}}</span>
+              <span style="flex: none; width: 4px"></span>
+              <span style="flex: none; display: flex; align-items: center; gap: 3px; font-size: 13px; line-height: 13px; font-weight: 700; color: rgba(255, 255, 255, .8)"><span style="flex: none; width: 10px; height: 10px; background: center / contain no-repeat url({{c.castIco}})"></span>{{c.castText}}</span>
+            </span>
+          </button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px 26px; font-size: 15px; line-height: 15px; color: #94b0c2">
+        <span style="display: flex; align-items: center; gap: 8px"><span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: #eef1f6 center / 14px 14px no-repeat url({{L.pertoD}})"></span><span>corpo a corpo</span></span><span style="display: flex; align-items: center; gap: 8px"><span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: #eef1f6 center / 14px 14px no-repeat url({{L.longeD}})"></span><span>à distância</span></span><span style="display: flex; align-items: center; gap: 8px"><span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: #eef1f6 center / 14px 14px no-repeat url({{L.proprioD}})"></span><span>em si mesmo</span></span><span style="display: flex; align-items: center; gap: 8px"><span style="flex: none; width: 10px; height: 10px; background: center / contain no-repeat url({{L.cd}})"></span><span>recarga</span></span><span style="display: flex; align-items: center; gap: 8px"><span style="flex: none; width: 10px; height: 10px; background: center / contain no-repeat url({{L.cast}})"></span><span>conjuração</span></span>
+      </div>
+    </section>
+    <section data-screen-label="Tipos" style="display: flex; flex-direction: column; gap: 18px">
+      <span style="font-size: 14px; line-height: 14px; font-weight: 700; letter-spacing: 2px; color: #566c86">TIPOS</span>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, 175px); gap: 14px">
+        <sc-for list="{{gallery}}" as="c" hint-placeholder-count="10">
+          <div style="position: relative; overflow: hidden; box-sizing: border-box; width: 100%; height: 72px; margin: 0; padding: 10px 11px; border: 0; border-radius: 10px; background: #20233a; color: #ffffff; font-family: inherit; text-align: left; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 0 0 2px {{c.ring}}">
+            <span style="position: absolute; inset: 0; background: {{c.bg}}"></span>
+            <span style="position: relative; display: flex; align-items: baseline; gap: 8px">
+              <span style="flex: 1; min-width: 0; font-size: {{c.nameSize}}; line-height: 20px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.name}}</span>
+              <span style="flex: none; font-size: 22px; line-height: 20px; font-weight: 700">{{c.pow}}</span>
+            </span>
+            <span style="position: relative; display: flex; align-items: center; gap: 4px">
+              <span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: transparent center / contain no-repeat url({{c.srcUrl}})"></span>
+              <span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: #eef1f6 center / 14px 14px no-repeat url({{c.catUrl}})"></span>
+              <span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: #eef1f6 center / 14px 14px no-repeat url({{c.rangeD}})"></span>
+              <span style="flex: 1"></span>
+              <span style="flex: none; display: flex; align-items: center; gap: 3px; font-size: 13px; line-height: 13px; font-weight: 700; color: {{c.cdCol}}"><span style="flex: none; width: 10px; height: 10px; background: center / contain no-repeat url({{c.cdIco}})"></span>{{c.cdText}}</span>
+              <span style="flex: none; width: 4px"></span>
+              <span style="flex: none; display: flex; align-items: center; gap: 3px; font-size: 13px; line-height: 13px; font-weight: 700; color: rgba(255, 255, 255, .8)"><span style="flex: none; width: 10px; height: 10px; background: center / contain no-repeat url({{c.castIco}})"></span>{{c.castText}}</span>
+            </span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+    <section data-screen-label="Estados" style="display: flex; flex-direction: column; gap: 28px">
+      <span style="font-size: 14px; line-height: 14px; font-weight: 700; letter-spacing: 2px; color: #566c86">ESTADOS</span>
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 10px"><span style="font-size: 14px; line-height: 14px; font-weight: 700; padding: 4px 7px; border-radius: 5px; background: #ffcd75; color: #1a1c2c">1b</span><span style="font-size: 17px; line-height: 17px; font-weight: 700; color: #c0cbdc">Relógio</span></div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, 175px); gap: 14px">
+          <sc-for list="{{states}}" as="c" hint-placeholder-count="4">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <span style="font-size: 14px; line-height: 14px; color: #94b0c2">{{c.label}}</span>
+              <div style="position: relative; overflow: hidden; box-sizing: border-box; width: 100%; height: 72px; margin: 0; padding: 10px 11px; border: 0; border-radius: 10px; background: #20233a; color: #ffffff; font-family: inherit; text-align: left; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 0 0 2px {{c.ring}}">
+            <span style="position: absolute; inset: 0; background: {{c.bg}}"></span><span style="position: absolute; inset: 0; background: rgba(8, 9, 16, {{c.dim}})"></span>
+            <span style="position: relative; display: flex; align-items: baseline; gap: 8px">
+              <span style="flex: 1; min-width: 0; font-size: {{c.nameSize}}; line-height: 20px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.name}}</span>
+              <span style="flex: none; font-size: 22px; line-height: 20px; font-weight: 700">{{c.pow}}</span>
+            </span>
+            <span style="position: relative; display: flex; align-items: center; gap: 4px">
+              <span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: transparent center / contain no-repeat url({{c.srcUrl}})"><span style="position: absolute; inset: 0; border-radius: 6px; background: {{c.sweep}}"></span></span>
+              <span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: #eef1f6 center / 14px 14px no-repeat url({{c.catUrl}})"></span>
+              <span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: #eef1f6 center / 14px 14px no-repeat url({{c.rangeD}})"></span>
+              <span style="flex: 1"></span>
+              <span style="flex: none; display: flex; align-items: center; gap: 3px; font-size: 13px; line-height: 13px; font-weight: 700; color: {{c.cdCol}}"><span style="flex: none; width: 10px; height: 10px; background: center / contain no-repeat url({{c.cdIco}})"></span>{{c.cdText}}</span>
+              <span style="flex: none; width: 4px"></span>
+              <span style="flex: none; display: flex; align-items: center; gap: 3px; font-size: 13px; line-height: 13px; font-weight: 700; color: rgba(255, 255, 255, .8)"><span style="flex: none; width: 10px; height: 10px; background: center / contain no-repeat url({{c.castIco}})"></span>{{c.castText}}</span>
+            </span>
+          </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 10px"><span style="font-size: 14px; line-height: 14px; font-weight: 700; padding: 4px 7px; border-radius: 5px; background: #ffcd75; color: #1a1c2c">1c</span><span style="font-size: 17px; line-height: 17px; font-weight: 700; color: #c0cbdc">Revelar</span></div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, 175px); gap: 14px">
+          <sc-for list="{{states}}" as="c" hint-placeholder-count="4">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <span style="font-size: 14px; line-height: 14px; color: #94b0c2">{{c.label}}</span>
+              <div style="position: relative; overflow: hidden; box-sizing: border-box; width: 100%; height: 72px; margin: 0; padding: 10px 11px; border: 0; border-radius: 10px; background: #20233a; color: #ffffff; font-family: inherit; text-align: left; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 0 0 2px {{c.ring}}">
+            <span style="position: absolute; inset: 0; background: {{c.bg}}; filter: grayscale(1) brightness(.4)"></span><span style="position: absolute; inset: 0; background: {{c.bg}}; clip-path: inset(0 {{c.clipR}} 0 0)"></span>
+            <span style="position: relative; display: flex; align-items: baseline; gap: 8px">
+              <span style="flex: 1; min-width: 0; font-size: {{c.nameSize}}; line-height: 20px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.name}}</span>
+              <span style="flex: none; font-size: 22px; line-height: 20px; font-weight: 700">{{c.pow}}</span>
+            </span>
+            <span style="position: relative; display: flex; align-items: center; gap: 4px">
+              <span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: transparent center / contain no-repeat url({{c.srcUrl}})"></span>
+              <span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: #eef1f6 center / 14px 14px no-repeat url({{c.catUrl}})"></span>
+              <span style="position: relative; flex: none; width: 22px; height: 22px; border-radius: 6px; background: #eef1f6 center / 14px 14px no-repeat url({{c.rangeD}})"></span>
+              <span style="flex: 1"></span>
+              <span style="flex: none; display: flex; align-items: center; gap: 3px; font-size: 13px; line-height: 13px; font-weight: 700; color: {{c.cdCol}}"><span style="flex: none; width: 10px; height: 10px; background: center / contain no-repeat url({{c.cdIco}})"></span>{{c.cdText}}</span>
+              <span style="flex: none; width: 4px"></span>
+              <span style="flex: none; display: flex; align-items: center; gap: 3px; font-size: 13px; line-height: 13px; font-weight: 700; color: rgba(255, 255, 255, .8)"><span style="flex: none; width: 10px; height: 10px; background: center / contain no-repeat url({{c.castIco}})"></span>{{c.castText}}</span>
+            </span>
+          </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;fonte&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Outfit&quot;,&quot;Lexend&quot;,&quot;Urbanist&quot;,&quot;Questrial&quot;,&quot;Red Hat Display&quot;,&quot;Tw Cen MT (local)&quot;],&quot;default&quot;:&quot;Outfit&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Visual&quot;},&quot;speed&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:1,&quot;min&quot;:0.25,&quot;max&quot;:3,&quot;step&quot;:0.25,&quot;unit&quot;:&quot;x&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Recarga&quot;}}">
+class Component extends DCLogic {
+  state = { now: 0 };
+  cd = {};
+  q = {};
+  componentDidMount() {
+    this.timer = setInterval(() => {
+      var now = performance.now(), self = this, busy = false;
+      Object.keys(this.cd).forEach(function (k) {
+        busy = true;
+        var c = self.cd[k];
+        if (now >= c.start + c.dur) {
+          delete self.cd[k];
+          if (self.q[k]) { delete self.q[k]; self.cd[k] = { start: now, dur: c.dur }; }
+        }
+      });
+      if (busy) this.setState({ now: now });
+    }, 50);
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+  data() {
+    if (this._d) return this._d;
+    var svg = function (f, s, color, sw, op) {
+      var b = '', o = op ? ' opacity="' + op + '"' : '';
+      if (f) b += '<path d="' + f + '" fill="' + color + '" fill-rule="evenodd"' + o + '/>';
+      if (s) b += '<path d="' + s + '" fill="none" stroke="' + color + '" stroke-width="' + (sw || 2.4) + '" stroke-linecap="round" stroke-linejoin="round"' + o + '/>';
+      return '"data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' + b + '</svg>') + '"';
+    };
+    var CAT = {
+      'Físico': svg('', 'M8 3C7 8 5.5 12 3 16M14 3c-1 6-2.5 11-5.5 16M20 3c-1 5-2.5 9-5 13', '#1a1c2c', 3.2),
+      'Mágico': svg('M16.5 7.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9z', 'M2 12h8M4 7.5h6.5M4 16.5h6.5', '#1a1c2c', 2.6),
+      'Especial': svg('M3 10.5 12 3l9 7.5V15L12 7.5 3 15zM3 18.5 12 11l9 7.5V23L12 15.5 3 23z', '', '#1a1c2c')
+    };
+    var G = {
+      fogo: ['M12 2c.6 3.4 3 5.2 4.6 7.4A7 7 0 1 1 5 14c0-2.4 1.2-4.4 2.8-5.8.2 1.8 1 3 2.2 3.6C9.6 8.2 10.4 5 12 2z', ''],
+      agua: ['M12 2.5c3.3 4.3 6.5 8 6.5 12a6.5 6.5 0 0 1-13 0c0-4 3.2-7.7 6.5-12z', ''],
+      ar: ['', 'M3 9h11a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 17h6'],
+      terra: ['M1.5 20 8.5 8l4 6.5 2.5-4L22.5 20z', ''],
+      eletricidade: ['M13.5 2 4.5 13.5h6.5L9.5 22l10-12.5h-6.5z', ''],
+      natureza: ['M20.5 3.5C11 3.5 4.5 8.5 4.5 15.5c0 1.7.4 3.3 1 4.5C8 13 12 10 16 8.5 12.5 11 9.5 14.5 7.5 20.5c1 .3 2 .5 3 .5 7 0 10-6.5 10-17.5z', ''],
+      mineral: ['M10 2l6 6.5L10 22 4 8.5zM18.5 9l3 3.5-3 6.5-2.2-5.5z', ''],
+      arcano: ['M11 2c.9 5.4 3.6 8.1 9 9-5.4.9-8.1 3.6-9 9-.9-5.4-3.6-8.1-9-9 5.4-.9 8.1-3.6 9-9zM19 15.5c.35 1.9 1.1 2.65 3 3-1.9.35-2.65 1.1-3 3-.35-1.9-1.1-2.65-3-3 1.9-.35 2.65-1.1 3-3z', ''],
+      primordial: ['', 'M13 11.5a1 1 0 0 1 1 1 2 2 0 0 1-2 2 3 3 0 0 1-3-3 4 4 0 0 1 4-4 5 5 0 0 1 5 5 6 6 0 0 1-6 6 7 7 0 0 1-7-7 8 8 0 0 1 8-8'],
+      gelo: ['', 'M12 2v20M3.3 7l17.4 10M3.3 17l17.4-10M9 3.5l3 2.5 3-2.5M9 20.5l3-2.5 3 2.5M3 10.5l3.4-.9.9-3.4M21 13.5l-3.4.9-.9 3.4M3 13.5l3.4.9.9 3.4M21 10.5l-3.4-.9-.9-3.4']
+    };
+    var P = {
+      fogo: 'radial-gradient(95% 130% at 8% 115%, #ffc15a 0%, #f2702e 28%, #b8301f 58%, #3a0f12 100%)',
+      agua: 'repeating-radial-gradient(ellipse 140% 70% at 50% 135%, rgba(255,255,255,.07) 0 2px, transparent 2px 16px), linear-gradient(170deg, #1f6fd1 0%, #10357a 60%, #0a1c40 100%)',
+      ar: 'repeating-linear-gradient(100deg, rgba(255,255,255,.09) 0 2px, transparent 2px 15px), linear-gradient(135deg, #2aa4b3 0%, #135862 55%, #0c2a31 100%)',
+      terra: 'repeating-linear-gradient(165deg, rgba(0,0,0,.16) 0 9px, transparent 9px 21px), linear-gradient(165deg, #a8703c 0%, #6b4222 55%, #2e1b0e 100%)',
+      eletricidade: 'repeating-linear-gradient(118deg, rgba(255,230,120,.10) 0 5px, transparent 5px 17px), radial-gradient(90% 120% at 90% -10%, #f7cf3d 0%, #9a7412 40%, #2b220b 100%)',
+      natureza: 'radial-gradient(70% 90% at 100% 0%, rgba(167,240,112,.45), transparent 65%), linear-gradient(160deg, #2f8a45 0%, #17532a 55%, #0b2614 100%)',
+      mineral: 'linear-gradient(135deg, rgba(255,255,255,.12) 25%, transparent 25% 50%, rgba(255,255,255,.05) 50% 75%, transparent 75%) 0 0 / 30px 30px, linear-gradient(160deg, #75859b 0%, #3f4b5c 55%, #1b2029 100%)',
+      arcano: 'radial-gradient(circle, rgba(255,255,255,.38) 0 1px, transparent 1.6px) 0 0 / 19px 19px, radial-gradient(90% 120% at 100% 0%, #b277ee 0%, #5e2c96 45%, #1c0f33 100%)',
+      primordial: 'repeating-radial-gradient(circle at 100% 100%, rgba(255,255,255,.08) 0 2px, transparent 2px 15px), linear-gradient(160deg, #b23452 0%, #6d1a30 55%, #260a13 100%)',
+      gelo: 'repeating-linear-gradient(60deg, rgba(255,255,255,.10) 0 1px, transparent 1px 13px), repeating-linear-gradient(-60deg, rgba(255,255,255,.10) 0 1px, transparent 1px 13px), linear-gradient(165deg, #5cb2d8 0%, #24607e 55%, #0f2533 100%)'
+    };
+    var W = {};
+    Object.keys(G).forEach(function (t) { W[t] = P[t].replace(/rgba\(255,255,255,\.(\d+)\)/g, function (m, d) { return 'rgba(255,255,255,.0' + Math.max(3, Math.round(parseInt(d, 10) / (d.length > 1 ? 2.5 : .25))) + ')'; }); });
+    var R = {
+      perto: svg('', 'M4.5 19.5 19 5V3.5h-1.5L3 18M7 13.5l3.5 3.5M3.5 20.5l2-2', '#ffffff', 2.4),
+      longe: svg('M12 9.6a2.4 2.4 0 1 1 0 4.8 2.4 2.4 0 0 1 0-4.8z', 'M12 3.5a8.5 8.5 0 1 1 0 17 8.5 8.5 0 0 1 0-17z', '#ffffff', 2.4),
+      proprio: svg('M12 2.5a4 4 0 1 1 0 8 4 4 0 0 1 0-8z', 'M4.5 21.5c0-4.2 3.3-7.5 7.5-7.5s7.5 3.3 7.5 7.5', '#ffffff', 2.6)
+    };
+    var RD = {
+      perto: svg('', 'M4.5 19.5 19 5V3.5h-1.5L3 18M7 13.5l3.5 3.5M3.5 20.5l2-2', '#1a1c2c', 2.6),
+      longe: svg('M12 9.6a2.4 2.4 0 1 1 0 4.8 2.4 2.4 0 0 1 0-4.8z', 'M12 3.5a8.5 8.5 0 1 1 0 17 8.5 8.5 0 0 1 0-17z', '#1a1c2c', 2.6),
+      proprio: svg('M12 2.5a4 4 0 1 1 0 8 4 4 0 0 1 0-8z', 'M4.5 21.5c0-4.2 3.3-7.5 7.5-7.5s7.5 3.3 7.5 7.5', '#1a1c2c', 2.8)
+    };
+    var CDI = { w: svg('', 'M20 12a8 8 0 1 1-2.4-5.7M20.5 3.5v4.5H16', '#ffffff', 2.8), y: svg('', 'M20 12a8 8 0 1 1-2.4-5.7M20.5 3.5v4.5H16', '#ffcd75', 2.8) };
+    var CAST = svg('', 'M6 3h12M6 21h12M7.5 3c0 5.5 9 5.5 9 9s-9 3.5-9 9M16.5 3c0 5.5-9 5.5-9 9s9 3.5 9 9', '#ffffff', 2.4);
+    var CATW = {
+      'Físico': svg('', 'M8 3C7 8 5.5 12 3 16M14 3c-1 6-2.5 11-5.5 16M20 3c-1 5-2.5 9-5 13', '#ffffff', 3.2),
+      'Mágico': svg('M16.5 7.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9z', 'M2 12h8M4 7.5h6.5M4 16.5h6.5', '#ffffff', 2.6),
+      'Especial': svg('M3 10.5 12 3l9 7.5V15L12 7.5 3 15zM3 18.5 12 11l9 7.5V23L12 15.5 3 23z', '', '#ffffff')
+    };
+    this._d = { RD: RD, CAT: CAT, CATW: CATW, BG: W, R: R, CDI: CDI, CAST: CAST };
+    return this._d;
+  }
+  card(key, m, o) {
+    var D = this.data(), self = this;
+    var rem = o.rem || 0, frac = o.frac || 0, cooling = rem > 0, queued = !!o.queued, eff = o.eff;
+    var E = eff === 2 ? ['x2', '#a7f070', '#14243a'] : eff === 0.5 ? ['x0.5', 'rgba(8,9,16,.55)', '#ffffff'] : eff === 0 ? ['x0', '#1a1c2c', '#ff8a8a'] : null;
+    var dead = eff === 0;
+    var sub = m.buff ? (m.buff === 'Ataque' ? 'ATQ' : 'DEF') : 'POD', subCol = 'rgba(255,255,255,.7)';
+    if (cooling) { sub = (queued ? 'FILA · ' : '') + rem.toFixed(1) + 's'; subCol = '#ffcd75'; }
+    var w = this.cardW || 340;
+    return {
+      label: o.label || '',
+      name: m.name, nameSize: (m.name.length <= 12 ? 18 : m.name.length <= 15 ? 16 : 15) + 'px', nameLs: m.name.length <= 12 ? '.4px' : '0px',
+      srcUrl: '"icones/tipos/' + m.type + '.svg"',
+      catUrl: D.CAT[m.cat], catW: D.CATW[m.cat], catName: m.cat,
+      rangeD: D.RD[m.buff ? 'proprio' : m.range === 'Perto' ? 'perto' : 'longe'],
+      rangeUrl: D.R[m.buff ? 'proprio' : m.range === 'Perto' ? 'perto' : 'longe'],
+      cdIco: cooling ? D.CDI.y : D.CDI.w, castIco: D.CAST,
+      cdText: cooling ? rem.toFixed(1) + 's' : m.cd.toFixed(1) + 's', cdCol: cooling ? '#ffcd75' : '#ffffff',
+      castText: m.cast ? m.cast.toFixed(1) + 's' : '0s',
+      isBuff: !!m.buff, buffLabel: m.buff === 'Ataque' ? 'ATQ' : 'DEF',
+      range: m.buff ? m.dur + 's' : m.range,
+      pow: m.buff ? '+' + m.amt : String(m.pow),
+      sub: sub, subCol: subCol,
+      bg: dead ? 'linear-gradient(160deg, #2a2e45, #191b2b)' : D.BG[m.type],
+      dim: dead ? 0 : cooling ? 0.55 : 0,
+      queued: queued,
+      ring: queued ? '#ffcd75' : 'rgba(255,255,255,.06)',
+      hasEff: !!E, effText: E ? E[0] : '', effBg: E ? E[1] : '', effCol: E ? E[2] : '',
+      ncol: dead ? '#7d8aa3' : cooling ? 'rgba(255,255,255,.82)' : '#ffffff',
+      mcol: dead ? '#6a7790' : 'rgba(255,255,255,.78)',
+      trackCol: cooling ? 'rgba(255,255,255,.18)' : 'transparent',
+      barW: cooling ? ((1 - frac) * 100).toFixed(1) + '%' : '0%',
+      revealW: cooling ? ((1 - frac) * 100).toFixed(1) + '%' : '100%',
+      clipR: cooling ? (frac * 100).toFixed(1) + '%' : '0%',
+      sweep: cooling ? 'conic-gradient(rgba(8,9,16,.78) ' + (frac * 360).toFixed(1) + 'deg, transparent 0)' : 'transparent',
+      click: function () {
+        if (!key) return;
+        var s = self.props.speed ?? 1, now = performance.now();
+        if (self.cd[key]) { if (self.q[key]) delete self.q[key]; else self.q[key] = true; }
+        else self.cd[key] = { start: now, dur: m.cd * 1000 / s };
+        self.setState({ now: now });
+      }
+    };
+  }
+  renderVals() {
+    var self = this, now = this.state.now, s = this.props.speed ?? 1;
+    var M = [
+      { name: 'Labareda', type: 'fogo', cat: 'Mágico', pow: 60, range: 'Longe', cd: 2.5, cast: 0.4 },
+      { name: 'Garra de Pedra', type: 'terra', cat: 'Físico', pow: 75, range: 'Perto', cd: 3.2, cast: 0 },
+      { name: 'Raio Curto', type: 'eletricidade', cat: 'Especial', pow: 45, range: 'Longe', cd: 1.6, cast: 0.2 },
+      { name: 'Foco Arcano', type: 'arcano', cat: 'Especial', buff: 'Ataque', amt: 10, dur: 6, cd: 7, cast: 0.8 }
+    ];
+    var ALL = [M[0],
+      { name: 'Jato d\'Água', type: 'agua', cat: 'Mágico', pow: 55, range: 'Longe', cd: 2.2, cast: 0.3 },
+      { name: 'Rajada', type: 'ar', cat: 'Especial', pow: 40, range: 'Longe', cd: 1.4, cast: 0 },
+      M[1], M[2],
+      { name: 'Chicote de Cipó', type: 'natureza', cat: 'Físico', pow: 50, range: 'Perto', cd: 2.0, cast: 0 },
+      { name: 'Lâmina de Quartzo', type: 'mineral', cat: 'Físico', pow: 70, range: 'Perto', cd: 3.0, cast: 0.2 },
+      M[3],
+      { name: 'Eco Ancestral', type: 'primordial', cat: 'Mágico', pow: 80, range: 'Longe', cd: 5.0, cast: 1.0 },
+      { name: 'Sopro Gélido', type: 'gelo', cat: 'Mágico', pow: 50, range: 'Longe', cd: 2.4, cast: 0.5 }];
+    var live = function (v) {
+      return M.map(function (m, i) {
+        var k = v + i, c = self.cd[k], rem = 0, frac = 0;
+        if (c) { var left = Math.max(0, c.start + c.dur - now); rem = left / 1000 * s; frac = left / c.dur; }
+        return self.card(k, m, { rem: rem, frac: frac, queued: self.q[k], eff: m.eff });
+      });
+    };
+    var states = [
+      { label: 'Pronto', m: M[1] },
+      { label: 'Recarregando, 65% restante', m: M[0], rem: 1.6, frac: 0.65 },
+      { label: 'Na fila', m: M[2], rem: 0.5, frac: 0.3, queued: true },
+      { label: 'Bônus pronto', m: M[3] }
+    ].map(function (x) { return self.card(null, x.m, x); });
+    var gallery = ALL.map(function (m) { return self.card(null, m, {}); });
+    var FONTS = { Outfit: "'Outfit', sans-serif", Lexend: "'Lexend', sans-serif", Urbanist: "'Urbanist', sans-serif", Questrial: "'Questrial', sans-serif", 'Red Hat Display': "'Red Hat Display', sans-serif", 'Tw Cen MT (local)': "'Tw Cen MT', 'Outfit', sans-serif" };
+    var L = { pertoD: this.data().RD.perto, longeD: this.data().RD.longe, proprioD: this.data().RD.proprio, cd: this.data().CDI.w, cast: this.data().CAST, perto: this.data().R.perto, longe: this.data().R.longe, proprio: this.data().R.proprio };
+    var anat = [self.card(null, M[0], {})];
+    return { anat: anat, L: L, font: FONTS[this.props.fonte ?? 'Outfit'] || FONTS.Outfit, gallery: gallery, liveA: live('a'), liveB: live('b'), liveC: live('c'), states: states };
+  }
+}
+</script>
+</body>
+</html>

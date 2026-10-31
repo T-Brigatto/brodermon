@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;800&amp;display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;background:#0c0d16}
+a{color:#ffcd75}a:hover{color:#f4f4f4}
+</style>
+</helmet>
+<section data-screen-label="Categorias v2" style="padding: 48px 48px 0; display: flex; flex-direction: column; gap: 32px; background: #0c0d16; color: #f4f4f4; font-family: 'Rubik', sans-serif">
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <span style="font-size: 26px; line-height: 30px; font-weight: 800">Rodada 6 · ícones de categoria</span>
+    <span style="font-size: 15px; line-height: 20px; color: #94b0c2">Tipos em <a href="#5a">5a</a>. Silhuetas mais cheias e simples que a <a href="#5d">5d</a>, testadas no tamanho do golpe.</span>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+    <sc-for list="{{cat6}}" as="cs" hint-placeholder-count="3">
+      <div id="{{cs.id}}" style="width: 600px; padding: 28px; background: #141625; border-radius: 16px; display: flex; flex-direction: column; gap: 24px">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span style="padding: 4px 8px; background: #ffcd75; color: #1a1c2c; border-radius: 6px; font-size: 13px; line-height: 13px; font-weight: 800">{{cs.id}}</span>
+          <span style="font-size: 17px; line-height: 17px; font-weight: 600">{{cs.title}}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+          <sc-for list="{{cs.items}}" as="c" hint-placeholder-count="3">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 12px">
+              <div style="display: flex; gap: 10px">
+                <span style="width: 60px; height: 60px; border-radius: 12px; background: #2a2f4a; display: flex; align-items: center; justify-content: center"><img src="{{c.light}}" alt="" style="width: 32px; height: 32px"></span>
+                <span style="width: 60px; height: 60px; border-radius: 12px; background: #e9ecf2; display: flex; align-items: center; justify-content: center"><img src="{{c.dark}}" alt="" style="width: 32px; height: 32px"></span>
+              </div>
+              <span style="font-size: 13px; line-height: 13px; font-weight: 600; color: #c0cbdc">{{c.name}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding-top: 18px; border-top: 1px solid #262b44">
+          <sc-for list="{{cs.combos}}" as="m" hint-placeholder-count="3">
+            <span style="height: 56px; padding: 0 10px; border-radius: 8px; background: #1d2035; display: flex; align-items: center; gap: 12px">
+              <span style="position: relative; flex: none; width: 28px; height: 28px; border-radius: 6px; background: {{m.tbg}}; display: flex; align-items: center; justify-content: center">
+                <img src="{{m.tsrc}}" alt="" style="width: 17px; height: 17px">
+                <span style="position: absolute; right: -7px; bottom: -7px; width: 18px; height: 18px; border-radius: 5px; background: #e9ecf2; box-shadow: 0 0 0 2px #1d2035; display: flex; align-items: center; justify-content: center"><img src="{{m.cdark}}" alt="" style="width: 12px; height: 12px"></span>
+              </span>
+              <span style="min-width: 0; font-size: 13px; line-height: 15px; font-weight: 600">{{m.move}}</span>
+            </span>
+          </sc-for>
+          <sc-for list="{{cs.combos}}" as="m" hint-placeholder-count="3">
+            <span style="height: 56px; padding: 0 10px; border-radius: 8px; background: #1d2035; display: flex; align-items: center; gap: 10px">
+              <span style="flex: none; width: 28px; height: 28px; border-radius: 6px; background: {{m.tbg}}; display: flex; align-items: center; justify-content: center"><img src="{{m.tsrc}}" alt="" style="width: 17px; height: 17px"></span>
+              <span style="min-width: 0; display: flex; flex-direction: column; gap: 6px">
+                <span style="font-size: 13px; line-height: 15px; font-weight: 600">{{m.move}}</span>
+                <span style="display: flex; align-items: center; gap: 4px; color: #94b0c2; font-size: 10px; line-height: 10px; font-weight: 600; letter-spacing: .6px"><img src="{{m.cmuted}}" alt="" style="width: 12px; height: 12px">{{m.cname}}</span>
+              </span>
+            </span>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+<section data-screen-label="Quadrados e categorias" style="padding: 48px 48px 0; display: flex; flex-direction: column; gap: 32px; background: #0c0d16; color: #f4f4f4; font-family: 'Rubik', sans-serif">
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <span style="font-size: 26px; line-height: 30px; font-weight: 800">Rodada 5 · <a href="#4a">4a</a> em quadrado + categorias de golpe</span>
+    <span style="font-size: 15px; line-height: 20px; color: #94b0c2">Tipo diz o elemento; categoria diz se o golpe é físico, mágico ou especial (buff, defesa).</span>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+
+    <div id="5a" style="width: 600px; padding: 28px; background: #141625; border-radius: 16px; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="padding: 4px 8px; background: #ffcd75; color: #1a1c2c; border-radius: 6px; font-size: 13px; line-height: 13px; font-weight: 800">5a</span>
+        <span style="font-size: 17px; line-height: 17px; font-weight: 600">Quadrado arredondado</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 22px 10px">
+        <sc-for list="{{sq}}" as="e" hint-placeholder-count="10">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
+            <span style="width: 60px; height: 60px; border-radius: 12px; background: {{e.bg}}; display: flex; align-items: center; justify-content: center"><img src="{{e.src}}" alt="" style="width: 32px; height: 32px"></span>
+            <span style="font-size: 12px; line-height: 12px; font-weight: 600; color: #c0cbdc">{{e.name}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; padding-top: 18px; border-top: 1px solid #262b44">
+        <sc-for list="{{sq}}" as="e" hint-placeholder-count="10">
+          <span style="width: 22px; height: 22px; border-radius: 5px; background: {{e.bg}}; display: flex; align-items: center; justify-content: center"><img src="{{e.src}}" alt="" style="width: 14px; height: 14px"></span>
+        </sc-for>
+      </div>
+    </div>
+
+    <div id="5b" style="width: 600px; padding: 28px; background: #141625; border-radius: 16px; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="padding: 4px 8px; background: #ffcd75; color: #1a1c2c; border-radius: 6px; font-size: 13px; line-height: 13px; font-weight: 800">5b</span>
+        <span style="font-size: 17px; line-height: 17px; font-weight: 600">Quadrado reto</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 22px 10px">
+        <sc-for list="{{sq}}" as="e" hint-placeholder-count="10">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
+            <span style="width: 60px; height: 60px; border-radius: 3px; background: {{e.bg}}; display: flex; align-items: center; justify-content: center"><img src="{{e.src}}" alt="" style="width: 34px; height: 34px"></span>
+            <span style="font-size: 12px; line-height: 12px; font-weight: 600; color: #c0cbdc">{{e.name}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; padding-top: 18px; border-top: 1px solid #262b44">
+        <sc-for list="{{sq}}" as="e" hint-placeholder-count="10">
+          <span style="width: 22px; height: 22px; border-radius: 2px; background: {{e.bg}}; display: flex; align-items: center; justify-content: center"><img src="{{e.src}}" alt="" style="width: 15px; height: 15px"></span>
+        </sc-for>
+      </div>
+    </div>
+
+    <sc-for list="{{catSets}}" as="cs" hint-placeholder-count="2">
+      <div id="{{cs.id}}" style="width: 600px; padding: 28px; background: #141625; border-radius: 16px; display: flex; flex-direction: column; gap: 24px">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span style="padding: 4px 8px; background: #ffcd75; color: #1a1c2c; border-radius: 6px; font-size: 13px; line-height: 13px; font-weight: 800">{{cs.id}}</span>
+          <span style="font-size: 17px; line-height: 17px; font-weight: 600">{{cs.title}}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+          <sc-for list="{{cs.items}}" as="c" hint-placeholder-count="3">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 12px">
+              <div style="display: flex; gap: 10px">
+                <span style="width: 60px; height: 60px; border-radius: 12px; background: #2a2f4a; display: flex; align-items: center; justify-content: center"><img src="{{c.light}}" alt="" style="width: 30px; height: 30px"></span>
+                <span style="width: 60px; height: 60px; border-radius: 12px; background: #e9ecf2; display: flex; align-items: center; justify-content: center"><img src="{{c.dark}}" alt="" style="width: 30px; height: 30px"></span>
+              </div>
+              <span style="font-size: 13px; line-height: 13px; font-weight: 600; color: #c0cbdc">{{c.name}}</span>
+              <span style="font-size: 12px; line-height: 15px; color: #566c86; text-align: center">{{c.desc}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+
+    <div id="5e" style="width: 600px; padding: 28px; background: #141625; border-radius: 16px; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="padding: 4px 8px; background: #ffcd75; color: #1a1c2c; border-radius: 6px; font-size: 13px; line-height: 13px; font-weight: 800">5e</span>
+        <span style="font-size: 17px; line-height: 17px; font-weight: 600">No golpe · categoria no canto</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <sc-for list="{{combos}}" as="m" hint-placeholder-count="6">
+          <span style="height: 56px; padding: 0 12px; border-radius: 8px; background: #1d2035; display: flex; align-items: center; gap: 12px">
+            <span style="position: relative; flex: none; width: 28px; height: 28px; border-radius: 6px; background: {{m.tbg}}; display: flex; align-items: center; justify-content: center">
+              <img src="{{m.tsrc}}" alt="" style="width: 17px; height: 17px">
+              <span style="position: absolute; right: -7px; bottom: -7px; width: 18px; height: 18px; border-radius: 5px; background: #e9ecf2; box-shadow: 0 0 0 2px #1d2035; display: flex; align-items: center; justify-content: center"><img src="{{m.cdark}}" alt="" style="width: 12px; height: 12px"></span>
+            </span>
+            <span style="font-size: 15px; line-height: 15px; font-weight: 600">{{m.move}}</span>
+          </span>
+        </sc-for>
+      </div>
+    </div>
+
+    <div id="5f" style="width: 600px; padding: 28px; background: #141625; border-radius: 16px; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="padding: 4px 8px; background: #ffcd75; color: #1a1c2c; border-radius: 6px; font-size: 13px; line-height: 13px; font-weight: 800">5f</span>
+        <span style="font-size: 17px; line-height: 17px; font-weight: 600">No golpe · categoria como etiqueta</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <sc-for list="{{combos}}" as="m" hint-placeholder-count="6">
+          <span style="height: 56px; padding: 0 12px; border-radius: 8px; background: #1d2035; display: flex; align-items: center; gap: 12px">
+            <span style="flex: none; width: 28px; height: 28px; border-radius: 6px; background: {{m.tbg}}; display: flex; align-items: center; justify-content: center"><img src="{{m.tsrc}}" alt="" style="width: 17px; height: 17px"></span>
+            <span style="min-width: 0; display: flex; flex-direction: column; gap: 6px">
+              <span style="font-size: 15px; line-height: 15px; font-weight: 600">{{m.move}}</span>
+              <span style="display: flex; align-items: center; gap: 4px; color: #94b0c2; font-size: 10px; line-height: 10px; font-weight: 600; letter-spacing: .6px"><img src="{{m.cmuted}}" alt="" style="width: 12px; height: 12px">{{m.cname}}</span>
+            </span>
+          </span>
+        </sc-for>
+      </div>
+    </div>
+
+  </div>
+</section>
+<section data-screen-label="Refino 3a" style="padding: 48px 48px 0; display: flex; flex-direction: column; gap: 32px; background: #0c0d16; color: #f4f4f4; font-family: 'Rubik', sans-serif">
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <span style="font-size: 26px; line-height: 30px; font-weight: 800">Rodada 4 · refino do <a href="#3a">3a</a></span>
+    <span style="font-size: 15px; line-height: 20px; color: #94b0c2">Hexágono chapado. Varia o conjunto de ícones (A ou B) e a cor.</span>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+    <sc-for list="{{v4}}" as="v" hint-placeholder-count="5">
+      <div id="{{v.id}}" style="width: 600px; padding: 28px; background: #141625; border-radius: 16px; display: flex; flex-direction: column; gap: 24px">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+          <span style="padding: 4px 8px; background: #ffcd75; color: #1a1c2c; border-radius: 6px; font-size: 13px; line-height: 13px; font-weight: 800">{{v.id}}</span>
+          <span style="font-size: 17px; line-height: 17px; font-weight: 600">{{v.title}}</span>
+          <span style="font-size: 13px; line-height: 13px; color: #566c86">{{v.note}}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 22px 10px">
+          <sc-for list="{{v.items}}" as="e" hint-placeholder-count="11">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
+              <span style="width: 58px; height: 66px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: {{e.bg}}; display: flex; align-items: center; justify-content: center">
+                <img src="{{e.src}}" alt="" style="width: 30px; height: 30px">
+              </span>
+              <span style="font-size: 12px; line-height: 12px; font-weight: 600; color: #c0cbdc">{{e.name}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding-top: 18px; border-top: 1px solid #262b44">
+          <sc-for list="{{v.moves}}" as="m" hint-placeholder-count="4">
+            <span style="height: 52px; padding: 0 12px; border-radius: 8px; background: #1d2035; display: flex; align-items: center; gap: 10px">
+              <span style="width: 22px; height: 25px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: {{m.bg}}; display: flex; align-items: center; justify-content: center"><img src="{{m.src}}" alt="" style="width: 13px; height: 13px"></span>
+              <span style="font-size: 15px; line-height: 15px; font-weight: 600">{{m.move}}</span>
+            </span>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+<section data-screen-label="Híbridos" style="padding: 48px 48px 0; display: flex; flex-direction: column; gap: 32px; background: #0c0d16; color: #f4f4f4; font-family: 'Rubik', sans-serif">
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <span style="font-size: 26px; line-height: 30px; font-weight: 800">Rodada 3 · misturando 2a, 2b e 2e</span>
+    <span style="font-size: 15px; line-height: 20px; color: #94b0c2">Cada opção mostra também os selos dentro de botões de golpe no tamanho da Arena.</span>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+
+    <div id="3a" style="width: 600px; padding: 28px; background: #141625; border-radius: 16px; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="padding: 4px 8px; background: #ffcd75; color: #1a1c2c; border-radius: 6px; font-size: 13px; line-height: 13px; font-weight: 800">3a</span>
+        <span style="font-size: 17px; line-height: 17px; font-weight: 600">Hexágono chapado</span>
+        <span style="font-size: 13px; line-height: 13px; color: #566c86">forma da <a href="#2b">2b</a>, cor lisa da <a href="#2a">2a</a></span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 22px 12px">
+        <sc-for list="{{els}}" as="e" hint-placeholder-count="10">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
+            <span style="width: 62px; height: 70px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: {{e.c}}; display: flex; align-items: center; justify-content: center">
+              <img src="{{e.inkFill}}" alt="" style="width: 32px; height: 32px">
+            </span>
+            <span style="font-size: 13px; line-height: 13px; font-weight: 600; color: #c0cbdc">{{e.name}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding-top: 18px; border-top: 1px solid #262b44">
+        <sc-for list="{{moves}}" as="m" hint-placeholder-count="4">
+          <span style="height: 52px; padding: 0 12px; border-radius: 8px; background: #1d2035; display: flex; align-items: center; gap: 10px">
+            <span style="width: 22px; height: 25px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: {{m.c}}; display: flex; align-items: center; justify-content: center"><img src="{{m.inkFill}}" alt="" style="width: 13px; height: 13px"></span>
+            <span style="font-size: 15px; line-height: 15px; font-weight: 600">{{m.move}}</span>
+          </span>
+        </sc-for>
+      </div>
+    </div>
+
+    <div id="3b" style="width: 600px; padding: 28px; background: #141625; border-radius: 16px; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="padding: 4px 8px; background: #ffcd75; color: #1a1c2c; border-radius: 6px; font-size: 13px; line-height: 13px; font-weight: 800">3b</span>
+        <span style="font-size: 17px; line-height: 17px; font-weight: 600">Moeda gema</span>
+        <span style="font-size: 13px; line-height: 13px; color: #566c86">anel da <a href="#2e">2e</a>, brilho da <a href="#2b">2b</a></span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 22px 12px">
+        <sc-for list="{{els}}" as="e" hint-placeholder-count="10">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
+            <span style="width: 66px; height: 66px; border-radius: 50%; background: {{e.d}}; display: flex; align-items: center; justify-content: center">
+              <span style="width: 54px; height: 54px; border-radius: 50%; background: linear-gradient(170deg, {{e.l}} 0%, {{e.c}} 50%, {{e.d}} 125%); box-shadow: 0 0 0 3px #141625; display: flex; align-items: center; justify-content: center">
+                <img src="{{e.whiteFill}}" alt="" style="width: 30px; height: 30px; filter: drop-shadow(0 2px 0 rgba(0,0,0,.28))">
+              </span>
+            </span>
+            <span style="font-size: 13px; line-height: 13px; font-weight: 600; color: #c0cbdc">{{e.name}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding-top: 18px; border-top: 1px solid #262b44">
+        <sc-for list="{{moves}}" as="m" hint-placeholder-count="4">
+          <span style="height: 52px; padding: 0 12px; border-radius: 8px; background: #1d2035; display: flex; align-items: center; gap: 10px">
+            <span style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(170deg, {{m.l}} 0%, {{m.c}} 50%, {{m.d}} 125%); box-shadow: 0 0 0 2px {{m.d}}; display: flex; align-items: center; justify-content: center"><img src="{{m.whiteFill}}" alt="" style="width: 14px; height: 14px"></span>
+            <span style="font-size: 15px; line-height: 15px; font-weight: 600">{{m.move}}</span>
+          </span>
+        </sc-for>
+      </div>
+    </div>
+
+    <div id="3c" style="width: 600px; padding: 28px; background: #141625; border-radius: 16px; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="padding: 4px 8px; background: #ffcd75; color: #1a1c2c; border-radius: 6px; font-size: 13px; line-height: 13px; font-weight: 800">3c</span>
+        <span style="font-size: 17px; line-height: 17px; font-weight: 600">Medalha</span>
+        <span style="font-size: 13px; line-height: 13px; color: #566c86">círculo da <a href="#2a">2a</a> com aro solto da <a href="#2e">2e</a></span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 22px 12px">
+        <sc-for list="{{els}}" as="e" hint-placeholder-count="10">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
+            <span style="width: 66px; height: 66px; box-sizing: border-box; border-radius: 50%; box-shadow: inset 0 0 0 2px {{e.c}}; display: flex; align-items: center; justify-content: center">
+              <span style="width: 54px; height: 54px; border-radius: 50%; background: {{e.c}}; display: flex; align-items: center; justify-content: center">
+                <img src="{{e.inkFill}}" alt="" style="width: 30px; height: 30px">
+              </span>
+            </span>
+            <span style="font-size: 13px; line-height: 13px; font-weight: 600; color: #c0cbdc">{{e.name}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding-top: 18px; border-top: 1px solid #262b44">
+        <sc-for list="{{moves}}" as="m" hint-placeholder-count="4">
+          <span style="height: 52px; padding: 0 12px; border-radius: 8px; background: #1d2035; display: flex; align-items: center; gap: 10px">
+            <span style="width: 26px; height: 26px; box-sizing: border-box; border-radius: 50%; box-shadow: inset 0 0 0 1.5px {{m.c}}; display: flex; align-items: center; justify-content: center"><span style="width: 20px; height: 20px; border-radius: 50%; background: {{m.c}}; display: flex; align-items: center; justify-content: center"><img src="{{m.inkFill}}" alt="" style="width: 12px; height: 12px"></span></span>
+            <span style="font-size: 15px; line-height: 15px; font-weight: 600">{{m.move}}</span>
+          </span>
+        </sc-for>
+      </div>
+    </div>
+
+    <div id="3d" style="width: 600px; padding: 28px; background: #141625; border-radius: 16px; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="padding: 4px 8px; background: #ffcd75; color: #1a1c2c; border-radius: 6px; font-size: 13px; line-height: 13px; font-weight: 800">3d</span>
+        <span style="font-size: 17px; line-height: 17px; font-weight: 600">Hexágono de traço</span>
+        <span style="font-size: 13px; line-height: 13px; color: #566c86">tratamento da <a href="#2e">2e</a> na forma da <a href="#2b">2b</a></span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 22px 12px">
+        <sc-for list="{{els}}" as="e" hint-placeholder-count="10">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
+            <span style="width: 66px; height: 74px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: {{e.c}}; display: flex; align-items: center; justify-content: center">
+              <span style="width: 58px; height: 65px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: {{e.tint}}; display: flex; align-items: center; justify-content: center">
+                <img src="{{e.lightLine}}" alt="" style="width: 30px; height: 30px">
+              </span>
+            </span>
+            <span style="font-size: 13px; line-height: 13px; font-weight: 600; color: #c0cbdc">{{e.name}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding-top: 18px; border-top: 1px solid #262b44">
+        <sc-for list="{{moves}}" as="m" hint-placeholder-count="4">
+          <span style="height: 52px; padding: 0 12px; border-radius: 8px; background: #1d2035; display: flex; align-items: center; gap: 10px">
+            <span style="width: 22px; height: 25px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: {{m.c}}; display: flex; align-items: center; justify-content: center"><span style="width: 18px; height: 20px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: {{m.tint}}; display: flex; align-items: center; justify-content: center"><img src="{{m.lightLine}}" alt="" style="width: 12px; height: 12px"></span></span>
+            <span style="font-size: 15px; line-height: 15px; font-weight: 600">{{m.move}}</span>
+          </span>
+        </sc-for>
+      </div>
+    </div>
+
+  </div>
+</section>
+<section data-screen-label="Estilos de selo" style="padding: 48px; display: flex; flex-direction: column; gap: 32px; background: #0c0d16; color: #f4f4f4; font-family: 'Rubik', sans-serif">
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <span style="font-size: 26px; line-height: 30px; font-weight: 800">Selos de tipo · 5 estilos</span>
+    <span style="font-size: 15px; line-height: 20px; color: #94b0c2">Mesmo ícone por tipo em todos; muda só o tratamento. A linha de baixo de cada opção mostra o tamanho do botão de golpe.</span>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+
+    <div id="2a" style="width: 600px; padding: 28px; background: #141625; border-radius: 16px; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="padding: 4px 8px; background: #ffcd75; color: #1a1c2c; border-radius: 6px; font-size: 13px; line-height: 13px; font-weight: 800">2a</span>
+        <span style="font-size: 17px; line-height: 17px; font-weight: 600">Círculo chapado</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 22px 12px">
+        <sc-for list="{{els}}" as="e" hint-placeholder-count="10">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
+            <span style="width: 64px; height: 64px; border-radius: 50%; background: {{e.c}}; display: flex; align-items: center; justify-content: center">
+              <img src="{{e.inkFill}}" alt="" style="width: 34px; height: 34px">
+            </span>
+            <span style="font-size: 13px; line-height: 13px; font-weight: 600; color: #c0cbdc">{{e.name}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; padding-top: 18px; border-top: 1px solid #262b44">
+        <sc-for list="{{els}}" as="e" hint-placeholder-count="10">
+          <span style="width: 22px; height: 22px; border-radius: 50%; background: {{e.c}}; display: flex; align-items: center; justify-content: center"><img src="{{e.inkFill}}" alt="" style="width: 13px; height: 13px"></span>
+        </sc-for>
+      </div>
+    </div>
+
+    <div id="2b" style="width: 600px; padding: 28px; background: #141625; border-radius: 16px; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="padding: 4px 8px; background: #ffcd75; color: #1a1c2c; border-radius: 6px; font-size: 13px; line-height: 13px; font-weight: 800">2b</span>
+        <span style="font-size: 17px; line-height: 17px; font-weight: 600">Gema hexagonal</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 22px 12px">
+        <sc-for list="{{els}}" as="e" hint-placeholder-count="10">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
+            <span style="width: 66px; height: 74px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: {{e.d}}; display: flex; align-items: center; justify-content: center">
+              <span style="width: 56px; height: 63px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: linear-gradient(170deg, {{e.l}} 0%, {{e.c}} 48%, {{e.d}} 120%); display: flex; align-items: center; justify-content: center">
+                <img src="{{e.whiteFill}}" alt="" style="width: 30px; height: 30px; filter: drop-shadow(0 2px 0 rgba(0,0,0,.28))">
+              </span>
+            </span>
+            <span style="font-size: 13px; line-height: 13px; font-weight: 600; color: #c0cbdc">{{e.name}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; padding-top: 18px; border-top: 1px solid #262b44">
+        <sc-for list="{{els}}" as="e" hint-placeholder-count="10">
+          <span style="width: 22px; height: 24px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: linear-gradient(170deg, {{e.l}} 0%, {{e.c}} 48%, {{e.d}} 120%); display: flex; align-items: center; justify-content: center"><img src="{{e.whiteFill}}" alt="" style="width: 12px; height: 12px"></span>
+        </sc-for>
+      </div>
+    </div>
+
+    <div id="2c" style="width: 600px; padding: 28px; background: #141625; border-radius: 16px; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="padding: 4px 8px; background: #ffcd75; color: #1a1c2c; border-radius: 6px; font-size: 13px; line-height: 13px; font-weight: 800">2c</span>
+        <span style="font-size: 17px; line-height: 17px; font-weight: 600">Monograma (tabela periódica)</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px">
+        <sc-for list="{{els}}" as="e" hint-placeholder-count="10">
+          <div style="height: 92px; box-sizing: border-box; padding: 9px 10px; border-radius: 10px; background: {{e.c}}; color: {{e.ink}}; display: flex; flex-direction: column; justify-content: space-between">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start">
+              <span style="font-size: 30px; line-height: 30px; font-weight: 800; letter-spacing: -1px">{{e.abbr}}</span>
+              <img src="{{e.inkFill}}" alt="" style="width: 18px; height: 18px">
+            </div>
+            <span style="font-size: 10px; line-height: 10px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase">{{e.name}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 18px; border-top: 1px solid #262b44">
+        <sc-for list="{{els}}" as="e" hint-placeholder-count="10">
+          <span style="width: 26px; height: 22px; border-radius: 5px; background: {{e.c}}; color: {{e.ink}}; display: flex; align-items: center; justify-content: center; font-size: 11px; line-height: 11px; font-weight: 800">{{e.abbr}}</span>
+        </sc-for>
+      </div>
+    </div>
+
+    <div id="2d" style="width: 600px; padding: 28px; background: #141625; border-radius: 16px; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="padding: 4px 8px; background: #ffcd75; color: #1a1c2c; border-radius: 6px; font-size: 13px; line-height: 13px; font-weight: 800">2d</span>
+        <span style="font-size: 17px; line-height: 17px; font-weight: 600">Pílula com nome</span>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px">
+        <sc-for list="{{els}}" as="e" hint-placeholder-count="10">
+          <span style="height: 38px; box-sizing: border-box; padding: 0 16px 0 5px; border-radius: 19px; background: #1d2035; box-shadow: inset 0 0 0 2px {{e.c}}; display: flex; align-items: center; gap: 9px">
+            <span style="width: 28px; height: 28px; border-radius: 50%; background: {{e.c}}; display: flex; align-items: center; justify-content: center"><img src="{{e.inkFill}}" alt="" style="width: 17px; height: 17px"></span>
+            <span style="font-size: 13px; line-height: 13px; font-weight: 800; letter-spacing: .8px; color: {{e.l}}">{{e.upper}}</span>
+          </span>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 18px; border-top: 1px solid #262b44">
+        <sc-for list="{{els}}" as="e" hint-placeholder-count="10">
+          <span style="height: 20px; padding: 0 8px; border-radius: 10px; background: {{e.c}}; color: {{e.ink}}; display: flex; align-items: center; font-size: 10px; line-height: 10px; font-weight: 800; letter-spacing: .5px">{{e.upper}}</span>
+        </sc-for>
+      </div>
+    </div>
+
+    <div id="2e" style="width: 600px; padding: 28px; background: #141625; border-radius: 16px; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="padding: 4px 8px; background: #ffcd75; color: #1a1c2c; border-radius: 6px; font-size: 13px; line-height: 13px; font-weight: 800">2e</span>
+        <span style="font-size: 17px; line-height: 17px; font-weight: 600">Moeda de traço</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 22px 12px">
+        <sc-for list="{{els}}" as="e" hint-placeholder-count="10">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
+            <span style="width: 66px; height: 66px; border-radius: 50%; background: {{e.c}}; display: flex; align-items: center; justify-content: center">
+              <span style="width: 54px; height: 54px; border-radius: 50%; background: {{e.tint}}; box-shadow: 0 0 0 3px #141625; display: flex; align-items: center; justify-content: center">
+                <img src="{{e.lightLine}}" alt="" style="width: 30px; height: 30px">
+              </span>
+            </span>
+            <span style="font-size: 13px; line-height: 13px; font-weight: 600; color: #c0cbdc">{{e.name}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; padding-top: 18px; border-top: 1px solid #262b44">
+        <sc-for list="{{els}}" as="e" hint-placeholder-count="10">
+          <span style="width: 22px; height: 22px; box-sizing: border-box; border-radius: 50%; background: {{e.tint}}; box-shadow: inset 0 0 0 2px {{e.c}}; display: flex; align-items: center; justify-content: center"><img src="{{e.lightLine}}" alt="" style="width: 13px; height: 13px"></span>
+        </sc-for>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  svg(f, s, color, line, sw, rule) {
+    var body = '';
+    if (f) body += line
+      ? '<path d="' + f + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round"/>'
+      : '<path d="' + f + '" fill="' + color + '" fill-rule="' + (rule || 'evenodd') + '"/>';
+    if (s) body += '<path d="' + s + '" fill="none" stroke="' + color + '" stroke-width="' + (sw || (line ? 2 : 2.4)) + '" stroke-linecap="round" stroke-linejoin="round"/>';
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' + body + '</svg>');
+  }
+
+  els() {
+    if (this._e) return this._e;
+    var DARK = '#14243a', W = '#ffffff';
+    var L = [
+      ['Fogo', 'Fo', '#ef6a3a', '#ffb27a', '#a8322a', '#46213c', W,
+        'M12 2c.6 3.4 3 5.2 4.6 7.4A7 7 0 1 1 5 14c0-2.4 1.2-4.4 2.8-5.8.2 1.8 1 3 2.2 3.6C9.6 8.2 10.4 5 12 2z', ''],
+      ['Água', 'Ág', '#2f8cf0', '#8cc8ff', '#1d4fa8', '#1f3566', W,
+        'M12 2.5c3.3 4.3 6.5 8 6.5 12a6.5 6.5 0 0 1-13 0c0-4 3.2-7.7 6.5-12z', ''],
+      ['Ar', 'Ar', '#4cc9d8', '#b8f3f7', '#22808f', '#1b4260', DARK,
+        '', 'M3 9h11a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 17h6'],
+      ['Terra', 'Te', '#b9773f', '#e2b07a', '#6e4123', '#3d2a2a', W,
+        'M1.5 20 8.5 8l4 6.5 2.5-4L22.5 20z', ''],
+      ['Eletricidade', 'El', '#f2c230', '#fff09a', '#b07a10', '#463826', DARK,
+        'M13.5 2 4.5 13.5h6.5L9.5 22l10-12.5h-6.5z', ''],
+      ['Natureza', 'Na', '#3fae5a', '#9be08a', '#1f6a3a', '#173f45', W,
+        'M20.5 3.5C11 3.5 4.5 8.5 4.5 15.5c0 1.7.4 3.3 1 4.5C8 13 12 10 16 8.5 12.5 11 9.5 14.5 7.5 20.5c1 .3 2 .5 3 .5 7 0 10-6.5 10-17.5z', ''],
+      ['Mineral', 'Mi', '#8a9bb0', '#d6dfe8', '#4d5b6e', '#2b3451', W,
+        'M10 2l6 6.5L10 22 4 8.5zM18.5 9l3 3.5-3 6.5-2.2-5.5z', ''],
+      ['Arcano', 'Ac', '#9b5bd6', '#d6a8f5', '#5a2a8f', '#3a2148', W,
+        'M11 2c.9 5.4 3.6 8.1 9 9-5.4.9-8.1 3.6-9 9-.9-5.4-3.6-8.1-9-9 5.4-.9 8.1-3.6 9-9zM19 15.5c.35 1.9 1.1 2.65 3 3-1.9.35-2.65 1.1-3 3-.35-1.9-1.1-2.65-3-3 1.9-.35 2.65-1.1 3-3z', ''],
+      ['Primordial', 'Pr', '#c23b55', '#f08a98', '#6e1a30', '#3e1a2e', W,
+        '', 'M13 11.5a1 1 0 0 1 1 1 2 2 0 0 1-2 2 3 3 0 0 1-3-3 4 4 0 0 1 4-4 5 5 0 0 1 5 5 6 6 0 0 1-6 6 7 7 0 0 1-7-7 8 8 0 0 1 8-8'],
+      ['Gelo', 'Ge', '#7fc8ec', '#e6f8ff', '#3d86b0', '#24405a', DARK,
+        '', 'M12 2v20M3.3 7l17.4 10M3.3 17l17.4-10M9 3.5l3 2.5 3-2.5M9 20.5l3-2.5 3 2.5M3 10.5l3.4-.9.9-3.4M21 13.5l-3.4.9-.9 3.4M3 13.5l3.4.9.9 3.4M21 10.5l-3.4-.9-.9-3.4']
+    ];
+    var svg = this.svg;
+    this._e = L.map(function (a) {
+      return { f: a[7], s: a[8], name: a[0], upper: a[0].toUpperCase(), abbr: a[1], c: a[2], l: a[3], d: a[4], tint: a[5], ink: a[6],
+        inkFill: svg(a[7], a[8], a[6], false), whiteFill: svg(a[7], a[8], '#ffffff', false), lightLine: svg(a[7], a[8], a[3], true) };
+    });
+    return this._e;
+  }
+  v4() {
+    if (this._v4) return this._v4;
+    var els = this.els(), K = '#1a1c2c', DK = '#14243a', W = '#ffffff';
+    var B = [
+      ['M12 2.5c.8 3 3.4 4.6 5 7A7.5 7.5 0 1 1 4.5 14.5c0-2.6 1.3-4.6 3-6 .2 1.9 1 3 2.2 3.6C9.4 8.6 10.3 5.4 12 2.5zM12 13.5c1.5 1.5 2.5 2.6 2.5 4a2.5 2.5 0 0 1-5 0c0-1.4 1-2.5 2.5-4z', ''],
+      ['', 'M2 9c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 15c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2'],
+      ['', 'M3 4.5h18M5 8.5h14M7 12.5h10M9 16.5h6M11 20.5h2'],
+      ['M2 18h20v3H2zM4.5 13h15v3h-15zM7.5 8h9v3h-9zM10 3h4v3h-4z', ''],
+      ['M12 2l2 7 7-1-5 5 3 7-7-4-7 4 3-7-5-5 7 1z', ''],
+      ['M11.5 13C11.5 7.5 8.5 4 3 4c0 5.5 3 9 8.5 9zM12.5 11c0-4.5 3-7 8.5-7 0 4.5-3 7-8.5 7z', 'M12 9v12'],
+      ['M6 3h12l4 6-10 12L2 9z', ''],
+      ['M12 5C6.5 5 3 9.5 2 12c1 2.5 4.5 7 10 7s9-4.5 10-7c-1-2.5-4.5-7-10-7zm0 3.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7zM12 10.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z', ''],
+      ['', 'M4.5 3c-.5 6 .5 12 3.5 18M11 3c-.5 6 .5 12 3.5 18M17.5 3c-.5 6 .5 12 3.5 18'],
+      ['M3 4h18l-2.5 4-1.5 8.5L15.5 8l-2 6L12 8l-1.5 10L9 8l-1.5 5.5L6 8z', ''],
+      ['M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zm0 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zM12 10a2 2 0 1 1 0 4 2 2 0 0 1 0-4z', '']
+    ];
+    var A = els.map(function (e) { return [e.f, e.s]; });
+    var base = els.map(function (e) { return { name: e.name, c: e.c, d: e.d, l: e.l, ink: e.ink }; });
+    var arena = ['#ef7d57', '#41a6f6', '#73eff7', '#c08a52', '#ffcd75', '#a7f070', '#94b0c2', '#b57edc', '#e0566e', '#c8eef8', '#f4f4f4'];
+    var svg = this.svg;
+    var mk = function (id, title, note, set, colFn) {
+      var items = base.map(function (b, i) { var c = colFn(b, i); return { name: b.name, bg: c[0], src: svg(set[i][0], set[i][1], c[1], false) }; });
+      var pick = [[0, 'Labareda'], [1, 'Jato'], [4, 'Raio'], [9, 'Nevasca']];
+      return { id: id, title: title, note: note, items: items, moves: pick.map(function (p) { return Object.assign({ move: p[1] }, items[p[0]]); }) };
+    };
+    var vivo = function (b) { return [b.c, b.ink]; };
+    var arenaC = function (b, i) { return [arena[i], K]; };
+    var fundo = function (b) { return [b.d, b.l]; };
+    this._v4 = [
+      mk('4a', 'Ícones A · cor viva', 'o 3a', A, vivo),
+      mk('4b', 'Ícones B · cor viva', 'outro desenho por tipo', B, vivo),
+      mk('4c', 'Ícones A · paleta da Arena', 'cores do jogo, ícone escuro', A, arenaC),
+      mk('4d', 'Ícones B · paleta da Arena', 'cores do jogo, ícone escuro', B, arenaC),
+      mk('4e', 'Ícones A · tom profundo', 'fundo escuro, ícone claro', A, fundo)
+    ];
+    return this._v4;
+  }
+
+  renderVals() {
+    var els = this.els();
+    var pick = [[0, 'Labareda'], [1, 'Jato'], [4, 'Raio'], [9, 'Nevasca']];
+    var svg = this.svg, sq = this.v4()[0].items;
+    var CATS = [
+      [['Físico', 'Golpe de contato: garra, investida, mordida.', '', 'M20 4 9 15M6 12l6 6M7.5 16.5 4 20'],
+       ['Mágico', 'Golpe de energia lançado à distância.', 'M17 2l1.2 2.8L21 6l-2.8 1.2L17 10l-1.2-2.8L13 6l2.8-1.2z', 'M4 20 13.5 10.5'],
+       ['Especial', 'Buff, defesa ou efeito sem dano.', '', 'M12 20V5M6 11l6-6 6 6']],
+      [['Físico', 'Golpe de contato: garra, investida, mordida.', 'M12 2l1.8 5.2L19 5l-2.2 5.2L22 12l-5.2 1.8L19 19l-5.2-2.2L12 22l-1.8-5.2L5 19l2.2-5.2L2 12l5.2-1.8L5 5l5.2 2.2z', ''],
+       ['Mágico', 'Golpe de energia lançado à distância.', 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 1.5a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zM3.5 16.5a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zM20.5 16.5a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6z', ''],
+       ['Especial', 'Buff, defesa ou efeito sem dano.', 'M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5zM11 8h2v3h3v2h-3v3h-2v-3H8v-2h3z', '']]
+    ];
+    var catSets = CATS.map(function (set, k) {
+      return { id: k ? '5d' : '5c', title: k ? 'Categorias · impacto, orbe, escudo' : 'Categorias · espada, varinha, seta',
+        items: set.map(function (c) { return { name: c[0], desc: c[1], light: svg(c[2], c[3], '#f4f4f4'), dark: svg(c[2], c[3], '#1a1c2c'), muted: svg(c[2], c[3], '#94b0c2') }; }) };
+    });
+    var cat = catSets[1].items;
+    var combos = [['Labareda', 0, 1], ['Mordida Glacial', 9, 0], ['Raio', 4, 1], ['Pedrada', 6, 0], ['Fervor', 0, 2], ['Raiz', 5, 2]].map(function (p) {
+      var t = sq[p[1]], c = cat[p[2]];
+      return { move: p[0], tbg: t.bg, tsrc: t.src, cdark: c.dark, cmuted: c.muted, cname: c.name.toUpperCase() };
+    });
+    var I = {
+      espada: ['Físico', 'M18 3h3v3L11 16l-3-3zM5 12l2-2 7 7-2 2zM8.85 16.85l-1.7-1.7-3.5 3.5 1.7 1.7zM3.8 18.4a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6z', '', 0, 'nonzero'],
+      garras: ['Físico', '', 'M8 3C7 8 5.5 12 3 16M14 3c-1 6-2.5 11-5.5 16M20 3c-1 5-2.5 9-5 13', 3.2],
+      orbe: ['Mágico', 'M10 7a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM7.5 10a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zM19 1.5l1.1 2.9 2.9 1.1-2.9 1.1L19 9.5l-1.1-2.9L15 5.5l2.9-1.1z', ''],
+      projetil: ['Mágico', 'M16.5 7.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9z', 'M2 12h8M4 7.5h6.5M4 16.5h6.5', 2.6],
+      seta: ['Especial', 'M12 2l8.5 9H15v11H9V11H3.5z', ''],
+      chevrons: ['Especial', 'M3 10.5 12 3l9 7.5V15L12 7.5 3 15zM3 18.5 12 11l9 7.5V23L12 15.5 3 23z', ''],
+      escudo: ['Especial', 'M12 2l8.5 3.2V11c0 5.3-3.7 9.4-8.5 11-4.8-1.6-8.5-5.7-8.5-11V5.2z', '']
+    };
+    var sets6 = [['6a', 'Espada · orbe · seta', ['espada', 'orbe', 'seta']], ['6b', 'Garras · projétil · chevrons', ['garras', 'projetil', 'chevrons']], ['6c', 'Garras · orbe · escudo', ['garras', 'orbe', 'escudo']]];
+    var demo = [['Mordida Glacial', 9], ['Labareda', 0], ['Raiz', 5]];
+    var cat6 = sets6.map(function (st) {
+      var items = st[2].map(function (k) {
+        var c = I[k];
+        var mk = function (col) { return svg(c[1], c[2], col, false, c[3], c[4]); };
+        return { name: c[0], light: mk('#f4f4f4'), dark: mk('#1a1c2c'), muted: mk('#94b0c2') };
+      });
+      return { id: st[0], title: st[1], items: items,
+        combos: demo.map(function (d, i) { var t = sq[d[1]], c = items[i]; return { move: d[0], tbg: t.bg, tsrc: t.src, cdark: c.dark, cmuted: c.muted, cname: c.name.toUpperCase() }; }) };
+    });
+    return { cat6: cat6, sq: sq, catSets: catSets, combos: combos, v4: this.v4(), els: els, moves: pick.map(function (p) { return Object.assign({ move: p[1] }, els[p[0]]); }) };
+  }
+}
+</script>
+</body>
+</html>
