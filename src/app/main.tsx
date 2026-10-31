@@ -1,0 +1,43 @@
+// Entrada do jogo no navegador: lê as opções da URL, monta a interface e roda o laço de quadros.
+//
+// Opções na URL (todas opcionais), equivalentes às props da Arena no Claude Design:
+//   ?dificuldade=facil|normal|dificil  &assist=0  &velocidade=1.25  &semente=123
+
+import { render } from 'preact';
+import { prototipo } from '../conteudo/pacotes';
+import { desenharCena } from '../desenho/cena';
+import { App } from '../interface/App';
+import '../interface/arena.css';
+import { Jogo, type Opcoes } from './jogo';
+
+const q = new URLSearchParams(location.search);
+const semAcento = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+const opcoes: Opcoes = {
+  dificuldade: semAcento(q.get('dificuldade') ?? 'normal'),
+  assist: q.get('assist') !== '0',
+  velocidade: Math.min(1.5, Math.max(0.75, Number(q.get('velocidade') ?? 1) || 1)),
+  semente: q.has('semente') ? Number(q.get('semente')) : undefined,
+};
+const jogo = new Jogo(prototipo, opcoes);
+
+let canvas: HTMLCanvasElement | null = null;
+render(<App jogo={jogo} aoCanvas={(el) => (canvas = el)} />, document.getElementById('app')!);
+
+let ultimo = performance.now();
+function quadro(agora: number): void {
+  const dt = Math.min(0.05, Math.max(0, (agora - ultimo) / 1000));
+  ultimo = agora;
+  jogo.quadro(dt);
+  if (canvas) desenharCena(canvas, jogo);
+  requestAnimationFrame(quadro);
+}
+requestAnimationFrame(quadro);
+
+addEventListener('keydown', (ev) => jogo.tecla(ev, true));
+addEventListener('keyup', (ev) => jogo.tecla(ev, false));
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) jogo.pausar();
+});
+
+// Em desenvolvimento, o jogo fica acessível no console (inspeção e comparações com a Arena original).
+if (import.meta.env.DEV) Object.assign(globalThis, { jogo });

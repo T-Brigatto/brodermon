@@ -2,29 +2,36 @@
 
 Design e protótipo de um jogo mobile de criaturas colecionáveis com **batalha em tempo real**. "Brodermon" é o codinome da pasta; dentro do jogo o título é **VALE DAS CRIATURAS** (chaves de `localStorage` usam o prefixo `vdc-`).
 
-O jogo está sendo refeito em **TypeScript + Vite com núcleo determinístico**; a arquitetura está em [docs/arquitetura.md](docs/arquitetura.md). O que existe hoje:
-- o núcleo da batalha, com testes, portado da Arena;
-- o conteúdo do protótipo em dicionários JSON;
-- um visualizador de depuração;
-- as páginas de design do **Claude Design** (`.dc.html`), que são a referência visual e a especificação executável.
+A Arena foi refeita em **TypeScript + Vite com núcleo determinístico**, e a arquitetura está em [docs/arquitetura.md](docs/arquitetura.md). Ela é jogável em `index.html` e fica idêntica pixel a pixel à original: ver [docs/comparacao/](docs/comparacao/README.md). O projeto tem:
+- o núcleo da batalha, com testes;
+- o conteúdo do protótipo em dicionários JSON, sprites incluídos;
+- o desenho em canvas;
+- as telas em Preact;
+- o som;
+- um visualizador de depuração (`depuracao.html`);
+- as páginas de design do **Claude Design** (`.dc.html`), que continuam como referência visual.
 
 Tudo é em **pt-BR**: interface, nomes, identificadores, comentários e respostas ao usuário.
 
 ## Estrutura
 
 ```
-conteudo/      dicionários do jogo (tipos, golpes, espécies, batalhas, regras) — ver conteudo/LEIAME.md
-src/nucleo/    batalha pura: comandos entram, eventos saem (sem DOM, relógio ou Math.random)
-src/conteudo/  esquema Zod + registro dos pacotes
-src/app/       entrada no navegador (hoje: visualizador de depuração)
-testes/        Vitest
+conteudo/       dicionários do jogo (tipos, golpes, espécies, sprites, batalhas, regras) — ver conteudo/LEIAME.md
+src/nucleo/     batalha pura: comandos entram, eventos saem (sem DOM, relógio ou Math.random)
+src/conteudo/   esquema Zod + registro dos pacotes
+src/desenho/    canvas: perspectiva, cenário, sprites, fonte de pixel, cena
+src/interface/  telas em Preact (HUD, cards, time, táticas, título, pausa, escolha, fim, ajuda)
+src/plataforma/ som e preferências
+src/app/        jogo.ts (liga tudo), main.tsx (entrada), depuracao.ts
+testes/         Vitest
 design/        páginas do Claude Design (.dc.html) + runtime support.js + icones/
 exportados/    HTML autossuficientes (abrem sem o runtime)
 origem/        zip original "Redesign da interface do jogo" — não editar
 docs/          referência detalhada (ler antes de mexer no assunto)
 ```
 
-- [docs/arquitetura.md](docs/arquitetura.md): decisão, princípios, fluxo comando → evento, diferenças em relação à Arena e problemas conhecidos
+- [docs/arquitetura.md](docs/arquitetura.md): decisão, princípios, camadas, fluxo comando → evento, diferenças em relação à Arena e problemas conhecidos
+- [docs/comparacao/README.md](docs/comparacao/README.md): prints da original × refatorada e como a comparação foi feita
 - [conteudo/LEIAME.md](conteudo/LEIAME.md): como editar e criar tipos, golpes, espécies e pacotes
 - [docs/inventario.md](docs/inventario.md): o que é cada arquivo de design, status e dependências
 - [docs/jogo.md](docs/jogo.md): regras da Arena, criaturas, golpes, tabela de tipos e fórmula de dano
@@ -35,10 +42,15 @@ docs/          referência detalhada (ler antes de mexer no assunto)
 O Node 26 LTS está instalado. Depois de instalar o Node, reabra o terminal para o PATH ser atualizado.
 
 ```bash
-npm run dev      # visualizador do núcleo em http://localhost:5173 (preview "jogo")
+npm run dev      # jogo em http://localhost:5173 (preview "jogo"); depuração em /depuracao.html
 npm test         # testes
 npm run check    # verificação de tipos
+npm run build    # build de produção em dist/
 ```
+
+Opções na URL, equivalentes às props da Arena: `?dificuldade=facil|normal|dificil`, `&assist=0`, `&velocidade=1.25` e `&semente=123`. Em desenvolvimento, o objeto `jogo` fica exposto no console.
+
+Para validar mudanças visuais, compare com a original da mesma forma que em `docs/comparacao/`: congele o mesmo estado nas duas versões e compare os prints pixel a pixel. Os textos com números são divididos em pedaços igual ao template original, porque essa divisão muda o espaçamento entre letras.
 
 As páginas de design usam o servidor Python: `python -m http.server 8123`, depois `http://localhost:8123/design/Arena.dc.html`. O preview correspondente se chama `brodermon`. Elas precisam de internet, porque o React 18.3.1 vem do unpkg e as fontes do Google Fonts. No `launch.json`, o preview `jogo` aponta para `C:\Program Files\nodejs\node.exe` porque o app foi aberto antes da instalação do Node.
 
@@ -79,5 +91,5 @@ As páginas de design usam o servidor Python: `python -m http.server 8123`, depo
 
 - Pixel art: `image-rendering: pixelated`; bordas de 2px feitas com `box-shadow` nos 4 lados (sem `border-radius` na Arena); usar as cores da paleta documentada.
 - Acessibilidade já presente na Arena (`aria-label`, `role`, foco visível `#ffcd75`): manter ao editar.
-- Dependências atuais: Vite, TypeScript, Vitest, Zod e @types/node. Perguntar antes de adicionar outras; o Preact entra junto com o HUD.
+- Dependências atuais: Preact e Zod (jogo); Vite, TypeScript, Vitest e @types/node (desenvolvimento). Perguntar antes de adicionar outras.
 - A skill `fakemon-firered` gera sprites para este jogo (96×96, tira de 4 quadros, data-URI e dados da espécie).

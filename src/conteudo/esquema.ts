@@ -15,7 +15,34 @@ export const esquemaTipo = z.object({
   fundo: cor,
   /** Multiplicador dos golpes deste tipo contra cada tipo alvo. Tipo ausente = 1. */
   eficacia: dicionario(z.number().min(0)).default({}),
+  /** Cor das partículas quando uma criatura deste tipo desmaia. Padrão: `cor`. */
+  particula: cor.optional(),
+  /** Cores do projétil: rastro, corpo e núcleo. Uma 4ª cor faz o núcleo piscar entre a 3ª e a 4ª. */
+  projetil: z.array(cor).min(3).max(4).optional(),
+  /** Ícone 8×8, uma string por linha: "#" acende o pixel, "." deixa vazio. */
+  icone: z.array(z.string().regex(/^[#.]{8}$/, 'cada linha do ícone tem 8 caracteres "#" ou "."')).length(8).optional(),
 });
+
+export const esquemaSprite = z
+  .object({
+    /** Cor de cada índice; o índice 0 é sempre transparente (use null). */
+    paleta: z.array(cor.nullable()).min(2),
+    /** Uma string por linha; cada caractere (0–f) é um índice da paleta. Quadrado: N linhas de N caracteres. */
+    pixels: z.array(z.string().regex(/^[0-9a-f]+$/, 'use só 0–9 e a–f')).min(1),
+  })
+  .superRefine((s, ctx) => {
+    s.pixels.forEach((linha, i) => {
+      if (linha.length !== s.pixels.length) {
+        ctx.addIssue({ code: 'custom', path: ['pixels', i], message: `a linha tem ${linha.length} pixels; o sprite tem ${s.pixels.length} linhas e precisa ser quadrado` });
+      }
+      for (const ch of linha) {
+        if (parseInt(ch, 16) >= s.paleta.length) {
+          ctx.addIssue({ code: 'custom', path: ['pixels', i], message: `usa a cor "${ch}", mas a paleta só tem ${s.paleta.length} cores` });
+          break;
+        }
+      }
+    });
+  });
 
 export const esquemaCategoria = z.object({
   nome: z.string().min(1),
@@ -105,6 +132,8 @@ export const esquemaConteudo = z
     especies: dicionario(esquemaEspecie),
     batalhas: dicionario(esquemaBatalha),
     regras: esquemaRegras,
+    /** Sprite de cada espécie. Espécie sem sprite aparece como um substituto redondo na cor do tipo. */
+    sprites: dicionario(esquemaSprite).default({}),
   })
   .superRefine((c, ctx) => {
     const falta = (path: (string | number)[], oQue: string, valor: string) =>
@@ -136,6 +165,9 @@ export const esquemaConteudo = z
         });
       }
     }
+    for (const eid of Object.keys(c.sprites)) {
+      if (!c.especies[eid]) falta(['sprites', eid], 'espécie', eid);
+    }
     for (const [bid, batalha] of Object.entries(c.batalhas)) {
       batalha.equipes.forEach((eq, e) =>
         eq.time.forEach((esp, i) => {
@@ -150,6 +182,7 @@ export type Tipo = z.infer<typeof esquemaTipo>;
 export type Golpe = z.infer<typeof esquemaGolpe>;
 export type Especie = z.infer<typeof esquemaEspecie>;
 export type Regras = z.infer<typeof esquemaRegras>;
+export type Sprite = z.infer<typeof esquemaSprite>;
 export type Piloto = z.infer<typeof esquemaPiloto>;
 
 /** Valida um pacote cru. Lança um erro com uma linha por problema, no formato `caminho: mensagem`. */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { prototipo as c } from '../src/conteudo/pacotes';
-import { ativo, avancar, configDaBatalha, criarBatalha, escolherGolpe, type Evento } from '../src/nucleo';
+import { aplicarComandos, ativo, avancar, configDaBatalha, criarBatalha, escolherGolpe, type Evento } from '../src/nucleo';
 import { batalhaTreino, conteudo, iaContraIa, rodar, rodarAte } from './ajuda';
 
 const golpesDa = (ev: Evento[], uid: number) =>
@@ -51,6 +51,26 @@ describe('batalha completa', () => {
     expect(ativo(b, 0).ataque).toBe(14);
     expect(ativo(b, 1).ataque).toBe(Math.round(16 * 1.2));
     expect(ativo(b, 1).hpMax).toBe(Math.round(95 * 1.1));
+  });
+});
+
+describe('comandos sem passo', () => {
+  it('aplicarComandos muda o estado sem avançar o tempo', () => {
+    const b = batalhaTreino();
+    const ev = aplicarComandos(b, c, [{ tipo: 'proximoGolpe', equipe: 0, indice: 1 }]);
+    expect(ev).toEqual([]);
+    expect(b.equipes[0].proximoGolpe).toBe(1);
+    expect(b.tick).toBe(0);
+  });
+
+  it('dá o mesmo resultado que mandar os comandos no próximo passo', () => {
+    const a = batalhaTreino(5);
+    const z = batalhaTreino(5);
+    const cmds = [{ tipo: 'trocar', equipe: 0, indice: 2 } as const];
+    aplicarComandos(a, c, cmds);
+    rodar(a, 5);
+    rodar(z, 5, [...cmds]);
+    expect(a).toEqual(z);
   });
 });
 

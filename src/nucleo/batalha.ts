@@ -54,8 +54,8 @@ export function criarBatalha(c: Conteudo, config: ConfigBatalha): EstadoBatalha 
   const equipes = EQUIPES.map((e): EstadoEquipe => {
     const cfg = config.equipes[e];
     const m = cfg.piloto === 'ia' && mod ? mod : { ataque: 1, hp: 1 };
+    // As primeiras criaturas já começam prontas: a entrada delas acontece na contagem "PRONTO?/JÁ!".
     const lutadores = cfg.time.map((esp) => criarLutador(c, esp, e, uid++, m, c.regras.arena.inicio[e]));
-    lutadores[0]!.entrando = c.regras.entrada;
     return {
       piloto: cfg.piloto,
       lutadores,
@@ -118,8 +118,7 @@ function criarLutador(
 
 /** Aplica os comandos e avança um `PASSO`. Enquanto uma equipe escolhe a próxima criatura, só os comandos rodam. */
 export function avancar(b: EstadoBatalha, c: Conteudo, comandos: readonly Comando[] = []): Evento[] {
-  const ev: Evento[] = [];
-  for (const cmd of comandos) aplicarComando(b, c, cmd, ev);
+  const ev = aplicarComandos(b, c, comandos);
   if (b.aguardandoEscolha !== null) return ev;
 
   b.tick++;
@@ -145,6 +144,16 @@ export function avancar(b: EstadoBatalha, c: Conteudo, comandos: readonly Comand
   }
   for (const e of EQUIPES) agir(b, c, e, ev);
   moverProjeteis(b, c, ev);
+  return ev;
+}
+
+/**
+ * Aplica comandos sem avançar o tempo: o toque do jogador vale na hora, e o passo seguinte já o considera.
+ * Equivale a mandar os mesmos comandos no próximo `avancar`.
+ */
+export function aplicarComandos(b: EstadoBatalha, c: Conteudo, comandos: readonly Comando[]): Evento[] {
+  const ev: Evento[] = [];
+  for (const cmd of comandos) aplicarComando(b, c, cmd, ev);
   return ev;
 }
 

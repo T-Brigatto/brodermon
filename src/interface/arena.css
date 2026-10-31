@@ -1,0 +1,18 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: #0c0d16;
+  overflow: hidden;
+}
+button { -webkit-tap-highlight-color: transparent; }
+button:focus-visible { outline: 2px solid #ffcd75; outline-offset: 3px; }
+a { color: #ffcd75; }
+a:hover { color: #f4f4f4; }
+
+/* Os "style-hover" e "style-active" do Claude Design viram estas classes. */
+.desce:active { transform: translateY(2px); }
+.hover-ardosia:hover { background: #333c57 !important; }
+.hover-noite:hover { background: #262b44 !important; }
+.hover-brilho:hover { filter: brightness(1.06); }
+.hover-claro:hover { color: #f4f4f4 !important; }

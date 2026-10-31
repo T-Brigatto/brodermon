@@ -8,6 +8,7 @@ import golpes from '../../conteudo/prototipo/golpes.json';
 import especies from '../../conteudo/prototipo/especies.json';
 import batalhas from '../../conteudo/prototipo/batalhas.json';
 import regras from '../../conteudo/prototipo/regras.json';
+import sprites from '../../conteudo/prototipo/sprites.json';
 
 /** Os 7 tipos e as 6 criaturas da Arena original (`design/Arena.dc.html`). */
-export const prototipo = carregarConteudo({ tipos, categorias, golpes, especies, batalhas, regras });
+export const prototipo = carregarConteudo({ tipos, categorias, golpes, especies, batalhas, regras, sprites });

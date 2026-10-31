@@ -65,6 +65,29 @@ describe('validação', () => {
     expect(erroAo((c) => c.especies['gotinha']!.golpes.push('bolha'))).toContain('o máximo é 4');
   });
 
+  it('tem um sprite quadrado para cada criatura do protótipo', () => {
+    expect(Object.keys(prototipo.sprites).sort()).toEqual(Object.keys(prototipo.especies).sort());
+  });
+
+  it('recusa sprite que não é quadrado', () => {
+    expect(erroAo((c) => (c.sprites['gotinha']!.pixels[3] = '0000'))).toContain('precisa ser quadrado');
+  });
+
+  it('recusa sprite que usa cor fora da paleta', () => {
+    expect(erroAo((c) => (c.sprites['gotinha']!.pixels[5] = 'f'.repeat(24)))).toContain('a paleta só tem');
+  });
+
+  it('recusa sprite de espécie que não existe', () => {
+    expect(erroAo((c) => (c.sprites['dragao'] = c.sprites['gotinha']!))).toContain('sprites.dragao: espécie "dragao" não existe');
+  });
+
+  it('aceita tipo sem ícone nem cores de projétil (a interface usa um padrão)', () => {
+    const c = conteudo();
+    delete c.tipos['ar']!.icone;
+    delete c.tipos['ar']!.projetil;
+    expect(() => carregarConteudo(c)).not.toThrow();
+  });
+
   it('recusa id com acento ou maiúscula', () => {
     expect(erroAo((c) => (c.categorias['Mágico'] = { nome: 'Mágico' }))).toContain('letras minúsculas');
   });

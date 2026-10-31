@@ -19,7 +19,11 @@ especies.gotinha.golpes.0: golpe "tsunami" não existe
 
 - `eficacia`: quanto um golpe **deste** tipo causa contra cada tipo alvo. O que não está na lista vale 1. Use 0 para "sem efeito".
 - Contra uma criatura com dois tipos, os multiplicadores se multiplicam.
-- `cor` é a cor do tipo; `fundo` é o tom escuro usado atrás dele na interface.
+- `cor` é a cor do tipo; `fundo` é o tom escuro usado atrás dele na interface, por exemplo no card do golpe.
+- Opcionais (sem eles, a interface usa um padrão):
+  - `icone`: 8 linhas de 8 caracteres, com `#` para pixel aceso e `.` para vazio.
+  - `projetil`: cores do rastro, do corpo e do núcleo. Uma 4ª cor faz o núcleo piscar.
+  - `particula`: cor das faíscas quando a criatura desmaia.
 
 ## categorias.json
 
@@ -53,6 +57,21 @@ A categoria é só um rótulo que a interface mostra (ícone e nome). Ela não m
 - `tipos`: um ou mais.
 - `golpes`: de 1 até `maxGolpes` (4), na ordem dos botões 1–4.
 - `velocidade`: unidades da arena por segundo.
+
+## sprites.json
+
+```json
+"gotinha": {
+  "paleta": [null, "#1a1c2c", "#73eff7", "#41a6f6", "#f4f4f4", "#3b5dc9", "#ef7d57"],
+  "pixels": ["000000000000110000000000", "..."]
+}
+```
+
+- Um sprite por espécie, com a mesma chave de `especies.json`. Hoje todos têm 24×24.
+- `pixels`: uma string por linha. Cada caractere, de `0` a `f`, é a posição de uma cor na `paleta`. A posição 0 é sempre transparente (`null`).
+- O sprite precisa ser quadrado: N linhas de N caracteres.
+- Espécie sem sprite aparece como uma bolinha na cor do tipo.
+- A skill `fakemon-firered` gera sprites para este jogo.
 
 ## batalhas.json
 
