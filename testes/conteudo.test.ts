@@ -22,10 +22,22 @@ describe('pacote do protótipo', () => {
     expect(usados.size).toBe(19);
   });
 
-  it('preenche os padrões: conjuração 0 e projétil sem efeitos extras', () => {
+  it('preenche os padrões: conjuração 0, parado durante o golpe e projétil guiado da Arena', () => {
     const ventania = prototipo.golpes['ventania']!;
     expect(ventania.conjuracao).toBe(0);
-    expect(ventania.efeitos[0]).toEqual({ efeito: 'projetil', poder: 45, efeitos: [] });
+    expect(ventania.durante).toBe('parado');
+    expect(ventania.efeitos[0]).toEqual({
+      efeito: 'projetil',
+      poder: 45,
+      efeitos: [],
+      trajetoria: 'guiado',
+      quantidade: 1,
+      abertura: 0,
+      acertos: 1,
+      atravessa: false,
+      herdaCampo: false,
+      estouro: [],
+    });
   });
 });
 

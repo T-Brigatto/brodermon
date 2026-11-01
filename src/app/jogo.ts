@@ -19,8 +19,10 @@ import {
   type Comando,
   type Condicao,
   type EstadoBatalha,
+  type Geometria,
   type Evento,
   type Lutador,
+  type Posicao,
   type Projetil,
   type Tatica,
 } from '../nucleo';
@@ -86,6 +88,9 @@ const TEXTO_CONDICAO: Record<Condicao['tipo'], [string, string]> = {
   atordoado: ['ATORDOADO', '#ffcd75'],
   'dano-continuo': ['FERIDO', '#ef7d57'],
   debuff: ['ENFRAQUECIDO', '#94b0c2'],
+  acorrentado: ['ACORRENTADO', '#94b0c2'],
+  atraido: ['ATRAÍDO', '#ffcd75'],
+  estado: ['', '#73eff7'],
 };
 
 const DIRECOES: Record<string, 'u' | 'd' | 'l' | 'r'> = {
@@ -102,6 +107,8 @@ export class Jogo {
   particulas: Particula[] = [];
   textos: TextoFlutuante[] = [];
   readonly alturaProjetil = new Map<Projetil, number>();
+  /** Clarão das formas instantâneas (área, cone, linha) no chão, por um instante. */
+  formas: { golpe: string; geo: Geometria; z: Posicao; vida: number }[] = [];
   cam = { x: 200, y: 200, z: 1.35 };
   tremor = 0;
   msg = '';
@@ -167,7 +174,8 @@ export class Jogo {
 
   private novaBatalha(): void {
     const semente = this.opcoes.semente ?? Math.floor(Math.random() * 2 ** 31);
-    const batalha = this.opcoes.batalha && this.c.batalhas[this.opcoes.batalha] ? this.opcoes.batalha : 'treino';
+    const padrao = this.c.batalhas['treino'] ? 'treino' : Object.keys(this.c.batalhas)[0]!;
+    const batalha = this.opcoes.batalha && this.c.batalhas[this.opcoes.batalha] ? this.opcoes.batalha : padrao;
     this.b = criarBatalha(this.c, configDaBatalha(this.c, batalha, semente, this.opcoes.dificuldade));
     this.visuais.clear();
     for (const eq of this.b.equipes) {
@@ -181,6 +189,7 @@ export class Jogo {
     this.visual(this.eu()).entrada = 0.3;
     this.visual(this.rival()).entrada = 0.3;
     this.particulas = [];
+    this.formas = [];
     this.textos = [];
     this.alturaProjetil.clear();
     this.tremor = 0;
@@ -455,6 +464,10 @@ export class Jogo {
   }
 
   private efeitos(dt: number): void {
+    for (let i = this.formas.length - 1; i >= 0; i--) {
+      const f = this.formas[i]!;
+      if ((f.vida -= dt) <= 0) this.formas.splice(i, 1);
+    }
     for (let i = this.particulas.length - 1; i >= 0; i--) {
       const p = this.particulas[i]!;
       p.x += p.vx * dt;
@@ -604,7 +617,12 @@ export class Jogo {
         case 'condicao': {
           const l = lutadorPorUid(this.b, e.lutador);
           const debuff = l.condicoes.filter((cd) => cd.tipo === 'debuff').at(-1);
-          const [texto, cor] = e.condicao === 'debuff' && debuff?.tipo === 'debuff' ? [`${SIGLA[debuff.atributo]}-`, '#94b0c2'] : TEXTO_CONDICAO[e.condicao];
+          const [texto, cor] =
+            e.condicao === 'debuff' && debuff?.tipo === 'debuff'
+              ? [`${SIGLA[debuff.atributo]}-`, '#94b0c2']
+              : e.estado
+                ? [(this.c.estados[e.estado]?.nome ?? e.estado).toUpperCase(), '#73eff7']
+                : TEXTO_CONDICAO[e.condicao];
           this.textoEm(l, this.alturaSprite(l) + 12, texto, cor, 1, 1.1);
           break;
         }
@@ -619,9 +637,21 @@ export class Jogo {
           break;
         }
         case 'projetil': {
-          const p = this.b.projeteis[this.b.projeteis.length - 1];
-          if (p) this.alturaProjetil.set(p, this.alturaSprite(lutadorPorUid(this.b, e.autor)) / 2);
+          // Sai da altura do meio de quem atirou (vários podem ter saído no mesmo passo).
+          const h = this.alturaSprite(lutadorPorUid(this.b, e.autor)) / 2;
+          for (const p of this.b.projeteis) if (p.autor === e.autor && !this.alturaProjetil.has(p)) this.alturaProjetil.set(p, h);
           this.tocar('shoot');
+          break;
+        }
+        case 'forma':
+          this.formas.push({ golpe: e.golpe, geo: e.geo, z: { x: e.x, y: e.y, ux: e.ux, uy: e.uy }, vida: 0.25 });
+          break;
+        case 'salto': {
+          // Golpe que saltou do pino: faíscas no pino e no alvo.
+          const s = projetar(e.x, e.y);
+          this.explosao(s.x, s.y - 6, '#ffcd75', 5);
+          const alvo = lutadorPorUid(this.b, e.alvo);
+          this.explosaoEm(alvo, this.alturaSprite(alvo) / 2, '#ffcd75', 6);
           break;
         }
         case 'projetilPerdido': {
@@ -706,7 +736,7 @@ export class Jogo {
     v.hpVisto = Math.max(0, v.hpVisto - e.valor);
     v.lagT = 0.4;
     const h = this.alturaSprite(alvo);
-    if (e.origem === 'continuo') {
+    if (e.origem === 'continuo' || e.origem === 'campo') {
       // Dano contínuo: número pequeno, sem tremor nem som, para não poluir.
       this.textoEm(alvo, h + 16, String(e.valor), '#ef7d57', 1, 0.6);
       return;

@@ -33,15 +33,35 @@ export function combatente(c: Conteudo, l: Lutador): Combatente {
   };
 }
 
-/** Velocidade de agora: buff e debuffs somados, e a lentidão mais forte multiplicando. */
+/** Conjurando ou canalizando: é quando vale o `durante` do golpe. */
+export function emGolpe(l: Lutador): boolean {
+  return l.acao !== null && (l.acao.conjuracao > 0 || l.acao.canal);
+}
+
+/**
+ * Velocidade de agora: buff e debuffs somados, a lentidão mais forte, o golpe em andamento e os estados e campos
+ * (`fatorEstados`, recalculado a cada passo) multiplicando.
+ */
 export function velocidadeAtual(l: Lutador): number {
   let fator = 1;
   for (const cd of l.condicoes) if (cd.tipo === 'lentidao') fator = Math.min(fator, cd.fator);
+  if (emGolpe(l)) fator *= l.acao!.movimento;
+  if (l.fatorEstados !== 1) fator *= l.fatorEstados;
   return Math.max(0, l.velocidade + modificador(l, 'velocidade')) * fator;
+}
+
+/** Raio do corpo, para golpes e projéteis acertarem. */
+export function raioDe(c: Conteudo, l: Lutador): number {
+  return especieDe(c, l).raio ?? c.regras.raioCriatura;
 }
 
 export function temCondicao(l: Lutador, tipo: Condicao['tipo']): boolean {
   return l.condicoes.some((cd) => cd.tipo === tipo);
+}
+
+/** Está com o estado `id` de `estados.json`? */
+export function temEstado(l: Lutador, id: string): boolean {
+  return l.condicoes.some((cd) => cd.tipo === 'estado' && cd.estado === id);
 }
 
 export const outra = (e: Equipe): Equipe => (e === 0 ? 1 : 0);

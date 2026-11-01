@@ -3,7 +3,9 @@
 
 export * from './modelo';
 export { PASSO, aplicarComandos, avancar, configDaBatalha, criarBatalha, type ConfigBatalha } from './batalha';
-export { ativo, combatente, distancia, especieDe, golpeDe, lutadorPorUid, outra, temCondicao, velocidadeAtual } from './consulta';
+export { ativo, combatente, distancia, emGolpe, especieDe, golpeDe, lutadorPorUid, outra, raioDe, temCondicao, temEstado, velocidadeAtual } from './consulta';
+export { acertaForma, geometriaDe, posicaoDaForma, type Posicao } from './formas';
+export { mods, raioCorpo, type Mods } from './estados';
 export { calcularDano, type Combatente } from './dano';
 export { confronto, eficacia } from './eficacia';
 export { escolherGolpe, taticaDaIa } from './ia';

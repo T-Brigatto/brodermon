@@ -1,6 +1,8 @@
 # Conteúdo do jogo
 
-Cada pasta aqui é um **pacote**: um conjunto completo de tipos, golpes e criaturas. Hoje só existe o `prototipo/`, uma cópia fiel da Arena original com 7 tipos e 6 criaturas. O jogo de verdade, com os 10 tipos, será outro pacote ao lado.
+Cada pasta aqui é um **pacote**: um conjunto completo de tipos, golpes e criaturas.
+- `prototipo/`: cópia fiel da Arena original, com 7 tipos e 6 criaturas. É o pacote padrão do jogo.
+- `vale/`: os 11 elementos e os 110 golpes do guia de golpes (`origem/Guia_de_formulacao_de_golpes_Arena_Vale_das_Criaturas.md`), com terrenos, névoas e estados. As criaturas ainda são de laboratório. Abra com `?pacote=vale` (batalhas `lab-fogo`, `lab-agua`… e `torneio`).
 
 Todos os arquivos são **dicionários**: a chave é o id e o valor é o item. O id usa só letras minúsculas sem acento, números e hífen (`aqua-muro`); o nome que aparece na tela fica em `nome`, com acento.
 
@@ -24,6 +26,7 @@ especies.gotinha.golpes.0: golpe "tsunami" não existe
   - `icone`: 8 linhas de 8 caracteres, com `#` para pixel aceso e `.` para vazio.
   - `projetil`: cores do rastro, do corpo e do núcleo. Uma 4ª cor faz o núcleo piscar.
   - `particula`: cor das faíscas quando a criatura desmaia.
+  - `terreno` e `nevoa`: os campos do elemento em `campos.json`.
 
 ## categorias.json
 
@@ -48,49 +51,173 @@ Um golpe é uma **lista de efeitos**, executados em ordem. Cada efeito é uma pe
     { "efeito": "empurrar", "distancia": 35 }
   ] },
 
-"golpe-carregado": { "nome": "Golpe Carregado", "tipo": "rocha", "recarga": 5, "alcance": 26, "conjuracao": 0.6,
-  "efeitos": [{ "efeito": "dano", "poder": 85 }, { "efeito": "empurrar", "distancia": 45, "duracao": 0.3 }] }
+"lanca-chamas": { "nome": "Lança-chamas", "tipo": "fogo", "recarga": 4, "alcance": 55, "conjuracao": 0.3, "durante": "lento",
+  "efeitos": [{ "efeito": "cone", "alcance": 50, "angulo": 70, "poder": 7, "duracao": 2, "pulso": 0.25,
+    "efeitos": [{ "efeito": "dano-continuo", "porSegundo": 4, "duracao": 3, "nome": "queimadura", "chance": 0.15 }] }] },
+
+"bola-de-fogo": { "nome": "Bola de Fogo", "tipo": "fogo", "recarga": 3, "alcance": 95, "conjuracao": 0.3,
+  "efeitos": [{ "efeito": "projetil", "poder": 40, "trajetoria": "reto", "velocidade": 120, "raio": 5,
+    "estouro": [{ "efeito": "area", "raio": 8, "deixa": { "campo": "chamas", "duracao": 3 } }] }] }
 ```
 
 Campos do golpe:
-- `recarga`: segundos até poder usar de novo.
-- `alcance`: distância máxima até o rival para usar o golpe. É obrigatório quando algum efeito atinge o rival. O chão da arena mede 320 × 130.
-- `conjuracao` (opcional): segundos parado concentrando antes dos efeitos. Ser empurrado, puxado ou atordoado durante a conjuração interrompe o golpe.
+- `recarga`: segundos até poder usar de novo, **contados do fim do golpe** (fim da conjuração e da canalização). Enquanto o golpe está em andamento, a recarga fica cheia e parada.
+- `alcance`: distância máxima até o rival para usar o golpe. É obrigatório quando algum efeito atinge o rival. A área andável da arena mede 296 × 118 (o chão inteiro, 320 × 130); os tamanhos do guia de golpes valem nessa mesma unidade.
+- `conjuracao` (opcional): segundos concentrando antes dos efeitos. Ser empurrado, puxado ou atordoado durante a conjuração interrompe o golpe. As formas do golpe aparecem marcadas no chão durante a conjuração.
+- `durante` (opcional): como quem usa se move durante a conjuração e a canalização. `parado` (padrão), `lento` (velocidade × `regras.golpeLento`) ou `livre`.
 - `categoria` e `animacao`: opcionais.
 
-**Efeitos em quem usa**
+### Efeitos em quem usa
+
 | Efeito | Campos | O que faz |
 |---|---|---|
 | `buff` | `atributo` (`ataque`, `defesa` ou `velocidade`), `valor`, `duracao` | Soma ao atributo. Um buff novo substitui o anterior. |
 | `curar` | `porcento` | Recupera essa porcentagem do HP máximo. |
-| `avancar` | `distancia`, `duracao` | Dispara em direção ao rival e para antes de encostar (`regras.distanciaMinima`). |
+| `estado` com `"em": "si"` | `estado`, `duracao` | Põe em si um estado de `estados.json` (Armadura de Pedra, Gigante, Estática…). |
+| `avancar` | `distancia`, `duracao`; opcionais `atravessa`, `poder`, `efeitos`, `rastro`, `estado` | Dispara em direção ao rival e para antes de encostar (`regras.distanciaMinima`). Com `atravessa`, passa por dentro dele e vai a distância toda. `poder`/`efeitos` acertam o rival ao passar (uma vez); `rastro` deixa um campo no caminho; `estado` vale em quem usa durante o avanço (Rasante: intangível). |
 | `recuar` | `distancia`, `duracao` | Salta para longe do rival. |
+| `teleporte` | `para` (`atras-do-rival` ou `no-rival`), `distancia`, `rastro` | Some e reaparece do outro lado do rival, a `distancia` dele, ou em cima dele. |
+| `esperar` | `duracao` | O golpe continua em andamento (vale o `durante`): Fotossíntese, o tempo embaixo da terra do Escavar. |
 
-**Efeitos no rival**
+### Formas
+
+Carregam `poder` (dano por acerto ou por pulso; 0 = sem dano), `efeitos` no rival (a tabela mais abaixo) e `drena` (fração do dano que volta como cura). Acertam quem tiver alguma parte do corpo dentro: o corpo é um círculo de raio `raio` da espécie (padrão `regras.raioCriatura`, 12).
+
 | Efeito | Campos | O que faz |
 |---|---|---|
-| `dano` | `poder` | Dano na hora, corpo a corpo. |
-| `projetil` | `poder`, `velocidade` (opcional), `efeitos` (opcional) | Projétil que persegue o rival. Ao acertar, causa `poder` de dano (0 = sem dano) e aplica os `efeitos` da lista. |
+| `area` | `centro` (`rival`, `si` ou `meio`), `raio` | Círculo. No rival, cai onde ele estava quando o golpe começou: dá para sair durante a conjuração. Em si, é o anel em volta de quem usa. |
+| `cone` | `alcance`, `angulo` (graus); `origem` (`si` ou `ponta`), `inverte` | Leque à frente de quem usa, apontado para onde o rival estava no começo do golpe. `origem: "ponta"` sai da ponta da forma anterior; `inverte` aponta de volta (Eco). |
+| `linha` | `alcance`, `largura`; `ateRival`, `reflete` | Faixa reta de quem usa até `alcance` (ou só até o rival). `reflete` quica na borda da arena (Prisma). |
+| `parede` | `centro` (`si`, `meio`, `rival` ou `topo`), `largura`, `espessura` | Faixa atravessada na direção do rival. `topo` nasce na borda de cima e aponta para baixo (Avalanche). |
+
+Comportamento no tempo (todas as formas aceitam):
+- Sem nada, acerta uma vez, na hora; se não pegar ninguém, aparece "ERROU".
+- `atraso`: a marca fica no chão e acerta depois; quem usou fica livre (Selo, Granizo, Presas).
+- `duracao` com `pulso`: fica e acerta a cada pulso; o primeiro sai na hora (2 s com pulso de 0,25 s dão 8 pulsos). A área fica parada onde caiu; o cone e a linha são **canalizados**: andam com quem usa, o golpe só acaba quando a duração termina, e a canalização acaba se o golpe for interrompido.
+- `move`: anda a `velocidade`, até `ate` de distância; com `persegue`, vira para o rival (Onda, Fissura, Tornado, Avalanche).
+- `raioFinal` (área com `duracao`): o raio cresce até ele (Onda de Choque).
+- `umaVez`: cada criatura é atingida uma vez só. `arrasta`: leva junto quem pega. `puxa`: puxa para o centro (unidades/s).
+- `alterna`: listas de efeitos que se revezam a cada pulso (Fluxo e Refluxo: empurra, puxa, empurra…).
+- `deixa`: campo (`campos.json`) deixado no lugar da forma, com `duracao` e, se quiser, `raio`, `largura`, `pulso`, `poder`, `efeitos` e `aoEntrar` próprios. `rastro`: campo deixado no caminho de uma forma que anda.
+- `apaga`: apaga os campos que a forma toca: os das `camadas` (`terreno`, `nevoa`) ou dos `tipos`; com `converteEm`, troca pelo campo dado (Decomposição); com `objetos`, derruba também as estruturas (Ruptura).
+- Formas de um golpe do tipo de um gás (`detona` em `campos.json`) fazem o gás explodir; estruturas com `destruidoPor` caem com golpes daquele tipo.
+
+### Projéteis
+
+`projetil`: `poder`, `efeitos`, `drena` e, todos opcionais (os ausentes vêm de `regras.projetil`):
+- `trajetoria`:
+  - `guiado` (padrão): o da Arena original. Persegue sem limite e sempre acerta.
+  - `reto`: segue em linha na direção do rival no momento do disparo. Quem anda de lado escapa: a distância máxima que ainda acerta é r × √(V² + v²) ÷ v (V do projétil, v de quem foge, r = raio da criatura + raio do projétil).
+  - `persegue`: vira em direção ao rival no máximo `curva` graus por segundo. Some ao fim da `vida`.
+  - `quica`: bate nas bordas da área andável e volta até acabar a `vida`; com `quicas`, estoura na borda seguinte.
+- `velocidade`, `curva`, `vida`, `raio`.
+- `quantidade` e `abertura`: vários projéteis saem juntos, abertos em leque. Com `vida` curta, viram estilhaços de curto alcance (Espinhos, Estilhaços).
+- `acertos`: quantos acertos cada projétil pode dar (0 = nenhum por encostar, só a aura). Para acertar de novo, precisa sair do rival e voltar.
+- `atravessa`: depois do último acerto, continua voando sem dano em vez de sumir.
+- `estouro`: formas que acontecem onde o projétil some (ao acertar, no fim da vida, na borda): Granada, Bola de Fogo.
+- `gruda`: gruda em quem acerta e estoura tantos segundos depois (Bomba-Relógio).
+- `volta`: vai até essa distância e volta para quem atirou (Lâmina Bumerangue).
+- `aura`: `raio`, `pulso`, `poder`, `efeitos`: acerta quem estiver perto, sem encostar (Esfera Estática).
+- `consome`: `campos`, `poder`, `crescimento`, `maximo`: apaga os campos por onde passa e cresce (Fome do Fogo).
+- `herdaCampo`: leva o efeito do terreno onde quem atirou estava (Arrancar Chão).
+
+### Várias de uma vez, campos como munição, objetos e cópia
+
+| Efeito | Campos | O que faz |
+|---|---|---|
+| `varias` | `quantidade`, `disposicao`, `distancia`, `intervalo`, `faz` | Faz a forma ou o projétil `faz` em vários pontos, um a cada `intervalo`. `disposicao`: `linha-ate-rival`, `em-volta-do-rival`, `sorteio-no-rival` (a até `distancia`), `entre` (entre os dois) ou `em-volta-de-si`. |
+| `cada-campo` | `campo`, `faz`, `apaga`, `senao` | Para cada campo desse tipo criado por quem usa, faz os efeitos no ponto dele (Recolher, Ressonância); `senao` vale quando não há nenhum. |
+| `objeto` | `objeto`, `centro`, `distancia`, `raio`, `duracao`, `chance`, `destruidoPor` | `pilar` (bloqueia passagem e projéteis), `portais` (um em quem usa, outro perto do rival; leva quem entra num até o outro), `copia` (cópia falsa a `distancia` de lado: cada golpe do rival tem `chance` de mirar nela) ou `pino` (os golpes do tipo de quem usou também saltam para quem estiver a até `raio` dele). |
+| `copiar` | | Usa o último golpe que o rival usou (Espelho Arcano). |
+
+### Efeitos no rival
+
+Podem vir soltos no golpe (corpo a corpo: exigem o rival ao alcance na hora) ou dentro de uma forma, de um projétil ou de um campo. Todos aceitam `chance` (de 0 a 1); sem ela, sempre pegam.
+
+| Efeito | Campos | O que faz |
+|---|---|---|
+| `dano` | `poder`; opcionais `drena`, `escalaHp`, `seEstado` | Dano na hora, corpo a corpo. `escalaHp` (`ate`): cresce até `ate` conforme quem usa perde HP, o máximo com 10% (Sangue Antigo). `seEstado` (`estado`, `poder`, `remove`): poder diferente se o alvo estiver com o estado (Estilhaçar contra congelado). |
 | `empurrar` | `distancia`, `duracao` (padrão 0,2) | Joga o rival para longe. |
 | `puxar` | `distancia`, `duracao` (padrão 0,2) | Traz o rival para perto (para antes de encostar). |
-| `lentidao` | `fator` (entre 0 e 1), `duracao` | Multiplica a velocidade do rival. |
+| `lentidao` | `fator` (entre 0 e 1), `duracao`; `acumula`, `minimo` | Multiplica a velocidade do rival. Com `acumula`, cada aplicação multiplica a que já havia, até `minimo` (Sopro Gélido). |
 | `prender` | `duracao` | O rival não anda, mas ainda ataca. |
 | `atordoar` | `duracao` | O rival não anda nem ataca. |
-| `dano-continuo` | `porSegundo`, `duracao` | Dano fixo por segundo (queimadura, veneno). Não usa a fórmula nem a eficácia. |
+| `dano-continuo` | `porSegundo`, `duracao`, `nome` | Dano fixo por segundo. Não usa a fórmula nem a eficácia. `nome` ("queimadura") deixa um estado proteger dele. |
 | `debuff` | `atributo`, `valor`, `duracao` | Tira do atributo do rival. |
+| `estado` | `estado`, `duracao`, `em` | Põe um estado de `estados.json` no alvo (ou em quem usou, com `"em": "si"`). |
+| `interromper` | | Corta a conjuração ou o golpe em andamento. |
+| `acorrentar` | `distancia`, `duracao` | A distância entre o rival e quem usou não passa de `distancia` (Corrente de Metal). |
+| `atrair` | `velocidade`, `duracao`, `aoEncostar` | Os dois são puxados um para o outro; ao encostarem, o rival leva `aoEncostar` de poder (Polaridade). |
 
 Como os efeitos se encadeiam:
-- Efeitos no rival fora de um projétil acontecem na hora e exigem o rival ao alcance (com folga de 4). Se ele tiver fugido, aparece "ERROU".
-- Efeitos com `duracao` em quem usa (`avancar`, `recuar`) fazem o próximo efeito esperar o fim. É assim que "avança e depois bate" funciona.
-- Ser empurrado, puxado ou atordoado interrompe o golpe em andamento.
-- Condições (lentidão, prisão, atordoamento, dano contínuo, debuff) e buffs somem quando a criatura sai de campo. Aplicar de novo a mesma condição renova o tempo.
+- Efeitos com duração em quem usa (`avancar`, `recuar`, `esperar`) e as canalizações fazem o próximo efeito esperar o fim. É assim que "avança e depois bate" funciona.
+- Ser empurrado, puxado ou atordoado interrompe o golpe em andamento; um estado que trava a ação também.
+- Condições, estados e buffs somem quando a criatura sai de campo. Aplicar de novo a mesma condição renova o tempo.
 
 Como a IA usa cada golpe (ver `regras.ia`):
-- golpe que atinge o rival: usa com o rival ao alcance;
-- cura: usa com HP abaixo de `hpCura`;
+- golpe que atinge o rival (direto, projétil, forma, objeto, teleporte): usa com o rival ao alcance; na fila do jogador, golpes de perto (corpo a corpo, cone, linha e área em volta de si) fazem a criatura andar até o rival;
+- cura, na hora ou por segundo: usa com HP abaixo de `hpCura`;
 - recuo: usa esquivando e com o rival a menos de `distanciaFuga`;
 - avanço sem dano: usa com o rival longe;
-- buff: usa com HP acima de `hpBuff` e sem buff ativo.
+- buff: usa com HP acima de `hpBuff` e sem buff ativo; estado em si: usa se ainda não estiver com ele;
+- cópia: só depois de o rival usar algum golpe; campo como munição (sem `senao`): só se houver o campo.
+
+## estados.json
+
+Um estado é um conjunto de mudanças que valem enquanto ele dura. Golpes aplicam com o efeito `estado`; campos aplicam em quem está dentro.
+
+```json
+"congelado": { "nome": "Congelado", "trava": "tudo" },
+"rachado": { "nome": "Rachado", "danoRecebido": { "explosao": 1.3, "terra": 1.3 } },
+"armadura-de-pedra": { "nome": "Armadura de Pedra", "atributos": { "defesa": 1.5 }, "empurrao": 0, "velocidade": 0.6 }
+```
+
+| Campo | O que faz |
+|---|---|
+| `trava` | `movimento` (não anda), `acao` (não usa golpes) ou `tudo`. Travar a ação corta o golpe em andamento. |
+| `velocidade` | Multiplica a velocidade. |
+| `atributos` | `ataque` e `defesa` multiplicados. |
+| `danoRecebido`, `danoCausado` | Multiplicador por tipo de golpe (`"*"` = todos). |
+| `danoPorMovimento` | Golpes de `tipo` causam `andando`× em alvo que se move e `parado`× em alvo parado. |
+| `recarga`, `conjuracao` | Ritmo das recargas dos golpes e da conjuração (0,7 = 30% mais devagar). |
+| `desvio` | Projéteis disparados saem com um desvio sorteado de até tantos graus. |
+| `empurrao` | Multiplica empurrões e puxões recebidos (0 = imune, 2 = dobrados). |
+| `inquieto` | Não consegue ficar parado. |
+| `intangivel`, `atingivelPor` | Não pode ser atingido; com `atingivelPor`, só áreas em volta de quem usa desses tipos (embaixo da terra, só anéis de Terra). |
+| `tamanho`, `areaPerto` | Raio do corpo; tamanho das áreas em volta de si e alcance do corpo a corpo. |
+| `curaPorSegundo`, `soEmCampo`, `soTipos` | Cura contínua; só em cima de um campo; só criaturas de certos tipos. |
+| `impedeCura` | Nada cura. |
+| `protege` | Tira e impede danos contínuos com esses nomes. |
+| `desviaProjeteis` | Projéteis que chegam a `raio` além do corpo viram `graus`. |
+| `refleteProjeteis` | Projéteis que acertam voltam para quem atirou. |
+| `aderencia` | Escorregar: quanto da velocidade nova entra a cada passo (1 = normal). |
+| `cargas` | Cada `distancia` andada vira uma carga (até `maximo`); o próximo golpe de `tipo` ganha `bonus` por carga e gasta o estado. |
+| `cacada` | Anda `velocidade`× mais rápido em direção ao alvo do golpe e ganha `alcance` contra ele. |
+
+## campos.json
+
+Terrenos (no chão) e névoas (no ar). Cada elemento tem os seus (`terreno` e `nevoa` em `tipos.json`), e golpes podem ter campos próprios. Afetam todos dentro, menos os tipos `imunes`, inclusive quem criou (com `"afeta": "rival"`, só o rival dele). Golpes criam campos com `deixa` e `rastro`; a duração vem do golpe.
+
+```json
+"chamas": { "nome": "Chamas", "camada": "terreno", "tipo": "fogo", "imunes": ["fogo"], "pulso": 0.5, "poder": 6,
+  "aoEntrar": { "efeitos": [{ "efeito": "dano-continuo", "porSegundo": 4, "duracao": 3, "nome": "queimadura", "chance": 0.3 }] } }
+```
+
+| Campo | O que faz |
+|---|---|
+| `camada`, `tipo`, `imunes`, `afeta` | Terreno ou névoa, elemento, quem não é afetado, todos ou só o rival. |
+| `pulso`, `poder`, `efeitos` | A cada pulso, quem está dentro leva o dano e os efeitos. |
+| `aoEntrar` | Dano e efeitos ao entrar. Com `consome`, o campo some no primeiro que entra (mina, flor carnívora). |
+| `estado`, `dono`, `estadoImunes` | Estado de quem está dentro, de quem criou (Território) e dos imunes (os Esporos curam a Natureza). |
+| `permanencia` | Quem fica `segundos` seguidos dentro leva os `efeitos` (Neblina gelada congela; Areia movediça prende). |
+| `projeteis` | Em projéteis que passam: `dano` (multiplica), `desvio` (graus sorteados), `atrai` (curva para o centro, graus/s), `tempo` (velocidade). |
+| `empuxo`, `rampa` | Empurra quem está dentro de lado ou para a frente; rampa acelera no sentido dela e faz escorregar contra. |
+| `tempo` | Ritmo dos outros campos com o centro dentro dele (Tempo Lento). |
+| `apaga` | Apaga o que entra nele enquanto dura (Vácuo apaga Fogo e névoas). |
+| `dispara` | Dispara um projétil no rival a cada `intervalo` (Círculo rúnico). |
+| `detona` | Explode quando um golpe do `tipo` o acerta (Gás volátil). |
+
+As reações entre terrenos e névoas de elementos diferentes ainda não foram definidas (pendência do guia); por enquanto, só valem as dos golpes (Decomposição, Ruptura, Vácuo, Onda de Choque, Fome do Fogo).
 
 ## especies.json
 
@@ -101,6 +228,7 @@ Como a IA usa cada golpe (ver `regras.ia`):
 - `tipos`: um ou mais.
 - `golpes`: de 1 até `maxGolpes` (4), na ordem dos botões 1–4.
 - `velocidade`: unidades da arena por segundo.
+- `raio` (opcional): raio do corpo, para golpes e projéteis acertarem. Sem ele, vale `regras.raioCriatura`.
 
 ## sprites.json
 
@@ -133,7 +261,9 @@ Como a IA usa cada golpe (ver `regras.ia`):
 { "especie": "brasino", "golpes": ["chama-viva", "investida-veloz", "labareda", "fervor"] }
 ```
 
-- A batalha `laboratorio` usa os golpes novos dos dois lados. Abra com `?batalha=laboratorio` na URL do jogo.
+- A batalha `laboratorio` usa os golpes de movimento e controle dos dois lados. Abra com `?batalha=laboratorio` na URL do jogo.
+- A batalha `formas` usa 24 golpes do guia de golpes adaptados aos 7 tipos do protótipo: `?batalha=formas`.
+- No pacote `vale`, cada elemento tem um laboratório (`lab-fogo`, `lab-agua`…): o jogador leva três criaturas do elemento com os 10 golpes dele. `?pacote=vale&batalha=lab-gelo`.
 
 ## regras.json
 
@@ -141,7 +271,8 @@ São os números da batalha:
 - a fórmula de dano;
 - as recargas globais;
 - a troca (duração e espera);
-- a velocidade dos projéteis;
+- os projéteis: velocidade, `raioAcerto` do guiado e os padrões dos que podem errar (`raio`, `vida`, `curva`);
+- o `raioCriatura` padrão e o fator `golpeLento` de quem usa um golpe com `durante: "lento"`;
 - os limites da arena;
 - a `distanciaMinima` entre as criaturas em avanços e puxões;
 - as distâncias de cada tática;
@@ -154,4 +285,4 @@ Mudar um número aqui muda o jogo sem tocar no código.
 
 1. Copie a pasta `prototipo/` com outro nome, por exemplo `vale/`.
 2. Edite os dicionários.
-3. Registre o pacote em `src/conteudo/pacotes.ts`, seguindo o modelo do `prototipo`.
+3. Registre o pacote em `src/conteudo/pacotes.ts`, seguindo o modelo do `vale`, e ponha-o no dicionário `pacotes` para abrir com `?pacote=<nome>`.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Conteudo } from '../src/conteudo/esquema';
+import { esquemaGolpe, type Conteudo } from '../src/conteudo/esquema';
 import {
   PASSO,
   aplicarComandos,
@@ -197,7 +197,7 @@ describe('efeitos em si', () => {
 describe('IA', () => {
   it('usa um avanço sem dano para encurtar a distância', () => {
     const c = conteudo();
-    c.golpes['disparada'] = { nome: 'Disparada', tipo: 'normal', recarga: 3, conjuracao: 0, efeitos: [{ efeito: 'avancar', distancia: 40, duracao: 0.2 }] };
+    c.golpes['disparada'] = esquemaGolpe.parse({ nome: 'Disparada', tipo: 'normal', recarga: 3, efeitos: [{ efeito: 'avancar', distancia: 40, duracao: 0.2 }] });
     const { b, B } = duelo(['disparada'], ['jato'], c);
     travar(B);
     const ev = rodar(b, c, 0.1);

@@ -1,0 +1,27 @@
+{
+  "maxGolpes": 4,
+  "dano": { "divisor": 18, "multiplicador": 3, "ajuste": 0.9, "aleatorioMin": 0.9, "aleatorioMax": 1.1, "minimo": 1, "stab": 1.5 },
+  "recargaGlobal": { "ataque": 0.9, "buff": 1.2, "aoEntrar": 0.6 },
+  "troca": { "duracao": 0.3, "espera": 3 },
+  "entrada": 0.3,
+  "substituicao": 1.0,
+  "projetil": { "velocidade": 120, "raioAcerto": 4, "raio": 4, "vida": 2.5, "curva": 180 },
+  "raioCriatura": 12,
+  "golpeLento": 0.5,
+  "arena": {
+    "xMin": 12, "xMax": 308, "yMin": 6, "yMax": 124,
+    "inicio": [{ "x": 115, "y": 70 }, { "x": 205, "y": 70 }]
+  },
+  "taticas": {
+    "perseguir": { "longe": 47, "perto": 27 },
+    "manter": { "distancia": 55, "folga": 9, "fator": 0.6 },
+    "evasivo": { "fator": 0.8, "frequencia": 3, "ondulacao": 0.7 }
+  },
+  "distanciaMinima": 12,
+  "ia": { "hpEsquiva": 0.3, "hpBuff": 0.5, "esperaFila": 0.25, "hpCura": 0.5, "distanciaFuga": 40 },
+  "dificuldades": {
+    "facil":   { "ataque": 0.8, "hp": 0.9 },
+    "normal":  { "ataque": 1,   "hp": 1 },
+    "dificil": { "ataque": 1.2, "hp": 1.1 }
+  }
+}

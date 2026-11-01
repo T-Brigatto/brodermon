@@ -2,7 +2,8 @@
 // simples no lugar do HUD. Serve para ver as regras rodando enquanto o desenho
 // e a interface de verdade não existem.
 
-import { prototipo as c } from '../conteudo/pacotes';
+import { pacotes, prototipo } from '../conteudo/pacotes';
+import { contornoDaForma } from '../desenho/formas';
 import {
   PASSO,
   ativo,
@@ -10,15 +11,21 @@ import {
   configDaBatalha,
   criarBatalha,
   especieDe,
+  geometriaDe,
   golpeDe,
   lutadorPorUid,
+  posicaoDaForma,
+  raioDe,
+  type Posicao,
   type Comando,
   type EstadoBatalha,
   type Evento,
+  type Geometria,
   type Lutador,
   type Tatica,
 } from '../nucleo';
 
+const c = pacotes[new URLSearchParams(location.search).get('pacote') ?? ''] ?? prototipo;
 const ESCALA = 1.15;
 const MARGEM = { x: 15, y: 10 };
 const TATICAS: [Tatica, string][] = [
@@ -59,7 +66,8 @@ let velocidade = 1;
 function nova(): void {
   semente = Math.floor(Math.random() * 2 ** 31);
   const id = new URLSearchParams(location.search).get('batalha') ?? 'treino';
-  b = criarBatalha(c, configDaBatalha(c, c.batalhas[id] ? id : 'treino', semente));
+  const padrao = c.batalhas['treino'] ? 'treino' : Object.keys(c.batalhas)[0]!;
+  b = criarBatalha(c, configDaBatalha(c, c.batalhas[id] ? id : padrao, semente));
   pendentes = [];
   log = [`Semente ${semente}. Vai, ${nome(ativo(b, 0))}!`];
   textos = [];
@@ -190,10 +198,60 @@ function desenhar(dt: number): void {
     ctx.setLineDash([]);
   }
 
+  // Zonas e campos (cheios; marcas que ainda vão acertar, tracejadas) e a marca das formas durante a conjuração.
+  const caminho = (g: Geometria, z: Posicao) => {
+    ctx.beginPath();
+    contornoDaForma(g, z).forEach((q, i) => {
+      const t = tela(q.x, q.y);
+      if (i) ctx.lineTo(t.x, t.y);
+      else ctx.moveTo(t.x, t.y);
+    });
+    ctx.closePath();
+  };
+  for (const z of b.zonas) {
+    const cor = corDoTipo(z.campo ? (c.campos[z.campo]?.tipo ?? '') : golpeDe(c, z.golpe).tipo);
+    caminho(z.geo, z);
+    ctx.setLineDash(z.atraso > 0 ? [3, 3] : []);
+    if (z.atraso <= 0) {
+      ctx.globalAlpha = z.campo && c.campos[z.campo]?.camada === 'nevoa' ? 0.15 : 0.3;
+      ctx.fillStyle = cor;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    ctx.strokeStyle = cor;
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  for (const o of b.objetos) {
+    const p = tela(o.x, o.y);
+    ctx.strokeStyle = o.tipo === 'pilar' ? '#d6dfe8' : o.tipo === 'portal' ? '#d6a8f5' : o.tipo === 'pino' ? '#ffcd75' : '#94b0c2';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, o.raio * ESCALA, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  for (const e of [0, 1] as const) {
+    const l = ativo(b, e);
+    const a = l.acao;
+    if (l.desmaiado || !a || a.conjuracao <= 0) continue;
+    for (const ef of golpeDe(c, a.golpe).efeitos) {
+      if (ef.efeito !== 'area' && ef.efeito !== 'cone' && ef.efeito !== 'linha' && ef.efeito !== 'parede') continue;
+      caminho(geometriaDe(ef), posicaoDaForma(l, a, ef));
+      ctx.setLineDash([3, 3]);
+      ctx.strokeStyle = '#f4f4f4';
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
   for (const e of [0, 1] as const) {
     const l = ativo(b, e);
     const p = tela(l.x, l.y);
     const saindo = b.equipes[e].troca !== null || l.entrando > 0;
+    // Raio de acerto do corpo, o que golpes e projéteis precisam tocar.
+    ctx.strokeStyle = 'rgba(244, 244, 244, 0.2)';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, raioDe(c, l) * ESCALA, 0, Math.PI * 2);
+    ctx.stroke();
     ctx.globalAlpha = saindo ? 0.45 : 1;
     ctx.fillStyle = l.desmaiado ? '#333c57' : corDoTipo(especieDe(c, l).tipos[0]!);
     ctx.beginPath();

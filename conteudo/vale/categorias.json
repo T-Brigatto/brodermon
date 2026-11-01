@@ -1,0 +1,5 @@
+{
+  "fisico":   { "nome": "Físico" },
+  "magico":   { "nome": "Mágico" },
+  "especial": { "nome": "Especial" }
+}

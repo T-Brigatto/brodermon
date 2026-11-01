@@ -24,5 +24,20 @@
         { "especie": "brotinho", "golpes": ["cipo-laco", "teia-de-raiz", "semente", "folego"] }
       ] }
     ]
+  },
+  "formas": {
+    "nome": "Laboratório de formas",
+    "equipes": [
+      { "piloto": "jogador", "time": [
+        { "especie": "brasino",  "golpes": ["bola-de-fogo", "lanca-chamas", "pira", "detonacao"] },
+        { "especie": "gotinha",  "golpes": ["jato-dagua", "bolhas", "geiser", "lamina-dagua"] },
+        { "especie": "perereca", "golpes": ["corte-de-vento", "rajada", "misseis-magicos", "cauda-varrida"] }
+      ] },
+      { "piloto": "ia", "time": [
+        { "especie": "brotinho", "golpes": ["folha-navalha", "raizes-espinhentas", "chicote-de-vinha", "espinhos"] },
+        { "especie": "faisca",   "golpes": ["raio-marcado", "descarga", "arco-voltaico", "orbe-ricocheteante"] },
+        { "especie": "pedrisco", "golpes": ["tremor", "rocha-rolante", "agulha-de-quartzo", "rugido"] }
+      ] }
+    ]
   }
 }

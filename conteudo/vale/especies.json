@@ -1,0 +1,13 @@
+{
+  "brasino": {"nome": "Brasino", "tipos": ["fogo"], "hp": 105, "ataque": 14, "defesa": 13, "velocidade": 56, "golpes": ["lanca-chamas", "pira", "rastro-ardente", "bola-de-fogo"]},
+  "boneco-explosao": {"nome": "Boneco de Explosão", "tipos": ["explosao"], "hp": 105, "ataque": 14, "defesa": 13, "velocidade": 56, "golpes": ["detonacao", "granada", "bomba-relogio", "carga-concentrada"]},
+  "gotinha": {"nome": "Gotinha", "tipos": ["agua"], "hp": 105, "ataque": 14, "defesa": 13, "velocidade": 56, "golpes": ["jato-dagua", "lamina-dagua", "bolhas", "geiser"]},
+  "boneco-gelo": {"nome": "Boneco de Gelo", "tipos": ["gelo"], "hp": 105, "ataque": 14, "defesa": 13, "velocidade": 56, "golpes": ["lanca-de-gelo", "granizo", "estalactite", "sopro-gelido"]},
+  "briserecs": {"nome": "Briserecs", "tipos": ["ar"], "hp": 105, "ataque": 14, "defesa": 13, "velocidade": 56, "golpes": ["rajada", "corte-de-vento", "eco", "rasante"]},
+  "faisca": {"nome": "Faísca", "tipos": ["eletricidade"], "hp": 105, "ataque": 14, "defesa": 13, "velocidade": 56, "golpes": ["raio", "arco-voltaico", "esfera-estatica", "descarga"]},
+  "pedrisco": {"nome": "Pedrisco", "tipos": ["terra"], "hp": 105, "ataque": 14, "defesa": 13, "velocidade": 56, "golpes": ["tremor", "estacas-de-terra", "rocha-rolante", "arrancar-chao"]},
+  "boneco-mineral": {"nome": "Boneco Mineral", "tipos": ["mineral"], "hp": 105, "ataque": 14, "defesa": 13, "velocidade": 56, "golpes": ["agulha-de-quartzo", "estilhacos", "lamina-bumerangue", "prisma"]},
+  "brotinho": {"nome": "Brotinho", "tipos": ["natureza"], "hp": 105, "ataque": 14, "defesa": 13, "velocidade": 56, "golpes": ["folha-navalha", "espinhos", "chicote-de-vinha", "drenar"]},
+  "boneco-arcano": {"nome": "Boneco Arcano", "tipos": ["arcano"], "hp": 105, "ataque": 14, "defesa": 13, "velocidade": 56, "golpes": ["orbe-ricocheteante", "misseis-magicos", "selo", "circulo-runico"]},
+  "boneco-primordial": {"nome": "Boneco Primordial", "tipos": ["primordial"], "hp": 105, "ataque": 14, "defesa": 13, "velocidade": 56, "golpes": ["mordida-ancestral", "avanco-selvagem", "cauda-varrida", "rugido"]}
+}

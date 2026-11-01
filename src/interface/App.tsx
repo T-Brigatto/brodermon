@@ -242,7 +242,7 @@ function Golpes({ jogo: j }: { jogo: Jogo }) {
           else if (ef === 0) selo = ['x0', '#b13e53', '#f4f4f4'];
           else if (ef < 1) selo = [`x${ef}`, '#333c57', '#c0cbdc'];
         }
-        const meta = descricaoGolpe(g);
+        const meta = descricaoGolpe(g, c);
         // Tipo de cor branca (normal) usaria a mesma borda do "golpe recém-usado"; vira cinza.
         const bordaTipo = cor === '#f4f4f4' ? '#94b0c2' : cor;
         const borda = (v.disparo[i] ?? 0) > 0 ? '#f4f4f4' : naFila ? '#ffcd75' : recarregando ? '#333c57' : bordaTipo;

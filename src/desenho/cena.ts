@@ -2,9 +2,11 @@
 // partículas, textos, setas de quem saiu da tela e minimapa. Porte de `draw` da Arena.
 
 import type { Jogo } from '../app/jogo';
-import { golpeDe, lutadorPorUid, type Lutador } from '../nucleo';
+import type { EfeitoForma } from '../conteudo/esquema';
+import { distancia, geometriaDe, golpeDe, lutadorPorUid, mods, posicaoDaForma, type Lutador, type Mods } from '../nucleo';
 import { AR, VISTA, projetar } from './arena';
 import { desenharTexto } from './fonte';
+import { desenharForma } from './formas';
 import { criarCenario } from './fundo';
 import { canvasDoSprite, spriteDe } from './sprites';
 
@@ -52,6 +54,9 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
     x.fillRect(wx, wy, 1, 1);
   }
 
+  desenharFormas(x, j);
+  desenharObjetos(x, j);
+
   // Criaturas em campo, de trás para a frente
   const emCampo = [j.eu(), j.rival()].filter((l) => !l.desmaiado).sort((a, b) => a.y - b.y);
   for (const l of emCampo) {
@@ -79,8 +84,24 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
     }
     const branco = (v.flash > 0 && Math.floor(v.flash * 20) % 2 === 1) || v.entrada > 0.15;
     const avanco = v.cast > 0 ? l.olhando * 2 : 0;
-    const topo = cy - h - balanco;
-    x.drawImage(canvasDoSprite(c, l.especie, l.olhando > 0, branco ? '#f4f4f4' : null), cx - sp.n / 2 + avanco, cy - sp.pe - balanco);
+    const m: Mods | null = l.condicoes.some((cd) => cd.tipo === 'estado') ? mods(j.b, c, l) : null;
+    const t = m ? Math.max(1, m.tamanho) : 1;
+    const topo = cy - h * t - balanco;
+    if (m?.intangivel && m.atingivelPor.length) {
+      // Embaixo da terra: só o monte de terra andando.
+      x.fillStyle = '#6e4123';
+      x.fillRect(cx - 5, cy - 2, 10, 2);
+      x.fillStyle = '#b9773f';
+      x.fillRect(cx - 3, cy - 3, 6, 1);
+    } else {
+      const sprite = canvasDoSprite(c, l.especie, l.olhando > 0, branco ? '#f4f4f4' : null);
+      const alfa = x.globalAlpha;
+      if (m?.intangivel) x.globalAlpha = 0.45;
+      if (t === 1) x.drawImage(sprite, cx - sp.n / 2 + avanco, cy - sp.pe - balanco);
+      else x.drawImage(sprite, Math.round(cx - (sp.n * t) / 2 + avanco), Math.round(cy - sp.pe * t - balanco), sp.n * t, sp.n * t);
+      x.globalAlpha = alfa;
+      if (m?.trava === 'tudo') desenharGelo(x, cx, cy, h * t);
+    }
     const bx = cx - 8;
     const by = topo - 5;
     const pct = l.hp / l.hpMax;
@@ -96,9 +117,10 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
     desenharEstado(x, j, l, cx, cy, by, sw, v.anim);
   }
 
-  // Projéteis com rastro
+  // Projéteis com rastro: o guiado aponta para o alvo; os outros, para onde estão voando.
   for (const p of j.b.projeteis) {
-    const tipo = c.tipos[golpeDe(c, p.golpe).tipo];
+    const g = golpeDe(c, p.golpe);
+    const tipo = c.tipos[g.tipo];
     const cores = tipo?.projetil ?? ['#3b5dc9', '#41a6f6', '#73eff7'];
     const nucleo = cores.length > 3 && Math.random() < 0.5 ? cores[3]! : cores[2]!;
     const alvo = lutadorPorUid(j.b, p.alvo);
@@ -106,19 +128,30 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
     const qs = projetar(p.x, p.y);
     const qx = qs.x;
     const qy = qs.y - hp;
-    const ts = j.em(alvo, j.alturaSprite(alvo) / 2);
-    const dl = Math.hypot(ts.x - qx, ts.y - qy) || 1;
-    const ux = (ts.x - qx) / dl;
-    const uy = (ts.y - qy) / dl;
+    let dx: number;
+    let dy: number;
+    if (p.vx || p.vy) {
+      const adiante = projetar(p.x + p.vx * 0.05, p.y + p.vy * 0.05);
+      dx = adiante.x - qs.x;
+      dy = adiante.y - qs.y;
+    } else {
+      const ts = j.em(alvo, j.alturaSprite(alvo) / 2);
+      dx = ts.x - qx;
+      dy = ts.y - qy;
+    }
+    const dl = Math.hypot(dx, dy) || 1;
+    const ux = dx / dl;
+    const uy = dy / dl;
     const hx = Math.round(qx);
     const hy = Math.round(qy);
+    const grande = (p.def.raio ?? 0) * p.escala >= 6 ? 1 : 0;
     x.fillStyle = cores[0]!;
-    x.fillRect(Math.round(qx - ux * 4), Math.round(qy - uy * 4), 2, 2);
-    x.fillRect(Math.round(qx - ux * 7), Math.round(qy - uy * 7), 1, 1);
+    x.fillRect(Math.round(qx - ux * (4 + grande * 2)), Math.round(qy - uy * (4 + grande * 2)), 2 + grande, 2 + grande);
+    x.fillRect(Math.round(qx - ux * (7 + grande * 3)), Math.round(qy - uy * (7 + grande * 3)), 1, 1);
     x.fillStyle = cores[1]!;
-    x.fillRect(hx - 1, hy - 1, 3, 3);
+    x.fillRect(hx - 1 - grande, hy - 1 - grande, 3 + grande * 2, 3 + grande * 2);
     x.fillStyle = nucleo;
-    x.fillRect(hx, hy, 1, 1);
+    x.fillRect(hx, hy, 1 + grande, 1 + grande);
   }
 
   for (const p of j.particulas) {
@@ -144,11 +177,122 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
  * Sinais do que está acontecendo com a criatura: barra de conjuração sob o HP, estrelas de atordoamento,
  * raízes de quem está preso, gotas de lentidão, faíscas de dano contínuo e seta de debuff.
  */
+/**
+ * No chão, antes das criaturas: terrenos (trama cheia) e névoas (trama rala, sem sombra), as zonas que duram
+ * (mais fortes no instante do pulso), as marcas que ainda vão acertar, a marca das formas durante a conjuração
+ * (a trama enche quando falta pouco) e o clarão das formas instantâneas.
+ */
+function desenharFormas(x: CanvasRenderingContext2D, j: Jogo): void {
+  const c = j.c;
+  const coresDoTipo = (id: string) => {
+    const tipo = c.tipos[id];
+    return { cor: tipo?.cor ?? '#f4f4f4', escura: tipo?.projetil?.[0] ?? '#3b5dc9', clara: tipo?.projetil?.[2] ?? '#f4f4f4' };
+  };
+  const cores = (golpe: string) => coresDoTipo(golpeDe(c, golpe).tipo);
+  const passo = Math.floor(performance.now() / 120) % 3;
+  const onda = Math.sin(performance.now() / 300) * 0.08;
+  for (const z of j.b.zonas) {
+    if (z.atraso > 0) {
+      const { escura } = cores(z.golpe);
+      desenharForma(x, z.geo, z, { miolo: escura, borda: '#f4f4f4', trama: z.atraso < 0.3 ? 2 : 4, alfa: 0.5, pontilhado: passo });
+      continue;
+    }
+    const def = z.campo ? c.campos[z.campo] : undefined;
+    if (def) {
+      const { cor, escura, clara } = coresDoTipo(def.tipo);
+      if (def.camada === 'nevoa') desenharForma(x, z.geo, z, { miolo: clara, borda: clara, trama: 4, alfa: 0.35 + onda, pontilhado: passo, semSombra: true });
+      else desenharForma(x, z.geo, z, { miolo: escura, borda: cor, trama: 2, alfa: 0.45 });
+      continue;
+    }
+    const { cor, escura } = cores(z.golpe);
+    const fase = z.pulso ? (z.tempo % z.pulso) / z.pulso : 0;
+    desenharForma(x, z.geo, z, { miolo: escura, borda: cor, trama: 2, alfa: 0.55 - 0.25 * fase });
+  }
+  const A = c.regras.arena;
+  for (const l of [j.eu(), j.rival()]) {
+    const a = l.acao;
+    if (l.desmaiado || !a || a.conjuracao <= 0) continue;
+    const g = golpeDe(c, a.golpe);
+    const feito = g.conjuracao > 0 ? 1 - a.conjuracao / g.conjuracao : 1;
+    const { escura } = cores(a.golpe);
+    for (const ef of g.efeitos) {
+      if (ef.efeito !== 'area' && ef.efeito !== 'cone' && ef.efeito !== 'linha' && ef.efeito !== 'parede') continue;
+      const pos = posicaoDaForma(l, a, ef as EfeitoForma, { x: (A.xMin + A.xMax) / 2, y: A.yMin });
+      const geo = geometriaDe(ef as EfeitoForma);
+      if (geo.forma === 'linha' && ef.efeito === 'linha' && ef.ateRival) geo.alcance = Math.min(geo.alcance, distancia(pos, a.mira));
+      desenharForma(x, geo, pos, { miolo: escura, borda: '#f4f4f4', trama: feito > 0.5 ? 2 : 4, alfa: 0.2 + 0.4 * feito, pontilhado: passo });
+    }
+  }
+  for (const f of j.formas) {
+    if (f.vida < 0.08 && Math.floor(f.vida * 60) % 2) continue;
+    const { cor, clara } = cores(f.golpe);
+    desenharForma(x, f.geo, f.z, { miolo: cor, borda: clara, trama: 2, alfa: 0.85 });
+  }
+}
+
+/** Objetos na arena: portais (anel), pino (haste com o alcance marcado), pilar (bloco de cristal) e a cópia falsa. */
+function desenharObjetos(x: CanvasRenderingContext2D, j: Jogo): void {
+  const c = j.c;
+  const piscar = Math.floor(performance.now() / 150) % 2;
+  for (const o of j.b.objetos) {
+    const q = projetar(o.x, o.y);
+    const cx = Math.round(q.x);
+    const cy = Math.round(q.y);
+    const z = { x: o.x, y: o.y, ux: 1, uy: 0 };
+    switch (o.tipo) {
+      case 'portal':
+        desenharForma(x, { forma: 'area', raio: o.raio }, z, { miolo: '#5a2a8f', borda: '#d6a8f5', trama: 4, alfa: 0.6 + piscar * 0.2 });
+        break;
+      case 'pino':
+        desenharForma(x, { forma: 'area', raio: o.raio }, z, { miolo: '#b07a10', borda: '#fff09a', trama: 0, alfa: 0.4, pontilhado: piscar });
+        x.fillStyle = '#566c86';
+        x.fillRect(cx, cy - 10, 1, 10);
+        x.fillStyle = piscar ? '#fff09a' : '#f2c230';
+        x.fillRect(cx - 1, cy - 12, 3, 2);
+        break;
+      case 'pilar': {
+        const w = Math.max(4, Math.round(o.raio * 1.6));
+        x.fillStyle = '#1a1c2c';
+        x.fillRect(cx - w / 2 - 1, cy - 15, w + 2, 16);
+        x.fillStyle = '#8a9bb0';
+        x.fillRect(cx - w / 2, cy - 14, w, 14);
+        x.fillStyle = '#d6dfe8';
+        x.fillRect(cx - w / 2, cy - 14, Math.max(1, Math.round(w / 3)), 14);
+        break;
+      }
+      case 'copia': {
+        const dono = lutadorPorUid(j.b, o.autor);
+        const sp = spriteDe(c, dono.especie);
+        const alfa = x.globalAlpha;
+        x.globalAlpha = 0.55 + piscar * 0.15;
+        x.drawImage(canvasDoSprite(c, dono.especie, dono.olhando > 0, null), cx - sp.n / 2, cy - sp.pe);
+        x.globalAlpha = alfa;
+        break;
+      }
+    }
+  }
+}
+
+/** Congelado: placas de gelo por cima do sprite. */
+function desenharGelo(x: CanvasRenderingContext2D, cx: number, cy: number, h: number): void {
+  const alfa = x.globalAlpha;
+  x.globalAlpha = 0.4;
+  x.fillStyle = '#73eff7';
+  x.fillRect(cx - Math.round(h * 0.4), cy - h, Math.round(h * 0.8), h);
+  x.globalAlpha = alfa;
+  x.fillStyle = '#e6f8ff';
+  x.fillRect(cx - Math.round(h * 0.3), cy - h + 2, 1, Math.round(h * 0.4));
+  x.fillRect(cx + Math.round(h * 0.2), cy - Math.round(h * 0.6), 1, Math.round(h * 0.3));
+}
+
 function desenharEstado(x: CanvasRenderingContext2D, j: Jogo, l: Lutador, cx: number, cy: number, by: number, sw: number, anim: number): void {
   const a = l.acao;
-  if (a && a.conjuracao > 0) {
+  if (a && (a.conjuracao > 0 || a.canal)) {
+    // Conjurando, a barra enche; canalizando, esvazia até o fim.
     const g = golpeDe(j.c, a.golpe);
-    const feito = g.conjuracao > 0 ? 1 - a.conjuracao / g.conjuracao : 1;
+    const canal = g.efeitos[a.passo - 1];
+    const duracao = canal && 'duracao' in canal ? canal.duracao : undefined;
+    const feito = a.conjuracao > 0 ? (g.conjuracao > 0 ? 1 - a.conjuracao / g.conjuracao : 1) : duracao ? a.espera / duracao : 0;
     x.fillStyle = '#1a1c2c';
     x.fillRect(cx - 8, by + 3, 16, 2);
     x.fillStyle = j.c.tipos[g.tipo]?.cor ?? '#f4f4f4';
