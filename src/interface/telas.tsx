@@ -268,6 +268,27 @@ function Dica(p: { glifo: readonly string[]; cor: string; escala?: number; titul
   );
 }
 
+/**
+ * Rodapé da tabela de tipos. Com uma criatura de dois tipos no pacote, dá o exemplo de um golpe que faz 2x num
+ * e 0.5x no outro (no protótipo: Pedrisco e fogo, como na Arena original). Sai num texto só, porque dividir o
+ * texto muda o espaçamento entre as letras.
+ */
+function exemploDoisTipos(c: Jogo['c']): string {
+  const base = 'Criaturas com dois tipos multiplicam os valores.';
+  for (const e of Object.values(c.especies)) {
+    const [a, b] = e.tipos;
+    if (!a || !b) continue;
+    for (const [id, t] of Object.entries(c.tipos)) {
+      const fa = eficacia(c, id, [a]);
+      const fb = eficacia(c, id, [b]);
+      if (fa * fb !== 1 || fa === 1) continue;
+      const nome = (x: string) => c.tipos[x]!.nome.toLowerCase();
+      return `${base} ${e.nome} é ${nome(a)} e ${nome(b)}: ${t.nome.toLowerCase()} faz ${fa}x em ${nome(a)} e ${fb}x em ${nome(b)}, então causa dano normal (1x).`;
+    }
+  }
+  return base;
+}
+
 function Ajuda({ jogo: j }: { jogo: Jogo }) {
   const c = j.c;
   const como = j.ajuda === 'como';
@@ -355,7 +376,7 @@ function Ajuda({ jogo: j }: { jogo: Jogo }) {
               </span>
             </div>
             <span style="font-size: 14px; line-height: 19px; color: #c0cbdc; text-wrap: pretty">
-              Criaturas com dois tipos multiplicam os valores. Pedrisco é rocha e planta: fogo faz 0.5x em rocha e 2x em planta, então causa dano normal (1x).
+              {exemploDoisTipos(c)}
             </span>
           </div>
         )}

@@ -1,8 +1,8 @@
 # Conteúdo do jogo
 
 Cada pasta aqui é um **pacote**: um conjunto completo de tipos, golpes e criaturas.
-- `prototipo/`: cópia fiel da Arena original, com 7 tipos e 6 criaturas. É o pacote padrão do jogo.
-- `vale/`: os 11 elementos e os 110 golpes do guia de golpes (`origem/Guia_de_formulacao_de_golpes_Arena_Vale_das_Criaturas.md`), com terrenos, névoas e estados. As criaturas ainda são de laboratório. Abra com `?pacote=vale` (batalhas `lab-fogo`, `lab-agua`… e `torneio`).
+- `vale/`: os 11 elementos e os 110 golpes do guia de golpes (`origem/Guia_de_formulacao_de_golpes_Arena_Vale_das_Criaturas.md`), com terrenos, névoas e estados. As criaturas ainda são de laboratório. **É o pacote padrão do jogo**; a primeira batalha do arquivo (`torneio`) é a que abre. Os laboratórios: `?batalha=lab-fogo`, `lab-agua`…
+- `prototipo/`: cópia fiel da Arena original, com 7 tipos e 6 criaturas. Abra com `?pacote=prototipo`.
 
 Todos os arquivos são **dicionários**: a chave é o id e o valor é o item. O id usa só letras minúsculas sem acento, números e hífen (`aqua-muro`); o nome que aparece na tela fica em `nome`, com acento.
 
@@ -263,7 +263,8 @@ As reações entre terrenos e névoas de elementos diferentes ainda não foram d
 
 - A batalha `laboratorio` usa os golpes de movimento e controle dos dois lados. Abra com `?batalha=laboratorio` na URL do jogo.
 - A batalha `formas` usa 24 golpes do guia de golpes adaptados aos 7 tipos do protótipo: `?batalha=formas`.
-- No pacote `vale`, cada elemento tem um laboratório (`lab-fogo`, `lab-agua`…): o jogador leva três criaturas do elemento com os 10 golpes dele. `?pacote=vale&batalha=lab-gelo`.
+- Sem `?batalha=`, o jogo abre a primeira batalha do arquivo.
+- No pacote `vale`, cada elemento tem um laboratório (`lab-fogo`, `lab-agua`…): o jogador leva três criaturas do elemento com os 10 golpes dele. `?batalha=lab-gelo`.
 
 ## regras.json
 

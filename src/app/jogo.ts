@@ -174,7 +174,7 @@ export class Jogo {
 
   private novaBatalha(): void {
     const semente = this.opcoes.semente ?? Math.floor(Math.random() * 2 ** 31);
-    const padrao = this.c.batalhas['treino'] ? 'treino' : Object.keys(this.c.batalhas)[0]!;
+    const padrao = Object.keys(this.c.batalhas)[0]!; // a primeira batalha do pacote
     const batalha = this.opcoes.batalha && this.c.batalhas[this.opcoes.batalha] ? this.opcoes.batalha : padrao;
     this.b = criarBatalha(this.c, configDaBatalha(this.c, batalha, semente, this.opcoes.dificuldade));
     this.visuais.clear();

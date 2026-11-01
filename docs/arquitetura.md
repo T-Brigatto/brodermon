@@ -28,7 +28,7 @@ design/ exportados/   protótipo e referências visuais (Claude Design)
 docs/comparacao/      prints da original × refatorada, com o mapa de diferenças
 ```
 
-Páginas: `index.html` é o jogo; `depuracao.html` é o visualizador do núcleo, com círculos no lugar dos sprites.
+Páginas: `index.html` é o jogo; `depuracao.html` é o visualizador do núcleo, com círculos no lugar dos sprites. Os dois abrem o pacote `vale` por padrão; `?pacote=prototipo` abre a Arena original.
 
 ### Camadas
 
@@ -40,7 +40,7 @@ conteudo        └──────► interface (Preact)  ──► ações v
 
 - **`app/jogo.ts`** é o único lugar que liga as partes. Traduz toque e teclado em comandos, avança o núcleo em passos fixos e transforma cada evento em reação: texto, partícula, tremor, aviso, som e mudança de tela. Também guarda o que é só apresentação, por criatura: o balanço do sprite, o flash, o clarão de entrada, a barra de HP atrasada e a borda do golpe recém-usado.
 - **`desenho/`** e **`interface/`** só leem o estado. A interface redesenha a 12,5 Hz durante a partida, como na Arena, e o canvas a cada quadro.
-- Opções pela URL, equivalentes às props da Arena no Claude Design: `?dificuldade=facil|normal|dificil`, `&assist=0`, `&velocidade=1.25` e `&semente=123` (repete a mesma batalha).
+- Opções pela URL, equivalentes às props da Arena no Claude Design: `?dificuldade=facil|normal|dificil`, `&assist=0`, `&velocidade=1.25` e `&semente=123` (repete a mesma batalha). Além delas, `&pacote=vale|prototipo` e `&batalha=<id>`.
 
 ## Fluxo da batalha
 
@@ -99,7 +99,7 @@ A batalha `formas` junta 24 golpes do guia; `testes/formas.test.ts` confere cada
 
 ## Os 110 golpes do guia
 
-O pacote `conteudo/vale/` tem os 11 elementos e os 110 golpes do guia, montados só com peças do motor (o mapa completo está em `conteudo/LEIAME.md`). Abra com `?pacote=vale&batalha=lab-fogo` (um laboratório por elemento) ou `?pacote=vale&batalha=torneio`.
+O pacote `conteudo/vale/` tem os 11 elementos e os 110 golpes do guia, montados só com peças do motor (o mapa completo está em `conteudo/LEIAME.md`). É o pacote padrão do jogo e abre no `torneio`; `?batalha=lab-fogo` abre um laboratório (há um por elemento).
 
 - **Estados** (`estados.json`): congelado, cegueira, rachado, gelado, leve, intangível, embaixo da terra, armadura, gigante, esfera de ar, couraça, estática, sentido sísmico, caçada, e os de quem está dentro de um campo. Cada estado é uma combinação de modificadores; `mods` (`src/nucleo/estados.ts`) junta numa conta só os estados da criatura e os campos onde ela está.
 - **Terrenos e névoas** (`campos.json`): 22 do guia (2 por elemento) e 8 próprios de golpes. São zonas com `campo`: entrada, permanência, pulsos, imunes, estado de quem está dentro e do dono, efeito nos projéteis, empuxo, rampa, ritmo do tempo, disparo, detonação e o que apagam.
@@ -163,7 +163,7 @@ Correção de 2026-11-01: quando as duas criaturas atiravam no mesmo passo, só 
 ## Comandos
 
 ```bash
-npm run dev      # jogo em http://localhost:5173 (depuração em /depuracao.html)
+npm run dev      # jogo em http://localhost:5173 (pacote vale; Arena original em /?pacote=prototipo; depuração em /depuracao.html)
 npm test         # testes
 npm run check    # verificação de tipos
 npm run build    # build de produção em dist/

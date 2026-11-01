@@ -2,11 +2,11 @@
 //
 // Opções na URL (todas opcionais), equivalentes às props da Arena no Claude Design:
 //   ?dificuldade=facil|normal|dificil  &assist=0  &velocidade=1.25  &semente=123
-//   &batalha=laboratorio  (qualquer id de batalhas.json; padrão "treino")
-//   &pacote=vale          (pacote de conteúdo; padrão "prototipo". No "vale": &batalha=lab-fogo, lab-agua… ou torneio)
+//   &pacote=prototipo     (pacote de conteúdo; padrão "vale", com os 110 golpes do guia; "prototipo" é a Arena original)
+//   &batalha=lab-fogo     (qualquer id de batalhas.json do pacote; padrão: a primeira, "torneio" no vale e "treino" no protótipo)
 
 import { render } from 'preact';
-import { pacotes, prototipo } from '../conteudo/pacotes';
+import { pacotes, vale } from '../conteudo/pacotes';
 import { desenharCena } from '../desenho/cena';
 import { App } from '../interface/App';
 import '../interface/arena.css';
@@ -21,7 +21,7 @@ const opcoes: Opcoes = {
   semente: q.has('semente') ? Number(q.get('semente')) : undefined,
   batalha: q.get('batalha') ?? undefined,
 };
-const jogo = new Jogo(pacotes[q.get('pacote') ?? ''] ?? prototipo, opcoes);
+const jogo = new Jogo(pacotes[q.get('pacote') ?? ''] ?? vale, opcoes);
 
 let canvas: HTMLCanvasElement | null = null;
 render(<App jogo={jogo} aoCanvas={(el) => (canvas = el)} />, document.getElementById('app')!);

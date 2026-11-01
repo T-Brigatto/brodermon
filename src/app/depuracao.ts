@@ -2,7 +2,7 @@
 // simples no lugar do HUD. Serve para ver as regras rodando enquanto o desenho
 // e a interface de verdade não existem.
 
-import { pacotes, prototipo } from '../conteudo/pacotes';
+import { pacotes, vale } from '../conteudo/pacotes';
 import { contornoDaForma } from '../desenho/formas';
 import {
   PASSO,
@@ -25,7 +25,7 @@ import {
   type Tatica,
 } from '../nucleo';
 
-const c = pacotes[new URLSearchParams(location.search).get('pacote') ?? ''] ?? prototipo;
+const c = pacotes[new URLSearchParams(location.search).get('pacote') ?? ''] ?? vale;
 const ESCALA = 1.15;
 const MARGEM = { x: 15, y: 10 };
 const TATICAS: [Tatica, string][] = [
@@ -65,8 +65,8 @@ let velocidade = 1;
 
 function nova(): void {
   semente = Math.floor(Math.random() * 2 ** 31);
-  const id = new URLSearchParams(location.search).get('batalha') ?? 'treino';
-  const padrao = c.batalhas['treino'] ? 'treino' : Object.keys(c.batalhas)[0]!;
+  const id = new URLSearchParams(location.search).get('batalha') ?? '';
+  const padrao = Object.keys(c.batalhas)[0]!; // a primeira batalha do pacote
   b = criarBatalha(c, configDaBatalha(c, c.batalhas[id] ? id : padrao, semente));
   pendentes = [];
   log = [`Semente ${semente}. Vai, ${nome(ativo(b, 0))}!`];

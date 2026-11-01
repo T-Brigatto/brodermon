@@ -2,7 +2,7 @@
 
 Design e protótipo de um jogo mobile de criaturas colecionáveis com **batalha em tempo real**. "Brodermon" é o codinome da pasta; dentro do jogo o título é **VALE DAS CRIATURAS** (chaves de `localStorage` usam o prefixo `vdc-`).
 
-A Arena foi refeita em **TypeScript + Vite com núcleo determinístico**, e a arquitetura está em [docs/arquitetura.md](docs/arquitetura.md). Ela é jogável em `index.html` e fica idêntica pixel a pixel à original: ver [docs/comparacao/](docs/comparacao/README.md). O projeto tem:
+A Arena foi refeita em **TypeScript + Vite com núcleo determinístico**, e a arquitetura está em [docs/arquitetura.md](docs/arquitetura.md). O jogo (`index.html`) abre por padrão o pacote `vale`, com os 110 golpes do guia. Com `?pacote=prototipo`, abre a Arena original, idêntica pixel a pixel: ver [docs/comparacao/](docs/comparacao/README.md). O projeto tem:
 - o núcleo da batalha, com testes, em que **cada golpe é uma lista de efeitos**: dano, projéteis (guiado, reto, persegue, quica, com estouro, grudar, bumerangue, aura, dreno), formas (área, cone, linha, parede, que podem esperar, durar, andar, crescer e deixar campo), várias de uma vez, efeitos no alvo, estados, teleporte, avanço que atravessa, atração, corrente, objetos (pilar, portais, cópia, pino) e cópia do golpe do rival;
 - **estados** (`estados.json`) e **terrenos e névoas** (`campos.json`) como dicionários, com imunes;
 - dois pacotes de conteúdo: `prototipo` (a Arena original, mais 12 golpes de laboratório e 24 do guia) e `vale` (os 11 elementos e os **110 golpes do guia de golpes**, com criaturas de laboratório);
@@ -43,15 +43,15 @@ docs/          referência detalhada (ler antes de mexer no assunto)
 O Node 26 LTS está instalado. Depois de instalar o Node, reabra o terminal para o PATH ser atualizado.
 
 ```bash
-npm run dev      # jogo em http://localhost:5173 (preview "jogo"); depuração em /depuracao.html
+npm run dev      # jogo em http://localhost:5173 (preview "jogo"; pacote vale); Arena original em /?pacote=prototipo; depuração em /depuracao.html
 npm test         # testes
 npm run check    # verificação de tipos
 npm run build    # build de produção em dist/
 ```
 
-Opções na URL, equivalentes às props da Arena: `?dificuldade=facil|normal|dificil`, `&assist=0`, `&velocidade=1.25` e `&semente=123`. Também `&batalha=laboratorio`, ou qualquer id de `batalhas.json`, e `&pacote=vale` para os 110 golpes do guia (`&batalha=lab-fogo`, `lab-agua`… ou `torneio`). Em desenvolvimento, o objeto `jogo` fica exposto no console.
+Opções na URL, equivalentes às props da Arena: `?dificuldade=facil|normal|dificil`, `&assist=0`, `&velocidade=1.25` e `&semente=123`. `&pacote=` escolhe o conteúdo: `vale` (padrão, os 110 golpes do guia) ou `prototipo` (a Arena original). `&batalha=` escolhe qualquer id de `batalhas.json` do pacote; sem ela, vale a primeira (`torneio` no vale, `treino` no protótipo). No vale há um laboratório por elemento: `lab-fogo`, `lab-agua`… Em desenvolvimento, o objeto `jogo` fica exposto no console.
 
-Para validar mudanças visuais, compare com a original da mesma forma que em `docs/comparacao/`: congele o mesmo estado nas duas versões e compare os prints pixel a pixel. Os textos com números são divididos em pedaços igual ao template original, porque essa divisão muda o espaçamento entre letras.
+Para validar mudanças visuais, abra `?pacote=prototipo` e compare com a original da mesma forma que em `docs/comparacao/`: congele o mesmo estado nas duas versões e compare os prints pixel a pixel. Os textos com números são divididos em pedaços igual ao template original, porque essa divisão muda o espaçamento entre letras.
 
 As páginas de design usam o servidor Python: `python -m http.server 8123`, depois `http://localhost:8123/design/Arena.dc.html`. O preview correspondente se chama `brodermon`. Elas precisam de internet, porque o React 18.3.1 vem do unpkg e as fontes do Google Fonts. No `launch.json`, o preview `jogo` aponta para `C:\Program Files\nodejs\node.exe` porque o app foi aberto antes da instalação do Node.
 

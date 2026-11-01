@@ -2,7 +2,7 @@
 
 Cada imagem tem três painéis:
 - **à esquerda**, a Arena original (`design/Arena.dc.html`, Claude Design);
-- **no meio**, a refatorada (`index.html`: núcleo em TypeScript, desenho em canvas e painéis em Preact);
+- **no meio**, a refatorada (`index.html?pacote=prototipo`: núcleo em TypeScript, desenho em canvas e painéis em Preact; sem o parâmetro, o jogo abre o pacote `vale`);
 - **à direita**, o mapa de diferenças, com cada pixel diferente pintado de magenta.
 
 Resultado de 2026-10-31: **as 9 telas são idênticas pixel a pixel** (0 de 329.160 pixels diferentes em cada uma).
