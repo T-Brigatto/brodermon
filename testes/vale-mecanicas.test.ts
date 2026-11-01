@@ -51,7 +51,7 @@ describe('estados', () => {
     comEstado(A, 'gelado');
     ate(b, c, () => A.ultimoGolpe !== null && !A.acao, 3);
     rodar(b, c, 1);
-    expect(A.golpes[0]!.recarga).toBeCloseTo(2 - 0.7, 1);
+    expect(A.golpes[0]!.recarga).toBeCloseTo(2 * c.regras.recargaGolpes - 0.7, 1);
   });
 
   it('leve: o empurrão dobra; armadura de pedra: não sai do lugar e defende mais', () => {

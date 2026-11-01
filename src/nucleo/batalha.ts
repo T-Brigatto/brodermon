@@ -32,7 +32,7 @@ import {
   rivalEmCampo,
   tirarEstado,
 } from './combate';
-import { ativo, distancia, emGolpe, golpeDe, lutadorPorUid, outra, temCondicao, temEstado, velocidadeAtual } from './consulta';
+import { ativo, distancia, emGolpe, golpeDe, lutadorPorUid, outra, recargaDe, temCondicao, temEstado, velocidadeAtual } from './consulta';
 import { EPS, FOLGA_ALCANCE, PASSO } from './constantes';
 import { mods, raioCorpo, type Mods } from './estados';
 import { posicaoDaForma } from './formas';
@@ -434,7 +434,7 @@ function usarGolpe(b: EstadoBatalha, c: Conteudo, l: Lutador, alvo: Lutador, ind
   const uso = l.golpes[indice]!;
   const g = golpeDe(c, uso.id);
   // A recarga recomeça cheia quando o golpe acaba (encerrarAcao); até lá o card já aparece gasto.
-  uso.recarga = g.recarga;
+  uso.recarga = recargaDe(c, g);
   l.recargaGlobal = l.recargaGlobalMax = perfilDoGolpe(g).atingeAlvo ? R.recargaGlobal.ataque : R.recargaGlobal.buff;
   l.ultimoGolpe = uso.id;
   ev.push({ tipo: 'golpe', autor: l.uid, golpe: uso.id, indice, conjuracao: g.conjuracao });

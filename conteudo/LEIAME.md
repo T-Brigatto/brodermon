@@ -27,6 +27,7 @@ especies.gotinha.golpes.0: golpe "tsunami" não existe
   - `projetil`: cores do rastro, do corpo e do núcleo. Uma 4ª cor faz o núcleo piscar.
   - `particula`: cor das faíscas quando a criatura desmaia.
   - `terreno` e `nevoa`: os campos do elemento em `campos.json`.
+  - `fx`: efeitos especiais em pixel do elemento: `estilo` e `cores` (da mais escura à mais clara). Os estilos: `brasa` (sobe), `estouro` (espalha rápido), `gota` (cai), `floco` (flutua e cintila), `redemoinho` (gira), `faisca` (risca em zigue-zague), `poeira` (se espalha devagar), `estilhaco` (voa e cai brilhando), `folha` (balança), `estrela` (cintila em cruz) e `garra` (risca). Sem `fx`, o elemento não tem efeito especial: é o caso da Arena original.
 
 ## categorias.json
 
@@ -193,6 +194,7 @@ Um estado é um conjunto de mudanças que valem enquanto ele dura. Golpes aplica
 | `aderencia` | Escorregar: quanto da velocidade nova entra a cada passo (1 = normal). |
 | `cargas` | Cada `distancia` andada vira uma carga (até `maximo`); o próximo golpe de `tipo` ganha `bonus` por carga e gasta o estado. |
 | `cacada` | Anda `velocidade`× mais rápido em direção ao alvo do golpe e ganha `alcance` contra ele. |
+| `fx` | Só visual: o tipo cujos efeitos especiais aparecem em volta de quem está com o estado (congelado: gelo). |
 
 ## campos.json
 
@@ -270,7 +272,8 @@ As reações entre terrenos e névoas de elementos diferentes ainda não foram d
 
 São os números da batalha:
 - a fórmula de dano;
-- as recargas globais;
+- o ritmo: a pausa depois de cada golpe (`recargaGlobal`) e o multiplicador da recarga de todos os golpes (`recargaGolpes`). No vale, 2 s de pausa e recargas 1,5× as do guia, para dar tempo de ler a luta e pôr golpe na fila;
+- `anunciarGolpes`: o nome do golpe aparece sobre as duas criaturas (sem ele, só sobre o rival, como na Arena original);
 - a troca (duração e espera);
 - os projéteis: velocidade, `raioAcerto` do guiado e os padrões dos que podem errar (`raio`, `vida`, `curva`);
 - o `raioCriatura` padrão e o fator `golpeLento` de quem usa um golpe com `durante: "lento"`;

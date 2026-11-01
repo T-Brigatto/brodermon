@@ -9,6 +9,13 @@ const cor = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'use uma cor no formato #rrggb
 const positivo = z.number().positive();
 const dicionario = <T extends z.ZodType>(item: T) => z.record(id, item);
 
+/**
+ * Estilos de efeito especial (partículas em pixel) que o desenho sabe fazer. Cada elemento escolhe um:
+ * brasa sobe, gota cai, floco flutua, redemoinho gira, faísca risca em zigue-zague, poeira se espalha,
+ * estilhaço voa e cai brilhando, folha balança, estrela cintila, garra risca, estouro se espalha rápido.
+ */
+export const ESTILOS_FX = ['brasa', 'estouro', 'gota', 'floco', 'redemoinho', 'faisca', 'poeira', 'estilhaco', 'folha', 'estrela', 'garra'] as const;
+
 export const esquemaTipo = z.object({
   nome: z.string().min(1),
   cor,
@@ -24,6 +31,8 @@ export const esquemaTipo = z.object({
   /** Terreno e névoa do elemento (ids de `campos.json`). */
   terreno: id.optional(),
   nevoa: id.optional(),
+  /** Efeitos especiais do elemento: estilo das partículas e cores, da mais escura à mais clara. Sem ele, nada de FX. */
+  fx: z.object({ estilo: z.enum(ESTILOS_FX), cores: z.array(cor).min(2) }).optional(),
 });
 
 export const esquemaSprite = z
@@ -407,6 +416,8 @@ export const esquemaEstado = z.object({
   cargas: z.object({ distancia: positivo, maximo: z.number().int().positive(), bonus: positivo, tipo: id }).optional(),
   /** Caçada: anda `velocidade`× mais rápido em direção ao alvo do golpe e ganha `alcance` contra ele. */
   cacada: z.object({ velocidade: positivo, alcance: z.number().min(0) }).optional(),
+  /** Tipo cujos efeitos especiais aparecem em volta de quem está com o estado (só visual). */
+  fx: id.optional(),
 });
 
 // ---------- Campos (campos.json): terrenos e névoas ----------
@@ -491,7 +502,12 @@ export const esquemaRegras = z.object({
     minimo: z.number().min(0),
     stab: positivo,
   }),
+  /** Pausa depois de cada golpe antes do próximo: depois de um ataque, de um golpe sem alvo e ao entrar em campo. */
   recargaGlobal: z.object({ ataque: z.number().min(0), buff: z.number().min(0), aoEntrar: z.number().min(0) }),
+  /** Multiplica a recarga de todos os golpes (1 = a do próprio golpe): o ritmo do pacote. */
+  recargaGolpes: positivo.default(1),
+  /** Mostra o nome do golpe sobre as duas criaturas (sem isso, só sobre o rival, como na Arena original). */
+  anunciarGolpes: z.boolean().default(false),
   troca: z.object({ duracao: z.number().min(0), espera: z.number().min(0) }),
   entrada: z.number().min(0),
   substituicao: z.number().min(0),
@@ -589,7 +605,7 @@ export const esquemaConteudo = z
         if (typeof valor === 'string') {
           if (chave === 'estado' || chave === 'dono' || chave === 'estadoImunes') um(!!c.estados[valor], 'estado', valor);
           if (chave === 'campo' || chave === 'converteEm' || chave === 'soEmCampo') um(!!c.campos[valor], 'campo', valor);
-          if (chave === 'tipo') um(!!c.tipos[valor], 'tipo', valor);
+          if (chave === 'tipo' || (chave === 'fx' && raiz.startsWith('estados'))) um(!!c.tipos[valor], 'tipo', valor);
         }
         if (Array.isArray(valor) && valor.every((v) => typeof v === 'string')) {
           if (['imunes', 'tipos', 'atingivelPor', 'soTipos', 'destruidoPor'].includes(chave)) valor.forEach((v) => um(!!c.tipos[v], 'tipo', v));
@@ -647,6 +663,7 @@ export type EfeitoForma = z.infer<typeof esquemaForma>;
 export type EfeitoProjetil = z.infer<typeof esquemaProjetil>;
 export type EfeitoPosicionado = z.infer<typeof esquemaPosicionado>;
 export type Estado = z.infer<typeof esquemaEstado>;
+export type EstiloFx = (typeof ESTILOS_FX)[number];
 export type Campo = z.infer<typeof esquemaCampo>;
 export type Trajetoria = z.infer<typeof esquemaTrajetoria>;
 export type Membro = z.infer<typeof esquemaMembro>;

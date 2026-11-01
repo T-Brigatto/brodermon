@@ -17,6 +17,11 @@ export function golpeDe(c: Conteudo, id: string): Golpe {
   return g;
 }
 
+/** Recarga do golpe no ritmo do pacote (`regras.recargaGolpes`). */
+export function recargaDe(c: Conteudo, g: Golpe): number {
+  return g.recarga * c.regras.recargaGolpes;
+}
+
 /** Soma do buff ativo menos os debuffs naquele atributo. */
 function modificador(l: Lutador, atributo: Atributo): number {
   let m = l.buff?.atributo === atributo ? l.buff.valor : 0;

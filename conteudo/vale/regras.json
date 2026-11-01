@@ -1,7 +1,9 @@
 {
   "maxGolpes": 4,
   "dano": { "divisor": 18, "multiplicador": 3, "ajuste": 0.9, "aleatorioMin": 0.9, "aleatorioMax": 1.1, "minimo": 1, "stab": 1.5 },
-  "recargaGlobal": { "ataque": 0.9, "buff": 1.2, "aoEntrar": 0.6 },
+  "recargaGlobal": { "ataque": 2.0, "buff": 2.0, "aoEntrar": 1.2 },
+  "recargaGolpes": 1.5,
+  "anunciarGolpes": true,
   "troca": { "duracao": 0.3, "espera": 3 },
   "entrada": 0.3,
   "substituicao": 1.0,

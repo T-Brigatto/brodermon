@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'preact/hooks';
 import type { Jogo } from '../app/jogo';
-import { confronto, eficacia, especieDe, golpeDe, perfilDoGolpe, type Lutador, type Tatica } from '../nucleo';
+import { confronto, eficacia, especieDe, golpeDe, perfilDoGolpe, recargaDe, type Lutador, type Tatica } from '../nucleo';
 import { descricaoGolpe } from './descricao';
 import { ICONE_PADRAO, aoApertar, corHp, moldura } from './estilo';
 import { GLIFOS } from './glifos';
@@ -247,7 +247,7 @@ function Golpes({ jogo: j }: { jogo: Jogo }) {
         const bordaTipo = cor === '#f4f4f4' ? '#94b0c2' : cor;
         const borda = (v.disparo[i] ?? 0) > 0 ? '#f4f4f4' : naFila ? '#ffcd75' : recarregando ? '#333c57' : bordaTipo;
         const estado = naFila ? 'PRÓXIMO' : recarregando ? `${uso.recarga.toFixed(1)}s` : '';
-        const progresso = recarregando ? (1 - uso.recarga / g.recarga) * 100 : 100;
+        const progresso = recarregando ? (1 - uso.recarga / recargaDe(c, g)) * 100 : 100;
         const aria = `Golpe ${i + 1}: ${g.nome}, ${tipo?.nome ?? g.tipo}, ${meta}${selo ? `, efeito ${selo[0]}` : ''}${naFila ? ', próximo da fila' : recarregando ? ', recarregando' : ', pronto'}`;
         return (
           <button

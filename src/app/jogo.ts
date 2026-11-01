@@ -4,6 +4,7 @@
 
 import type { Conteudo } from '../conteudo/esquema';
 import { AR, CENARIO, VISTA, desprojetar, projetar } from '../desenho/arena';
+import { Fx } from '../desenho/fx';
 import { spriteDe } from '../desenho/sprites';
 import {
   PASSO,
@@ -107,6 +108,10 @@ export class Jogo {
   particulas: Particula[] = [];
   textos: TextoFlutuante[] = [];
   readonly alturaProjetil = new Map<Projetil, number>();
+  /** Efeitos especiais em pixel dos tipos que têm `fx` (o pacote vale). */
+  readonly fx: Fx;
+  /** Onde cada criatura estava no quadro anterior (o teleporte faz o lampejo na saída também). */
+  private readonly ultimaPos = new Map<number, { x: number; y: number }>();
   /** Clarão das formas instantâneas (área, cone, linha) no chão, por um instante. */
   formas: { golpe: string; geo: Geometria; z: Posicao; vida: number }[] = [];
   cam = { x: 200, y: 200, z: 1.35 };
@@ -132,6 +137,7 @@ export class Jogo {
     readonly c: Conteudo,
     readonly opcoes: Opcoes,
   ) {
+    this.fx = new Fx(c);
     this.novaBatalha();
   }
 
@@ -190,6 +196,8 @@ export class Jogo {
     this.visual(this.rival()).entrada = 0.3;
     this.particulas = [];
     this.formas = [];
+    this.fx.limpar();
+    this.ultimaPos.clear();
     this.textos = [];
     this.alturaProjetil.clear();
     this.tremor = 0;
@@ -438,6 +446,7 @@ export class Jogo {
       if (v.entrada > 0) v.entrada = Math.max(0, v.entrada - dt);
     }
     this.atualizarProjeteis(dt);
+    this.fxDoQuadro(dt);
     this.efeitos(dt);
     if (this.b.vencedor !== null && this.tela === 'jogo') {
       this.fimT -= dt;
@@ -463,7 +472,47 @@ export class Jogo {
     }
   }
 
+  /**
+   * Efeitos especiais contínuos (a energia de quem conjura e o brilho dos projéteis são desenhados direto, em
+   * `desenho/cena.ts`): faíscas soltas dos projéteis, o efeito dos estados em volta da criatura, o ar dos terrenos
+   * e névoas, e o sopro das formas canalizadas. Só nos tipos com `fx`.
+   */
+  private fxDoQuadro(dt: number): void {
+    const { fx, c, b } = this;
+    const quadros = dt * 60;
+    const vez = (p: number) => Math.random() < p * quadros;
+    for (const p of b.projeteis) {
+      const tipo = golpeDe(c, p.golpe).tipo;
+      if (!fx.de(tipo) || !vez(0.3)) continue;
+      const s = projetar(p.x, p.y);
+      fx.particula(tipo, s.x, s.y - (this.alturaProjetil.get(p) ?? 8), { forca: 0.3 });
+    }
+    for (const l of [this.eu(), this.rival()]) {
+      if (l.desmaiado) continue;
+      const h = this.alturaSprite(l);
+      const meio = this.em(l, h / 2);
+      for (const cd of l.condicoes) {
+        const tipo = cd.tipo === 'estado' ? c.estados[cd.estado]?.fx : undefined;
+        if (tipo && vez(0.1)) fx.particula(tipo, meio.x + (Math.random() - 0.5) * h * 0.8, meio.y + (Math.random() - 0.5) * h, { forca: 0.3 });
+      }
+    }
+    for (const z of b.zonas) {
+      if (z.atraso > 0) continue;
+      const def = z.campo ? c.campos[z.campo] : undefined;
+      const tipo = def ? def.tipo : golpeDe(c, z.golpe).tipo;
+      if (!fx.de(tipo)) continue;
+      if (def) {
+        const nevoa = def.camada === 'nevoa';
+        if (vez(Math.min(0.5, areaDe(z.geo) / 2500))) fx.naForma(tipo, z.geo, z, 1, { altura: nevoa ? 14 : 3, forca: 0.3, nevoa });
+      } else if (vez(z.canal ? 1 : 0.6)) {
+        fx.naForma(tipo, z.geo, z, z.canal ? 3 : 1, { altura: 7, forca: 0.4, sopro: z.canal ? 85 : undefined });
+      }
+    }
+    for (const l of [this.eu(), this.rival()]) this.ultimaPos.set(l.uid, { x: l.x, y: l.y });
+  }
+
   private efeitos(dt: number): void {
+    this.fx.atualizar(dt);
     for (let i = this.formas.length - 1; i >= 0; i--) {
       const f = this.formas[i]!;
       if ((f.vida -= dt) <= 0) this.formas.splice(i, 1);
@@ -586,9 +635,10 @@ export class Jogo {
           const v = this.visual(l);
           v.cast = 0.2;
           if (l.equipe === 0) v.disparo[e.indice] = 0.25;
-          else {
+          // O nome sai sobre o rival; com `anunciarGolpes`, sobre as duas criaturas (e fica mais tempo para ler).
+          if (l.equipe === 1 || this.c.regras.anunciarGolpes) {
             const g = golpeDe(this.c, e.golpe);
-            this.textoEm(l, this.alturaSprite(l) + 22, g.nome, this.c.tipos[g.tipo]?.cor ?? '#f4f4f4', 1, 0.8);
+            this.textoEm(l, this.alturaSprite(l) + 22, g.nome, this.c.tipos[g.tipo]?.cor ?? '#f4f4f4', 1, this.c.regras.anunciarGolpes ? 1.3 : 0.8);
           }
           break;
         }
@@ -612,6 +662,20 @@ export class Jogo {
           const l = lutadorPorUid(this.b, e.lutador);
           if (e.motivo === 'avancar' || e.motivo === 'recuar') this.explosaoEm(l, 0, '#e6b57e', 6);
           else this.explosaoEm(l, this.alturaSprite(l) / 2, '#f4f4f4', 6);
+          if (e.motivo === 'teleporte') {
+            // Lampejo onde estava e onde apareceu, no tipo do golpe em andamento (ou da criatura).
+            const tipo = l.acao ? golpeDe(this.c, l.acao.golpe).tipo : especieDe(this.c, l).tipos[0]!;
+            const h = this.alturaSprite(l) / 2;
+            const antes = this.ultimaPos.get(l.uid);
+            if (antes) {
+              const s = projetar(antes.x, antes.y);
+              this.fx.nova(tipo, antes.x, antes.y, 4, 18, 0.3);
+              this.fx.explosao(tipo, s.x, s.y - h, 8);
+            }
+            const agora = this.em(l, h);
+            this.fx.nova(tipo, l.x, l.y, 4, 18, 0.3);
+            this.fx.impacto(tipo, agora.x, agora.y, true);
+          }
           break;
         }
         case 'condicao': {
@@ -624,6 +688,12 @@ export class Jogo {
                 ? [(this.c.estados[e.estado]?.nome ?? e.estado).toUpperCase(), '#73eff7']
                 : TEXTO_CONDICAO[e.condicao];
           this.textoEm(l, this.alturaSprite(l) + 12, texto, cor, 1, 1.1);
+          const tipoFx = e.estado ? this.c.estados[e.estado]?.fx : undefined;
+          if (tipoFx) {
+            const p = this.em(l, this.alturaSprite(l) / 2);
+            this.fx.impacto(tipoFx, p.x, p.y);
+            this.fx.explosao(tipoFx, p.x, p.y, 6, 0.7);
+          }
           break;
         }
         case 'errou': {
@@ -640,18 +710,23 @@ export class Jogo {
           // Sai da altura do meio de quem atirou (vários podem ter saído no mesmo passo).
           const h = this.alturaSprite(lutadorPorUid(this.b, e.autor)) / 2;
           for (const p of this.b.projeteis) if (p.autor === e.autor && !this.alturaProjetil.has(p)) this.alturaProjetil.set(p, h);
+          const autor = lutadorPorUid(this.b, e.autor);
+          const boca = this.em(autor, h);
+          this.fx.impacto(golpeDe(this.c, e.golpe).tipo, boca.x + autor.olhando * 6, boca.y);
           this.tocar('shoot');
           break;
         }
         case 'forma':
           this.formas.push({ golpe: e.golpe, geo: e.geo, z: { x: e.x, y: e.y, ux: e.ux, uy: e.uy }, vida: 0.25 });
+          this.fxDaForma(e);
           break;
         case 'salto': {
-          // Golpe que saltou do pino: faíscas no pino e no alvo.
+          // Golpe que saltou do pino: um raio do pino até o alvo.
           const s = projetar(e.x, e.y);
           this.explosao(s.x, s.y - 6, '#ffcd75', 5);
           const alvo = lutadorPorUid(this.b, e.alvo);
           this.explosaoEm(alvo, this.alturaSprite(alvo) / 2, '#ffcd75', 6);
+          this.fx.raio(golpeDe(this.c, e.golpe).tipo, { x: s.x, y: s.y - 11 }, this.em(alvo, this.alturaSprite(alvo) / 2));
           break;
         }
         case 'projetilPerdido': {
@@ -665,6 +740,7 @@ export class Jogo {
           }
           const s = projetar(e.x, e.y);
           this.explosao(s.x, s.y - h, '#94b0c2', 3);
+          this.fx.impacto(golpeDe(this.c, e.golpe).tipo, s.x, s.y - h);
           break;
         }
         case 'dano':
@@ -729,6 +805,34 @@ export class Jogo {
     }
   }
 
+  /** Forma que acertou o campo: partículas dentro dela, onda de choque nas áreas, raio na linha elétrica. */
+  private fxDaForma(e: Extract<Evento, { tipo: 'forma' }>): void {
+    const tipo = golpeDe(this.c, e.golpe).tipo;
+    const estilo = this.fx.de(tipo)?.estilo;
+    if (!estilo) return;
+    const z = { x: e.x, y: e.y, ux: e.ux, uy: e.uy };
+    const g = e.geo;
+    if (g.forma === 'area') {
+      // Explosão vira bola de fogo; os outros elementos, um anel de energia que se abre.
+      if (estilo === 'estouro') this.fx.estouro(tipo, e.x, e.y, g.raio);
+      else this.fx.nova(tipo, e.x, e.y, g.raio * 0.25, g.raio + 3);
+      this.fx.naForma(tipo, g, z, Math.min(16, 4 + Math.round(areaDe(g) / 120)), { altura: 8, forca: 0.8 });
+    } else if (g.forma === 'linha') {
+      // Feixe grosso; na Eletricidade, um raio.
+      const a = projetar(e.x, e.y);
+      const f = projetar(e.x + e.ux * g.alcance, e.y + e.uy * g.alcance);
+      const de = { x: a.x, y: a.y - 8 };
+      const ate = { x: f.x, y: f.y - 8 };
+      if (estilo === 'faisca') this.fx.raio(tipo, de, ate);
+      else this.fx.feixe(tipo, de, ate);
+      this.fx.impacto(tipo, ate.x, ate.y);
+    } else {
+      // Cone e parede: um sopro de partículas na direção do golpe.
+      this.fx.naForma(tipo, g, z, Math.min(24, 8 + Math.round(areaDe(g) / 80)), { altura: 8, forca: 0.8, sopro: g.forma === 'cone' ? 80 : undefined });
+    }
+    if (estilo === 'estouro') this.tremor = Math.max(this.tremor, 0.15);
+  }
+
   private reagirAoDano(e: Extract<Evento, { tipo: 'dano' }>): void {
     const alvo = lutadorPorUid(this.b, e.alvo);
     const v = this.visual(alvo);
@@ -736,6 +840,14 @@ export class Jogo {
     v.hpVisto = Math.max(0, v.hpVisto - e.valor);
     v.lagT = 0.4;
     const h = this.alturaSprite(alvo);
+    const tipoFx = golpeDe(this.c, e.golpe).tipo;
+    if (this.fx.de(tipoFx)) {
+      // Impacto no estilo do elemento; maior no super eficaz, discreto no dano contínuo e de campo.
+      const p = this.em(alvo, h / 2);
+      const leve = e.origem === 'continuo' || e.origem === 'campo';
+      if (!leve) this.fx.impacto(tipoFx, p.x, p.y, e.eficacia >= 2);
+      this.fx.explosao(tipoFx, p.x, p.y, leve ? 2 : e.eficacia >= 2 ? 8 : 5, leve ? 0.4 : 1);
+    }
     if (e.origem === 'continuo' || e.origem === 'campo') {
       // Dano contínuo: número pequeno, sem tremor nem som, para não poluir.
       this.textoEm(alvo, h + 16, String(e.valor), '#ef7d57', 1, 0.6);
@@ -760,5 +872,19 @@ export class Jogo {
     }
     const g = golpeDe(this.c, e.golpe);
     this.explosaoEm(alvo, h / 2, e.origem === 'contato' ? '#f4f4f4' : (this.c.tipos[g.tipo]?.cor ?? '#f4f4f4'), 8);
+  }
+}
+
+/** Área de uma forma no chão (unidades²), para dosar as partículas. */
+function areaDe(g: Geometria): number {
+  switch (g.forma) {
+    case 'area':
+      return Math.PI * g.raio * g.raio;
+    case 'cone':
+      return (Math.PI * g.alcance * g.alcance * g.angulo) / 360;
+    case 'linha':
+      return g.alcance * g.largura;
+    case 'parede':
+      return g.largura * g.espessura;
   }
 }

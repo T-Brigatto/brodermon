@@ -56,6 +56,7 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
 
   desenharFormas(x, j);
   desenharObjetos(x, j);
+  j.fx.desenharChao(x);
 
   // Criaturas em campo, de trás para a frente
   const emCampo = [j.eu(), j.rival()].filter((l) => !l.desmaiado).sort((a, b) => a.y - b.y);
@@ -87,6 +88,10 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
     const m: Mods | null = l.condicoes.some((cd) => cd.tipo === 'estado') ? mods(j.b, c, l) : null;
     const t = m ? Math.max(1, m.tamanho) : 1;
     const topo = cy - h * t - balanco;
+    // Energia de quem conjura (só nos tipos com efeito especial): brilho no chão antes do sprite, faíscas depois.
+    const carga = l.acao && l.acao.conjuracao > 0 ? golpeDe(c, l.acao.golpe) : null;
+    const prog = carga && carga.conjuracao > 0 ? 1 - l.acao!.conjuracao / carga.conjuracao : 0;
+    if (carga) j.fx.cargaChao(x, carga.tipo, { x: cx, y: cy }, prog);
     if (m?.intangivel && m.atingivelPor.length) {
       // Embaixo da terra: só o monte de terra andando.
       x.fillStyle = '#6e4123';
@@ -102,6 +107,7 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
       x.globalAlpha = alfa;
       if (m?.trava === 'tudo') desenharGelo(x, cx, cy, h * t);
     }
+    if (carga) j.fx.cargaAr(x, carga.tipo, { x: cx, y: cy }, h * t, prog);
     const bx = cx - 8;
     const by = topo - 5;
     const pct = l.hp / l.hpMax;
@@ -144,6 +150,7 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
     const uy = dy / dl;
     const hx = Math.round(qx);
     const hy = Math.round(qy);
+    j.fx.brilhoProjetil(x, g.tipo, { x: qx, y: qy }, ux, uy);
     const grande = (p.def.raio ?? 0) * p.escala >= 6 ? 1 : 0;
     x.fillStyle = cores[0]!;
     x.fillRect(Math.round(qx - ux * (4 + grande * 2)), Math.round(qy - uy * (4 + grande * 2)), 2 + grande, 2 + grande);
@@ -158,6 +165,7 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
     x.fillStyle = p.cor;
     x.fillRect(Math.round(p.x), Math.round(p.y), p.tam, p.tam);
   }
+  j.fx.desenhar(x);
   x.drawImage(cenario.frente, 0, 0);
 
   // Textos na resolução da tela, para a fonte de pixel ficar nítida

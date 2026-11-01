@@ -3,7 +3,7 @@
 
 import type { Conteudo, EfeitoNoAlvo } from '../conteudo/esquema';
 import { sortear } from './aleatorio';
-import { ativo, combatente, golpeDe, lutadorPorUid, outra } from './consulta';
+import { ativo, combatente, golpeDe, lutadorPorUid, outra, recargaDe } from './consulta';
 import { EPS, PASSO } from './constantes';
 import { calcularDano } from './dano';
 import { mods, multiplicadorPorTipo } from './estados';
@@ -49,7 +49,7 @@ export function encerrarAcao(c: Conteudo, l: Lutador): void {
   const a = l.acao;
   if (!a) return;
   const uso = l.golpes[a.indice];
-  if (uso?.id === a.golpe) uso.recarga = golpeDe(c, a.golpe).recarga;
+  if (uso?.id === a.golpe) uso.recarga = recargaDe(c, golpeDe(c, a.golpe));
   l.acao = null;
 }
 

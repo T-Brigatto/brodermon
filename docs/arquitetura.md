@@ -111,6 +111,10 @@ O pacote `conteudo/vale/` tem os 11 elementos e os 110 golpes do guia, montados 
 
 Tudo isso só existe no pacote `vale` (e no laboratório `formas`): nos golpes da Arena não há estados nem campos, e por isso a paridade continua valendo. Os caminhos novos só rodam quando há zonas, objetos ou estados.
 
+**Efeitos especiais** (`src/desenho/fx.ts`): animações desenhadas pixel a pixel nas cores do elemento (`fx` em `tipos.json`): impacto em estrela com núcleo branco e halo, bola de fogo com clarão e onda de choque (Explosão), anel de energia que se abre (as outras áreas), feixe grosso (linhas) e raio quebrado com galhos (Eletricidade); e partículas com o jeito de cada elemento (brasa sobe, gota cai, floco cintila…). A energia de quem conjura e o brilho com rastro dos projéteis são desenhados direto do estado, em `desenho/cena.ts`. O app (`fxDoQuadro` e `fxDaForma` em `src/app/jogo.ts`) solta o resto a cada quadro (o ar dos terrenos e névoas, o sopro das formas canalizadas, os estados com `fx`) e a cada evento (forma acertando, impacto, projétil saindo e sumindo, teleporte, salto do pino).
+
+**Ritmo do vale** (`regras.json`): 2 s de pausa entre golpes e recargas 1,5× as do guia (`recargaGolpes`); o nome dos golpes aparece sobre as duas criaturas (`anunciarGolpes`). No torneio, IA contra IA, sai um golpe a cada 2,1 s (era 1,2 s) e a luta dura uns 148 s (era 84 s). É só apresentação: usa `Math.random` à vontade e não toca no núcleo. Os tipos do protótipo não têm `fx`, e a Arena original continua idêntica pixel a pixel.
+
 **Ajustes feitos no guia** para os golpes funcionarem como descritos:
 - Salto Arcano reaparece a 20 do rival, não a 40: com um anel de 15, a 40 ele nunca acertaria.
 - Ressonância sem cristais é usada a até 32 (o anel de 20 mais o corpo).

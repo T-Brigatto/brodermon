@@ -6,7 +6,7 @@ A Arena foi refeita em **TypeScript + Vite com núcleo determinístico**, e a ar
 - o núcleo da batalha, com testes, em que **cada golpe é uma lista de efeitos**: dano, projéteis (guiado, reto, persegue, quica, com estouro, grudar, bumerangue, aura, dreno), formas (área, cone, linha, parede, que podem esperar, durar, andar, crescer e deixar campo), várias de uma vez, efeitos no alvo, estados, teleporte, avanço que atravessa, atração, corrente, objetos (pilar, portais, cópia, pino) e cópia do golpe do rival;
 - **estados** (`estados.json`) e **terrenos e névoas** (`campos.json`) como dicionários, com imunes;
 - dois pacotes de conteúdo: `prototipo` (a Arena original, mais 12 golpes de laboratório e 24 do guia) e `vale` (os 11 elementos e os **110 golpes do guia de golpes**, com criaturas de laboratório);
-- o desenho em canvas;
+- o desenho em canvas, com efeitos especiais em pixel por elemento (`fx` em `tipos.json`; a Arena original não tem);
 - as telas em Preact;
 - o som;
 - um visualizador de depuração (`depuracao.html`);
