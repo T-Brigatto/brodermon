@@ -19,6 +19,7 @@ import {
   type Atributo,
   type Comando,
   type Condicao,
+  type ConfigBatalha,
   type EstadoBatalha,
   type Geometria,
   type Evento,
@@ -178,11 +179,11 @@ export class Jogo {
 
   // ---------- ciclo de vida ----------
 
-  private novaBatalha(): void {
+  private novaBatalha(config?: ConfigBatalha): void {
     const semente = this.opcoes.semente ?? Math.floor(Math.random() * 2 ** 31);
     const padrao = Object.keys(this.c.batalhas)[0]!; // a primeira batalha do pacote
     const batalha = this.opcoes.batalha && this.c.batalhas[this.opcoes.batalha] ? this.opcoes.batalha : padrao;
-    this.b = criarBatalha(this.c, configDaBatalha(this.c, batalha, semente, this.opcoes.dificuldade));
+    this.b = criarBatalha(this.c, config ?? configDaBatalha(this.c, batalha, semente, this.opcoes.dificuldade));
     this.visuais.clear();
     for (const eq of this.b.equipes) {
       for (const l of eq.lutadores) {
@@ -209,6 +210,19 @@ export class Jogo {
     this.escolhaFeita = false;
     this.segurando = null;
     aplicarComandos(this.b, this.c, [{ tipo: 'tatica', equipe: 0, tatica: this.tatica }]);
+  }
+
+  /**
+   * Começa direto na luta uma batalha montada na hora, sem contagem e sem som (o catálogo de golpes usa
+   * isso para mostrar cada golpe).
+   */
+  demonstrar(config: ConfigBatalha): void {
+    this.novaBatalha(config);
+    this.tela = 'jogo';
+    this.prontoT = 0;
+    this.cam = { x: AR.cx, y: 195, z: 1.6 };
+    this.visual(this.eu()).entrada = 0;
+    this.visual(this.rival()).entrada = 0;
   }
 
   comecar(): void {
@@ -813,7 +827,7 @@ export class Jogo {
     const z = { x: e.x, y: e.y, ux: e.ux, uy: e.uy };
     const g = e.geo;
     if (g.forma === 'area') {
-      // Explosão vira bola de fogo; os outros elementos, um anel de energia que se abre.
+      // Estilo "estouro": bola de fogo com clarão; os outros, um anel de energia que se abre.
       if (estilo === 'estouro') this.fx.estouro(tipo, e.x, e.y, g.raio);
       else this.fx.nova(tipo, e.x, e.y, g.raio * 0.25, g.raio + 3);
       this.fx.naForma(tipo, g, z, Math.min(16, 4 + Math.round(areaDe(g) / 120)), { altura: 8, forca: 0.8 });

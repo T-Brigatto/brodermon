@@ -1,6 +1,5 @@
 {
   "brasino": {"nome": "Brasino", "tipos": ["fogo"], "hp": 105, "ataque": 14, "defesa": 13, "velocidade": 56, "golpes": ["lanca-chamas", "pira", "rastro-ardente", "bola-de-fogo"]},
-  "boneco-explosao": {"nome": "Boneco de Explosão", "tipos": ["explosao"], "hp": 105, "ataque": 14, "defesa": 13, "velocidade": 56, "golpes": ["detonacao", "granada", "bomba-relogio", "carga-concentrada"]},
   "gotinha": {"nome": "Gotinha", "tipos": ["agua"], "hp": 105, "ataque": 14, "defesa": 13, "velocidade": 56, "golpes": ["jato-dagua", "lamina-dagua", "bolhas", "geiser"]},
   "boneco-gelo": {"nome": "Boneco de Gelo", "tipos": ["gelo"], "hp": 105, "ataque": 14, "defesa": 13, "velocidade": 56, "golpes": ["lanca-de-gelo", "granizo", "estalactite", "sopro-gelido"]},
   "briserecs": {"nome": "Briserecs", "tipos": ["ar"], "hp": 105, "ataque": 14, "defesa": 13, "velocidade": 56, "golpes": ["rajada", "corte-de-vento", "eco", "rasante"]},

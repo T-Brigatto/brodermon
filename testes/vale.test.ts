@@ -1,4 +1,4 @@
-// Pacote "vale": os 110 golpes do guia de golpes e as peças que eles usam
+// Pacote "vale": os 103 golpes do guia de golpes e as peças que eles usam
 // (estados, terrenos e névoas, formas que andam, objetos, projéteis especiais).
 
 import { describe, expect, it } from 'vitest';
@@ -7,15 +7,18 @@ import { PASSO, avancar, configDaBatalha, criarBatalha, golpeDe, perfilDoGolpe }
 import { ate, conteudo, danos, duelo, pos, rodar } from './ajuda-vale';
 
 describe('pacote vale', () => {
-  it('tem os 11 elementos, 10 golpes de cada e a tabela de tipos do guia', () => {
-    expect(Object.keys(vale.tipos)).toHaveLength(11);
-    expect(Object.keys(vale.golpes)).toHaveLength(110);
+  it('tem os 10 elementos, 10 golpes de cada (11 em Fogo, Ar e Terra) e a tabela de tipos do guia', () => {
+    expect(Object.keys(vale.tipos)).toHaveLength(10);
+    expect(Object.keys(vale.golpes)).toHaveLength(103);
     const porTipo = new Map<string, number>();
     for (const g of Object.values(vale.golpes)) porTipo.set(g.tipo, (porTipo.get(g.tipo) ?? 0) + 1);
-    for (const n of porTipo.values()) expect(n).toBe(10);
+    // Detonação, Onda de Choque e Ruptura vieram da Explosão, que saiu do jogo.
+    const extra: Record<string, string> = { fogo: 'detonacao', ar: 'onda-de-choque', terra: 'ruptura' };
+    for (const [tipo, n] of porTipo) expect(n, tipo).toBe(extra[tipo] ? 11 : 10);
+    for (const [tipo, id] of Object.entries(extra)) expect(vale.golpes[id]!.tipo).toBe(tipo);
     expect(vale.tipos['fogo']!.eficacia['natureza']).toBe(2);
     expect(vale.tipos['agua']!.eficacia['eletricidade']).toBe(0.5);
-    expect(vale.tipos['explosao']!.eficacia).toEqual({}); // provisório: Explosão neutra
+    expect(vale.tipos['explosao']).toBeUndefined(); // não é um elemento do jogo
     for (const t of Object.values(vale.tipos)) expect(vale.campos[t.terreno!]).toBeDefined();
   });
 
@@ -53,7 +56,7 @@ describe('pacote vale', () => {
 });
 
 /** Golpes de dano que não acertam um alvo parado sozinhos (precisam que ele ande ou de uma condição). */
-const SEM_DANO_EM_ALVO_PARADO = new Set(['chamas', 'campo-minado', 'carnivora', 'muralha-de-fogo', 'cerca-eletrica', 'circulo-runico', 'selo']);
+const SEM_DANO_EM_ALVO_PARADO = new Set(['chamas', 'carnivora', 'muralha-de-fogo', 'cerca-eletrica', 'circulo-runico', 'selo']);
 
 describe('batalhas do vale', () => {
   for (const id of Object.keys(vale.batalhas)) {

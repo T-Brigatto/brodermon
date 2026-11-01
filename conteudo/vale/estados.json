@@ -1,7 +1,6 @@
 {
   "congelado": {"nome": "Congelado", "trava": "tudo", "fx": "gelo"},
   "cegueira": {"nome": "Cegueira", "desvio": 30, "fx": "fogo"},
-  "rachado": {"nome": "Rachado", "danoRecebido": {"explosao": 1.3, "terra": 1.3}, "fx": "explosao"},
   "gelado": {"nome": "Gelado", "recarga": 0.7, "fx": "gelo"},
   "leve": {"nome": "Leve", "empurrao": 2, "inquieto": true, "fx": "ar"},
   "intangivel": {"nome": "Intangível", "intangivel": true, "fx": "ar"},

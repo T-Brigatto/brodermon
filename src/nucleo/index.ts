@@ -6,6 +6,7 @@ export { PASSO, aplicarComandos, avancar, configDaBatalha, criarBatalha, type Co
 export { ativo, combatente, distancia, emGolpe, especieDe, golpeDe, lutadorPorUid, outra, raioDe, recargaDe, temCondicao, temEstado, velocidadeAtual } from './consulta';
 export { acertaForma, geometriaDe, posicaoDaForma, type Posicao } from './formas';
 export { mods, raioCorpo, type Mods } from './estados';
+export { criarCampo } from './campo';
 export { calcularDano, type Combatente } from './dano';
 export { confronto, eficacia } from './eficacia';
 export { escolherGolpe, taticaDaIa } from './ia';

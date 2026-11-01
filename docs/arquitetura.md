@@ -14,7 +14,7 @@ Decisão de 2026-10-31: **TypeScript + Vite com núcleo determinístico** (a op�
 
 ```
 conteudo/prototipo/   dicionários da Arena original, sprites incluídos (ver conteudo/LEIAME.md)
-conteudo/vale/        os 11 elementos e os 110 golpes do guia, com estados, terrenos e névoas
+conteudo/vale/        os 10 elementos e os 103 golpes do guia, com estados, terrenos e névoas
 src/conteudo/         esquema (Zod) e registro dos pacotes
 src/nucleo/           batalha pura: passo e golpes (batalha), dano e efeitos no alvo (combate), estados,
                       chão da arena (campo: zonas, terrenos, névoas, objetos, agendados), projéteis,
@@ -28,7 +28,9 @@ design/ exportados/   protótipo e referências visuais (Claude Design)
 docs/comparacao/      prints da original × refatorada, com o mapa de diferenças
 ```
 
-Páginas: `index.html` é o jogo; `depuracao.html` é o visualizador do núcleo, com círculos no lugar dos sprites. Os dois abrem o pacote `vale` por padrão; `?pacote=prototipo` abre a Arena original.
+Páginas: `index.html` é o jogo; `depuracao.html` é o visualizador do núcleo, com círculos no lugar dos sprites; `golpes.html` é o catálogo de golpes. Os três abrem o pacote `vale` por padrão; `?pacote=prototipo` abre a Arena original.
+
+**Catálogo de golpes** (`golpes.html`, `src/app/golpes.tsx`): um card por golpe, com uma animação em loop e a ficha. A animação é uma batalha de demonstração no próprio `Jogo` (`demonstrar`), desenhada pelo `desenharCena` do jogo: a criatura do elemento usa o golpe num Boneco Arcano parado, com 999 de HP. Alguns golpes precisam de cena montada (`PREPAROS`: poças para o Recolher, alvo congelado para o Estilhaçar…) ou de um rival que anda (`RIVAL_ANDA`, `RIVAL_FOGE`: pisar na mina, cruzar a muralha…). A ficha (`src/interface/ficha.ts`) escreve cada efeito em português com os números do dicionário e explica os campos e estados citados. Só os cards na tela são animados. Filtros pela URL: `?tipo=fogo`, `?busca=raio`, `?pacote=prototipo`.
 
 ### Camadas
 
@@ -97,12 +99,12 @@ Decisão de 2026-11-01: a arena continua com a área andável de **296 × 118** 
 
 A batalha `formas` junta 24 golpes do guia; `testes/formas.test.ts` confere cada peça, incluindo a fórmula de esquiva do projétil reto em três combinações de velocidade.
 
-## Os 110 golpes do guia
+## Os 103 golpes do guia
 
-O pacote `conteudo/vale/` tem os 11 elementos e os 110 golpes do guia, montados só com peças do motor (o mapa completo está em `conteudo/LEIAME.md`). É o pacote padrão do jogo e abre no `torneio`; `?batalha=lab-fogo` abre um laboratório (há um por elemento).
+O pacote `conteudo/vale/` tem os 10 elementos e os 103 golpes do guia (10 por elemento, 11 em Fogo, Ar e Terra), montados só com peças do motor (o mapa completo está em `conteudo/LEIAME.md`). É o pacote padrão do jogo e abre no `torneio`; `?batalha=lab-fogo` abre um laboratório (há um por elemento).
 
-- **Estados** (`estados.json`): congelado, cegueira, rachado, gelado, leve, intangível, embaixo da terra, armadura, gigante, esfera de ar, couraça, estática, sentido sísmico, caçada, e os de quem está dentro de um campo. Cada estado é uma combinação de modificadores; `mods` (`src/nucleo/estados.ts`) junta numa conta só os estados da criatura e os campos onde ela está.
-- **Terrenos e névoas** (`campos.json`): 22 do guia (2 por elemento) e 8 próprios de golpes. São zonas com `campo`: entrada, permanência, pulsos, imunes, estado de quem está dentro e do dono, efeito nos projéteis, empuxo, rampa, ritmo do tempo, disparo, detonação e o que apagam.
+- **Estados** (`estados.json`): congelado, cegueira, gelado, leve, intangível, embaixo da terra, armadura, gigante, esfera de ar, couraça, estática, sentido sísmico, caçada, e os de quem está dentro de um campo. Cada estado é uma combinação de modificadores; `mods` (`src/nucleo/estados.ts`) junta numa conta só os estados da criatura e os campos onde ela está.
+- **Terrenos e névoas** (`campos.json`): 20 do guia (2 por elemento) e 8 próprios de golpes. São zonas com `campo`: entrada, permanência, pulsos, imunes, estado de quem está dentro e do dono, efeito nos projéteis, empuxo, rampa, ritmo do tempo, disparo, detonação e o que apagam.
 - **Formas que andam, crescem e esperam** (`move`, `raioFinal`, `atraso`), **várias de uma vez** (`varias`, com `b.agendados`) e **campos como munição** (`cada-campo`).
 - **Projéteis**: estouro, quicas, gruda, volta, aura, dreno, consumir campos e herdar terreno. Cada projétil guarda uma cópia do efeito que o criou (`Projetil.def`), porque vários nascem de dentro de outros efeitos.
 - **Movimento**: avanço que atravessa e acerta ao passar, rastro no caminho, teleporte, atração e corrente (ligações processadas depois do `agir`).
@@ -111,7 +113,7 @@ O pacote `conteudo/vale/` tem os 11 elementos e os 110 golpes do guia, montados 
 
 Tudo isso só existe no pacote `vale` (e no laboratório `formas`): nos golpes da Arena não há estados nem campos, e por isso a paridade continua valendo. Os caminhos novos só rodam quando há zonas, objetos ou estados.
 
-**Efeitos especiais** (`src/desenho/fx.ts`): animações desenhadas pixel a pixel nas cores do elemento (`fx` em `tipos.json`): impacto em estrela com núcleo branco e halo, bola de fogo com clarão e onda de choque (Explosão), anel de energia que se abre (as outras áreas), feixe grosso (linhas) e raio quebrado com galhos (Eletricidade); e partículas com o jeito de cada elemento (brasa sobe, gota cai, floco cintila…). A energia de quem conjura e o brilho com rastro dos projéteis são desenhados direto do estado, em `desenho/cena.ts`. O app (`fxDoQuadro` e `fxDaForma` em `src/app/jogo.ts`) solta o resto a cada quadro (o ar dos terrenos e névoas, o sopro das formas canalizadas, os estados com `fx`) e a cada evento (forma acertando, impacto, projétil saindo e sumindo, teleporte, salto do pino).
+**Efeitos especiais** (`src/desenho/fx.ts`): animações desenhadas pixel a pixel nas cores do elemento (`fx` em `tipos.json`): impacto em estrela com núcleo branco e halo, anel de energia que se abre (áreas), feixe grosso (linhas) e raio quebrado com galhos (Eletricidade); e partículas com o jeito de cada elemento (brasa sobe, gota cai, floco cintila…). A energia de quem conjura e o brilho com rastro dos projéteis são desenhados direto do estado, em `desenho/cena.ts`. O app (`fxDoQuadro` e `fxDaForma` em `src/app/jogo.ts`) solta o resto a cada quadro (o ar dos terrenos e névoas, o sopro das formas canalizadas, os estados com `fx`) e a cada evento (forma acertando, impacto, projétil saindo e sumindo, teleporte, salto do pino).
 
 **Ritmo do vale** (`regras.json`): 2 s de pausa entre golpes e recargas 1,5× as do guia (`recargaGolpes`); o nome dos golpes aparece sobre as duas criaturas (`anunciarGolpes`). No torneio, IA contra IA, sai um golpe a cada 2,1 s (era 1,2 s) e a luta dura uns 148 s (era 84 s). É só apresentação: usa `Math.random` à vontade e não toca no núcleo. Os tipos do protótipo não têm `fx`, e a Arena original continua idêntica pixel a pixel.
 
@@ -128,7 +130,9 @@ Tudo isso só existe no pacote `vale` (e no laboratório `formas`): nos golpes d
 - Vinhas: o tropeço é preso por 0,4 s.
 - Esporos: Natureza é imune ao dano e se cura dentro (o guia dizia que ela regenera).
 
-**Provisório até decisão:** Explosão é neutra (×1) na tabela de tipos; terrenos e névoas não reagem entre si (só as reações dos golpes); as criaturas do `vale` são de laboratório (6 reaproveitam sprites do protótipo, 5 aparecem como bolinha); Explosão tem cor provisória.
+**Provisório até decisão:** terrenos e névoas não reagem entre si (só as reações dos golpes); as criaturas do `vale` são de laboratório (6 reaproveitam sprites do protótipo, 4 aparecem como bolinha).
+
+**Sem Explosão** (2026-11-01). O guia trazia um 11º elemento, Explosão, que o usuário não autorizou; ele saiu do pacote com os 2 campos (minas, gás volátil), o estado rachado e a criatura de laboratório. Com o ok do usuário, três golpes dele mudaram de elemento, com os números do guia: Detonação foi para o Fogo, Onda de Choque para o Ar e Ruptura para a Terra; nos laboratórios, cada um entrou no lugar de um golpe repetido. Os outros sete (Granada, Bomba-Relógio, Carga Concentrada, Impacto, Campo Minado, Nuvem Volátil e Ponto de Ruptura) saíram. As peças do motor que só eles usavam continuam, testadas em `testes/vale-mecanicas.test.ts` com golpes de teste: projétil que quica e estoura (`quicas`), que gruda (`gruda`), mina (`consome` com `aoEntrar`), gás que detona (`detona`), estrutura que cai com um tipo (`destruidoPor`) e dano recebido por tipo. O estilo de efeito `estouro` (bola de fogo com clarão) também continua disponível em `tipos.json`, sem elemento usando.
 
 **Trava de paridade.** Antes do sistema de efeitos, gravei três batalhas do protótipo evento por evento (`testes/fixtures/paridade.json`). O teste `testes/paridade.test.ts` exige que o motor continue reproduzindo cada uma igualzinho. Se uma mudança de regra for intencional, regrave com `GERAR_PARIDADE=1 npx vitest run testes/paridade.test.ts` e explique no commit.
 
@@ -162,7 +166,7 @@ Correção de 2026-11-01: quando as duas criaturas atiravam no mesmo passo, só 
 - **Nomes longos no card 2×2.** "Investida Veloz" e "Salto para Trás" aparecem cortados com reticências no card da Arena.
 - **Efeitos extras não aparecem no card.** O resumo mostra só o principal ("Poder 15 · Longe"); o "prende" da Teia de Raiz não aparece.
 - **IA não desvia.** Com as táticas atuais, a IA anda até a distância de perseguição e para; quase todo projétil reto e toda marca no chão acertam. Na batalha `formas`, IA contra IA, a equipe 1 venceu nas 5 sementes testadas. O desvio é trabalho do jogador (posicionamento), mas a IA rival vai precisar reagir às marcas.
-- **Pendências do guia:** reações entre terrenos e névoas, a linha e a coluna de Explosão na tabela de tipos, e a condição de uso dos golpes (a IA ainda usa a heurística de alcance e HP).
+- **Pendências do guia:** reações entre terrenos e névoas e a condição de uso dos golpes (a IA ainda usa a heurística de alcance e HP).
 
 ## Comandos
 

@@ -2,7 +2,7 @@
 //
 // Opções na URL (todas opcionais), equivalentes às props da Arena no Claude Design:
 //   ?dificuldade=facil|normal|dificil  &assist=0  &velocidade=1.25  &semente=123
-//   &pacote=prototipo     (pacote de conteúdo; padrão "vale", com os 110 golpes do guia; "prototipo" é a Arena original)
+//   &pacote=prototipo     (pacote de conteúdo; padrão "vale", com os 103 golpes do guia; "prototipo" é a Arena original)
 //   &batalha=lab-fogo     (qualquer id de batalhas.json do pacote; padrão: a primeira, "torneio" no vale e "treino" no protótipo)
 
 import { render } from 'preact';

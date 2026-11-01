@@ -23,7 +23,7 @@ import valeCampos from '../../conteudo/vale/campos.json';
 export const prototipo = carregarConteudo({ tipos, categorias, golpes, especies, batalhas, regras, sprites });
 
 /**
- * Os 11 elementos e os 110 golpes do guia de golpes (`origem/Guia_de_formulacao_de_golpes_Arena_Vale_das_Criaturas.md`),
+ * Os 10 elementos e os 103 golpes do guia de golpes (`origem/Guia_de_formulacao_de_golpes_Arena_Vale_das_Criaturas.md`),
  * com terrenos, névoas e estados. As criaturas são provisórias, de laboratório.
  */
 export const vale = carregarConteudo({

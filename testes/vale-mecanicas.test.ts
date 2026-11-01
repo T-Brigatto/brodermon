@@ -1,14 +1,36 @@
 // As peças que os golpes do guia usam, uma a uma, com os golpes de verdade do pacote "vale".
 
 import { describe, expect, it } from 'vitest';
-import { esquemaGolpe } from '../src/conteudo/esquema';
+import { esquemaCampo, esquemaEstado, esquemaGolpe, type Conteudo } from '../src/conteudo/esquema';
 import { distancia, raioCorpo, temCondicao, temEstado } from '../src/nucleo';
 import { ate, campo, comEstado, conteudo, danos, duelo, pos, primeiroDano, rodar, soma } from './ajuda-vale';
+
+/**
+ * Golpes, campos e estados de teste com as peças que nenhum golpe do vale usa hoje (granada que quica, bomba que
+ * gruda, mina, gás que detona, dano recebido por tipo). Vieram do elemento Explosão, que saiu do pacote.
+ */
+function comPecasDeTeste(c: Conteudo): Conteudo {
+  const golpe = (id: string, g: Record<string, unknown>) => (c.golpes[id] = esquemaGolpe.parse({ nome: id, recarga: 5, alcance: 95, conjuracao: 0.3, ...g }));
+  const area = (raio: number, poder: number, extra: Record<string, unknown> = {}) => ({ efeito: 'area', raio, poder, ...extra });
+  const empurra = (distancia: number) => ({ efeito: 'empurrar', distancia });
+  golpe('teste-granada', {
+    tipo: 'terra',
+    efeitos: [{ efeito: 'projetil', poder: 0, trajetoria: 'quica', velocidade: 110, vida: 1.2, quicas: 1, estouro: [area(15, 45, { efeitos: [empurra(25)] })] }],
+  });
+  golpe('teste-bomba', { tipo: 'terra', efeitos: [{ efeito: 'projetil', poder: 0, trajetoria: 'reto', velocidade: 140, gruda: 2, estouro: [area(18, 60)] }] });
+  golpe('teste-carga', { tipo: 'terra', alcance: 38, conjuracao: 1.5, efeitos: [area(30, 90, { centro: 'si' })] });
+  c.campos['teste-mina'] = esquemaCampo.parse({ nome: 'Mina', camada: 'terreno', tipo: 'terra', imunes: ['terra'], consome: true, aoEntrar: { poder: 25, efeitos: [empurra(20)] } });
+  c.campos['teste-gas'] = esquemaCampo.parse({ nome: 'Gás', camada: 'nevoa', tipo: 'fogo', imunes: ['fogo'], detona: { tipo: 'fogo', poder: 45, efeitos: [empurra(25)] } });
+  c.estados['teste-rachado'] = esquemaEstado.parse({ nome: 'Rachado', danoRecebido: { terra: 1.3 } });
+  return c;
+}
+
+const conteudoT = () => comPecasDeTeste(conteudo());
 
 /** Dano do primeiro acerto de `golpe` em dois duelos iguais (mesma semente), um com `preparo` e outro sem. */
 function razao(golpes: string[], golpe: string, preparo: (d: ReturnType<typeof duelo>) => void, op: Parameters<typeof duelo>[2] = {}, distanciaAB = 30) {
   const medir = (com: boolean) => {
-    const c = conteudo();
+    const c = conteudoT();
     const d = duelo(c, golpes, op);
     pos(d.A, 205 - distanciaAB, 70);
     pos(d.B, 205, 70);
@@ -39,8 +61,8 @@ describe('estados', () => {
     expect(temEstado(d.B, 'congelado')).toBe(false);
   });
 
-  it('rachado: +30% de dano de Explosão', () => {
-    const r = razao(['carga-concentrada'], 'carga-concentrada', ({ B }) => comEstado(B, 'rachado'));
+  it('dano recebido por tipo (um "rachado" de teste): +30% de dano de Terra', () => {
+    const r = razao(['teste-carga'], 'teste-carga', ({ B }) => comEstado(B, 'teste-rachado'));
     expect(r).toBeGreaterThan(1.25);
     expect(r).toBeLessThan(1.35);
   });
@@ -214,10 +236,10 @@ describe('terrenos e névoas', () => {
   });
 
   it('mina explode em quem pisa e some', () => {
-    const c = conteudo();
+    const c = conteudoT();
     const { b, A, B } = duelo(c, ['folha-navalha']);
     A.golpes[0]!.recarga = 1e9;
-    campo(b, c, A, 'minas', 175, 70, 6, 'campo-minado');
+    campo(b, c, A, 'teste-mina', 175, 70, 6, 'tremor');
     const ev = rodar(b, c, 1.2, [{ tipo: 'direcao', equipe: 1, x: -1, y: 0 }]);
     expect(danos(ev)).toHaveLength(1);
     expect(b.zonas).toHaveLength(0);
@@ -240,13 +262,13 @@ describe('terrenos e névoas', () => {
     expect(r).toBeLessThan(0.6);
   });
 
-  it('gás volátil detona com um golpe de Explosão e some', () => {
-    const c = conteudo();
+  it('gás detona com um golpe do tipo dele e some', () => {
+    const c = conteudoT();
     const { b, A, B } = duelo(c, ['detonacao']);
-    campo(b, c, A, 'gas-volatil', B.x, B.y, 25, 'nuvem-volatil');
+    campo(b, c, A, 'teste-gas', B.x, B.y, 25, 'pira');
     const ev = rodar(b, c, 1.5);
     expect(danos(ev).filter((e) => e.alvo === B.uid)).toHaveLength(2);
-    expect(b.zonas.some((z) => z.campo === 'gas-volatil')).toBe(false);
+    expect(b.zonas.some((z) => z.campo === 'teste-gas')).toBe(false);
   });
 
   it('Decomposição troca o terreno por Raízes; Ruptura apaga terreno e pilar; Vácuo apaga Fogo e névoas', () => {
@@ -258,7 +280,7 @@ describe('terrenos e névoas', () => {
 
     const rup = duelo(c, ['ruptura']);
     campo(rup.b, c, rup.B, 'chamas', 160, 70, 8, 'chamas');
-    rup.b.objetos.push({ id: 99, tipo: 'pilar', autor: rup.B.uid, golpe: 'pilar-de-cristal', x: 170, y: 70, raio: 6, restante: 9, par: null, chance: 1, destruidoPor: ['explosao'], dentro: [] });
+    rup.b.objetos.push({ id: 99, tipo: 'pilar', autor: rup.B.uid, golpe: 'pilar-de-cristal', x: 170, y: 70, raio: 6, restante: 9, par: null, chance: 1, destruidoPor: [], dentro: [] });
     rodar(rup.b, c, 1);
     expect(rup.b.zonas).toHaveLength(0);
     expect(rup.b.objetos).toHaveLength(0);
@@ -460,21 +482,21 @@ describe('formas', () => {
 });
 
 describe('projéteis', () => {
-  it('Granada estoura em área ao tocar o rival; longe dele, estoura no fim do pavio', () => {
-    const c = conteudo();
-    const perto = duelo(c, ['granada']);
+  it('granada: estoura em área ao tocar o rival', () => {
+    const c = conteudoT();
+    const perto = duelo(c, ['teste-granada']);
     const ev = rodar(perto.b, c, 2);
-    expect(danos(ev, 'granada')).toHaveLength(1);
+    expect(danos(ev, 'teste-granada')).toHaveLength(1);
     expect(ev.some((e) => e.tipo === 'forma')).toBe(true);
   });
 
-  it('Bomba-Relógio gruda no rival e estoura 2 s depois', () => {
-    const c = conteudo();
-    const { b, B } = duelo(c, ['bomba-relogio']);
+  it('bomba: gruda no rival e estoura 2 s depois', () => {
+    const c = conteudoT();
+    const { b, B } = duelo(c, ['teste-bomba']);
     ate(b, c, () => b.projeteis.some((p) => p.grudado === B.uid), 3);
     expect(b.projeteis[0]!.grudado).toBe(B.uid);
-    expect(danos(rodar(b, c, 1.9), 'bomba-relogio')).toHaveLength(0);
-    expect(danos(rodar(b, c, 0.3), 'bomba-relogio')).toHaveLength(1);
+    expect(danos(rodar(b, c, 1.9), 'teste-bomba')).toHaveLength(0);
+    expect(danos(rodar(b, c, 0.3), 'teste-bomba')).toHaveLength(1);
   });
 
   it('Lâmina Bumerangue acerta na ida e na volta', () => {
@@ -578,16 +600,16 @@ describe('movimento', () => {
 });
 
 describe('objetos', () => {
-  it('pilar bloqueia projéteis; golpe de Explosão o destrói', () => {
+  it('pilar bloqueia projéteis; um golpe do tipo que o derruba o destrói', () => {
     const c = conteudo();
     const pilar = (golpe: string) => {
       const d = duelo(c, [golpe]);
-      d.b.objetos.push({ id: 99, tipo: 'pilar', autor: d.B.uid, golpe: 'pilar-de-cristal', x: 160, y: 70, raio: 6, restante: 9, par: null, chance: 1, destruidoPor: ['explosao'], dentro: [] });
+      d.b.objetos.push({ id: 99, tipo: 'pilar', autor: d.B.uid, golpe: 'pilar-de-cristal', x: 160, y: 70, raio: 6, restante: 9, par: null, chance: 1, destruidoPor: ['fogo'], dentro: [] });
       return { ev: rodar(d.b, c, 2), d };
     };
     expect(danos(pilar('folha-navalha').ev)).toHaveLength(0);
     expect(pilar('folha-navalha').d.b.objetos).toHaveLength(1);
-    expect(pilar('ponto-de-ruptura').d.b.objetos).toHaveLength(0);
+    expect(pilar('bola-de-fogo').d.b.objetos).toHaveLength(0);
   });
 
   it('portais levam quem entra num até o outro', () => {

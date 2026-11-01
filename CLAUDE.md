@@ -2,14 +2,15 @@
 
 Design e protótipo de um jogo mobile de criaturas colecionáveis com **batalha em tempo real**. "Brodermon" é o codinome da pasta; dentro do jogo o título é **VALE DAS CRIATURAS** (chaves de `localStorage` usam o prefixo `vdc-`).
 
-A Arena foi refeita em **TypeScript + Vite com núcleo determinístico**, e a arquitetura está em [docs/arquitetura.md](docs/arquitetura.md). O jogo (`index.html`) abre por padrão o pacote `vale`, com os 110 golpes do guia. Com `?pacote=prototipo`, abre a Arena original, idêntica pixel a pixel: ver [docs/comparacao/](docs/comparacao/README.md). O projeto tem:
+A Arena foi refeita em **TypeScript + Vite com núcleo determinístico**, e a arquitetura está em [docs/arquitetura.md](docs/arquitetura.md). O jogo (`index.html`) abre por padrão o pacote `vale`, com os 103 golpes do guia. Com `?pacote=prototipo`, abre a Arena original, idêntica pixel a pixel: ver [docs/comparacao/](docs/comparacao/README.md). O projeto tem:
 - o núcleo da batalha, com testes, em que **cada golpe é uma lista de efeitos**: dano, projéteis (guiado, reto, persegue, quica, com estouro, grudar, bumerangue, aura, dreno), formas (área, cone, linha, parede, que podem esperar, durar, andar, crescer e deixar campo), várias de uma vez, efeitos no alvo, estados, teleporte, avanço que atravessa, atração, corrente, objetos (pilar, portais, cópia, pino) e cópia do golpe do rival;
 - **estados** (`estados.json`) e **terrenos e névoas** (`campos.json`) como dicionários, com imunes;
-- dois pacotes de conteúdo: `prototipo` (a Arena original, mais 12 golpes de laboratório e 24 do guia) e `vale` (os 11 elementos e os **110 golpes do guia de golpes**, com criaturas de laboratório);
+- dois pacotes de conteúdo: `prototipo` (a Arena original, mais 12 golpes de laboratório e 24 do guia) e `vale` (os 10 elementos e os **103 golpes do guia de golpes**, com criaturas de laboratório);
 - o desenho em canvas, com efeitos especiais em pixel por elemento (`fx` em `tipos.json`; a Arena original não tem);
 - as telas em Preact;
 - o som;
 - um visualizador de depuração (`depuracao.html`);
+- um **catálogo de golpes** (`golpes.html`): cada golpe do pacote numa animação em loop, com o motor e o desenho do jogo, e a ficha (poder, recarga, alcance, velocidade, efeitos, campos e estados) lida direto dos dicionários;
 - as páginas de design do **Claude Design** (`.dc.html`), que continuam como referência visual.
 
 Tudo é em **pt-BR**: interface, nomes, identificadores, comentários e respostas ao usuário.
@@ -43,13 +44,13 @@ docs/          referência detalhada (ler antes de mexer no assunto)
 O Node 26 LTS está instalado. Depois de instalar o Node, reabra o terminal para o PATH ser atualizado.
 
 ```bash
-npm run dev      # jogo em http://localhost:5173 (preview "jogo"; pacote vale); Arena original em /?pacote=prototipo; depuração em /depuracao.html
+npm run dev      # jogo em http://localhost:5173 (preview "jogo"; pacote vale); Arena original em /?pacote=prototipo; depuração em /depuracao.html; catálogo de golpes em /golpes.html
 npm test         # testes
 npm run check    # verificação de tipos
 npm run build    # build de produção em dist/
 ```
 
-Opções na URL, equivalentes às props da Arena: `?dificuldade=facil|normal|dificil`, `&assist=0`, `&velocidade=1.25` e `&semente=123`. `&pacote=` escolhe o conteúdo: `vale` (padrão, os 110 golpes do guia) ou `prototipo` (a Arena original). `&batalha=` escolhe qualquer id de `batalhas.json` do pacote; sem ela, vale a primeira (`torneio` no vale, `treino` no protótipo). No vale há um laboratório por elemento: `lab-fogo`, `lab-agua`… Em desenvolvimento, o objeto `jogo` fica exposto no console.
+Opções na URL, equivalentes às props da Arena: `?dificuldade=facil|normal|dificil`, `&assist=0`, `&velocidade=1.25` e `&semente=123`. `&pacote=` escolhe o conteúdo: `vale` (padrão, os 103 golpes do guia) ou `prototipo` (a Arena original). `&batalha=` escolhe qualquer id de `batalhas.json` do pacote; sem ela, vale a primeira (`torneio` no vale, `treino` no protótipo). No vale há um laboratório por elemento: `lab-fogo`, `lab-agua`… Em desenvolvimento, o objeto `jogo` fica exposto no console.
 
 Para validar mudanças visuais, abra `?pacote=prototipo` e compare com a original da mesma forma que em `docs/comparacao/`: congele o mesmo estado nas duas versões e compare os prints pixel a pixel. Os textos com números são divididos em pedaços igual ao template original, porque essa divisão muda o espaçamento entre letras.
 
@@ -79,7 +80,8 @@ As páginas de design usam o servidor Python: `python -m http.server 8123`, depo
 - **Card de golpe final**: `exportados/Cards_de_golpe_final.html` — 1 coluna, 366×52, moldura de pixel, fonte Big Shoulders Display.
 - **Arena**: protótipo jogável completo (título, contagem, batalha, pausa, troca forçada, fim, ajuda), tela de 390×844.
 - **Escala da arena** (2026-11-01): área andável de 296 × 118 unidades. Os tamanhos do guia de golpes (`origem/Guia_de_formulacao_de_golpes_Arena_Vale_das_Criaturas.md`) valem nessa unidade; o 143 × 88 do guia estava errado.
-- **Os 110 golpes do guia** estão no pacote `vale`. Os ajustes feitos no guia e o que segue provisório (Explosão neutra, terrenos sem reação entre si, criaturas de laboratório) estão em [docs/arquitetura.md](docs/arquitetura.md).
+- **Os 103 golpes do guia** estão no pacote `vale`: 10 elementos, 10 golpes cada, 11 em Fogo, Ar e Terra. Os ajustes feitos no guia e o que segue provisório (terrenos sem reação entre si, criaturas de laboratório) estão em [docs/arquitetura.md](docs/arquitetura.md).
+- **Não existe o elemento Explosão** (2026-11-01). O guia trazia um 11º elemento que o usuário não autorizou; ele saiu do jogo. Com o ok do usuário, três golpes dele mudaram de elemento: Detonação (Fogo), Onda de Choque (Ar) e Ruptura (Terra); os outros sete saíram. Não acrescentar elemento, golpe ou mecânica que o usuário não pediu, mesmo que esteja num documento: perguntar antes.
 
 ## Inconsistências conhecidas (verificar antes de assumir)
 

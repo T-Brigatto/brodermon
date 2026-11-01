@@ -21,14 +21,16 @@ describe('efeitos especiais', () => {
     const fx = new Fx(vale);
     fx.explosao('fogo', 100, 100, 30);
     fx.explosao('agua', 100, 100, 30);
-    for (let i = 0; i < 30; i++) fx.atualizar(1 / 60);
+    // Velocidade vertical aos 20 quadros, antes de qualquer partícula sumir (a vida mínima é 0,35 s).
+    for (let i = 0; i < 20; i++) fx.atualizar(1 / 60);
     const media = (tipo: string) => {
       const cor = vale.tipos[tipo]!.fx!.cores;
       const ps = fx.particulas.filter((p) => p.cores === cor);
-      return ps.reduce((s, p) => s + p.y, 0) / ps.length;
+      expect(ps).toHaveLength(30);
+      return ps.reduce((s, p) => s + p.vy, 0) / ps.length;
     };
-    expect(media('fogo')).toBeLessThan(100);
-    expect(media('agua')).toBeGreaterThan(100);
+    expect(media('fogo')).toBeLessThan(0);
+    expect(media('agua')).toBeGreaterThan(0);
     for (let i = 0; i < 180; i++) fx.atualizar(1 / 60);
     expect(fx.particulas).toHaveLength(0);
   });
@@ -42,7 +44,7 @@ describe('efeitos especiais', () => {
     for (const p of fx.particulas) expect(Math.abs(p.x - centro.x)).toBeLessThanOrEqual(borda.x - centro.x + 1);
 
     fx.nova('arcano', 160, 65, 5, 30);
-    fx.estouro('explosao', 160, 65, 20);
+    fx.estouro('fogo', 160, 65, 20);
     fx.raio('eletricidade', { x: 0, y: 0 }, { x: 40, y: 0 });
     fx.impacto('fogo', 10, 10, true);
     expect(fx.anims.map((a) => a.tipo)).toEqual(['nova', 'estouro', 'raio', 'impacto']);

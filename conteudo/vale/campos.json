@@ -1,8 +1,6 @@
 {
   "chamas": {"nome": "Chamas", "camada": "terreno", "tipo": "fogo", "imunes": ["fogo"], "pulso": 0.5, "poder": 6, "aoEntrar": {"efeitos": [{"efeito": "dano-continuo", "porSegundo": 4, "duracao": 3, "nome": "queimadura", "chance": 0.3}]}},
   "fumaca-quente": {"nome": "Fumaça quente", "camada": "nevoa", "tipo": "fogo", "imunes": ["fogo"], "pulso": 0.5, "poder": 2},
-  "minas": {"nome": "Minas", "camada": "terreno", "tipo": "explosao", "imunes": ["explosao"], "consome": true, "aoEntrar": {"poder": 25, "efeitos": [{"efeito": "empurrar", "distancia": 20}]}},
-  "gas-volatil": {"nome": "Gás volátil", "camada": "nevoa", "tipo": "explosao", "imunes": ["explosao"], "detona": {"tipo": "explosao", "poder": 45, "efeitos": [{"efeito": "empurrar", "distancia": 25}]}},
   "poca": {"nome": "Poça", "camada": "terreno", "tipo": "agua", "imunes": ["agua"], "estado": "encharcado"},
   "umidade": {"nome": "Umidade", "camada": "nevoa", "tipo": "agua", "estado": "umido"},
   "chao-congelado": {"nome": "Chão congelado", "camada": "terreno", "tipo": "gelo", "imunes": ["gelo"], "estado": "escorregando"},

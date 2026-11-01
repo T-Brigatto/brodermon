@@ -9,6 +9,7 @@ export default defineConfig({
       input: {
         jogo: resolve(import.meta.dirname, 'index.html'),
         depuracao: resolve(import.meta.dirname, 'depuracao.html'),
+        golpes: resolve(import.meta.dirname, 'golpes.html'),
       },
     },
   },

@@ -1,10 +1,12 @@
 # Conteúdo do jogo
 
 Cada pasta aqui é um **pacote**: um conjunto completo de tipos, golpes e criaturas.
-- `vale/`: os 11 elementos e os 110 golpes do guia de golpes (`origem/Guia_de_formulacao_de_golpes_Arena_Vale_das_Criaturas.md`), com terrenos, névoas e estados. As criaturas ainda são de laboratório. **É o pacote padrão do jogo**; a primeira batalha do arquivo (`torneio`) é a que abre. Os laboratórios: `?batalha=lab-fogo`, `lab-agua`…
+- `vale/`: os 10 elementos e os 103 golpes do guia de golpes (`origem/Guia_de_formulacao_de_golpes_Arena_Vale_das_Criaturas.md`), com terrenos, névoas e estados. As criaturas ainda são de laboratório. **É o pacote padrão do jogo**; a primeira batalha do arquivo (`torneio`) é a que abre. Os laboratórios: `?batalha=lab-fogo`, `lab-agua`…
 - `prototipo/`: cópia fiel da Arena original, com 7 tipos e 6 criaturas. Abra com `?pacote=prototipo`.
 
 Todos os arquivos são **dicionários**: a chave é o id e o valor é o item. O id usa só letras minúsculas sem acento, números e hífen (`aqua-muro`); o nome que aparece na tela fica em `nome`, com acento.
+
+Para ver como cada golpe ficou, abra o catálogo (`/golpes.html` com o `npm run dev`): uma animação de cada golpe e a ficha com os números, lidos destes arquivos.
 
 Ao rodar o jogo ou os testes, o esquema confere tudo. Se algo estiver errado, a mensagem aponta o lugar, por exemplo:
 
@@ -101,7 +103,7 @@ Comportamento no tempo (todas as formas aceitam):
 - `alterna`: listas de efeitos que se revezam a cada pulso (Fluxo e Refluxo: empurra, puxa, empurra…).
 - `deixa`: campo (`campos.json`) deixado no lugar da forma, com `duracao` e, se quiser, `raio`, `largura`, `pulso`, `poder`, `efeitos` e `aoEntrar` próprios. `rastro`: campo deixado no caminho de uma forma que anda.
 - `apaga`: apaga os campos que a forma toca: os das `camadas` (`terreno`, `nevoa`) ou dos `tipos`; com `converteEm`, troca pelo campo dado (Decomposição); com `objetos`, derruba também as estruturas (Ruptura).
-- Formas de um golpe do tipo de um gás (`detona` em `campos.json`) fazem o gás explodir; estruturas com `destruidoPor` caem com golpes daquele tipo.
+- Formas de um golpe do tipo de um gás (`detona` em `campos.json`) fazem o gás explodir; estruturas com `destruidoPor` caem com golpes daquele tipo (sem golpe no `vale` hoje; testado em `testes/vale-mecanicas.test.ts`).
 
 ### Projéteis
 
@@ -110,13 +112,13 @@ Comportamento no tempo (todas as formas aceitam):
   - `guiado` (padrão): o da Arena original. Persegue sem limite e sempre acerta.
   - `reto`: segue em linha na direção do rival no momento do disparo. Quem anda de lado escapa: a distância máxima que ainda acerta é r × √(V² + v²) ÷ v (V do projétil, v de quem foge, r = raio da criatura + raio do projétil).
   - `persegue`: vira em direção ao rival no máximo `curva` graus por segundo. Some ao fim da `vida`.
-  - `quica`: bate nas bordas da área andável e volta até acabar a `vida`; com `quicas`, estoura na borda seguinte.
+  - `quica`: bate nas bordas da área andável e volta até acabar a `vida`; com `quicas`, estoura na borda seguinte (sem golpe no `vale` hoje; testado em `testes/vale-mecanicas.test.ts`).
 - `velocidade`, `curva`, `vida`, `raio`.
 - `quantidade` e `abertura`: vários projéteis saem juntos, abertos em leque. Com `vida` curta, viram estilhaços de curto alcance (Espinhos, Estilhaços).
 - `acertos`: quantos acertos cada projétil pode dar (0 = nenhum por encostar, só a aura). Para acertar de novo, precisa sair do rival e voltar.
 - `atravessa`: depois do último acerto, continua voando sem dano em vez de sumir.
-- `estouro`: formas que acontecem onde o projétil some (ao acertar, no fim da vida, na borda): Granada, Bola de Fogo.
-- `gruda`: gruda em quem acerta e estoura tantos segundos depois (Bomba-Relógio).
+- `estouro`: formas que acontecem onde o projétil some (ao acertar, no fim da vida, na borda): Bola de Fogo.
+- `gruda`: gruda em quem acerta e estoura tantos segundos depois (sem golpe no `vale` hoje; testado em `testes/vale-mecanicas.test.ts`).
 - `volta`: vai até essa distância e volta para quem atirou (Lâmina Bumerangue).
 - `aura`: `raio`, `pulso`, `poder`, `efeitos`: acerta quem estiver perto, sem encostar (Esfera Estática).
 - `consome`: `campos`, `poder`, `crescimento`, `maximo`: apaga os campos por onde passa e cresce (Fome do Fogo).
@@ -169,7 +171,7 @@ Um estado é um conjunto de mudanças que valem enquanto ele dura. Golpes aplica
 
 ```json
 "congelado": { "nome": "Congelado", "trava": "tudo" },
-"rachado": { "nome": "Rachado", "danoRecebido": { "explosao": 1.3, "terra": 1.3 } },
+"bruma": { "nome": "Bruma", "danoRecebido": { "arcano": 1.25 } },
 "armadura-de-pedra": { "nome": "Armadura de Pedra", "atributos": { "defesa": 1.5 }, "empurrao": 0, "velocidade": 0.6 }
 ```
 
@@ -209,7 +211,7 @@ Terrenos (no chão) e névoas (no ar). Cada elemento tem os seus (`terreno` e `n
 |---|---|
 | `camada`, `tipo`, `imunes`, `afeta` | Terreno ou névoa, elemento, quem não é afetado, todos ou só o rival. |
 | `pulso`, `poder`, `efeitos` | A cada pulso, quem está dentro leva o dano e os efeitos. |
-| `aoEntrar` | Dano e efeitos ao entrar. Com `consome`, o campo some no primeiro que entra (mina, flor carnívora). |
+| `aoEntrar` | Dano e efeitos ao entrar. Com `consome`, o campo some no primeiro que entra (flor carnívora). |
 | `estado`, `dono`, `estadoImunes` | Estado de quem está dentro, de quem criou (Território) e dos imunes (os Esporos curam a Natureza). |
 | `permanencia` | Quem fica `segundos` seguidos dentro leva os `efeitos` (Neblina gelada congela; Areia movediça prende). |
 | `projeteis` | Em projéteis que passam: `dano` (multiplica), `desvio` (graus sorteados), `atrai` (curva para o centro, graus/s), `tempo` (velocidade). |
@@ -217,7 +219,7 @@ Terrenos (no chão) e névoas (no ar). Cada elemento tem os seus (`terreno` e `n
 | `tempo` | Ritmo dos outros campos com o centro dentro dele (Tempo Lento). |
 | `apaga` | Apaga o que entra nele enquanto dura (Vácuo apaga Fogo e névoas). |
 | `dispara` | Dispara um projétil no rival a cada `intervalo` (Círculo rúnico). |
-| `detona` | Explode quando um golpe do `tipo` o acerta (Gás volátil). |
+| `detona` | Explode quando um golpe do `tipo` o acerta (sem golpe no `vale` hoje; testado em `testes/vale-mecanicas.test.ts`). |
 
 As reações entre terrenos e névoas de elementos diferentes ainda não foram definidas (pendência do guia); por enquanto, só valem as dos golpes (Decomposição, Ruptura, Vácuo, Onda de Choque, Fome do Fogo).
 
