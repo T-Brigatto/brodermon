@@ -71,7 +71,7 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
     const andando = Math.abs(l.vx) + Math.abs(l.vy) > 6;
     const balanco = Math.floor(v.anim / (andando ? 0.15 : 0.45)) % 2;
     if (l.buff) {
-      x.fillStyle = l.buff.atributo === 'ataque' ? '#ef7d57' : '#73eff7';
+      x.fillStyle = l.buff.atributo === 'ataque' ? '#ef7d57' : l.buff.atributo === 'velocidade' ? '#a7f070' : '#73eff7';
       for (let q = 0; q < 4; q++) {
         const a = v.anim * 4 + (q * Math.PI) / 2;
         x.fillRect(Math.round(cx + Math.cos(a) * (h * 0.6)), Math.round(cy - h / 2 + Math.sin(a) * (h * 0.35)), 1, 1);
@@ -93,6 +93,7 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
       x.fillRect(cx - 1, by - 4, 3, 1);
       x.fillRect(cx, by - 3, 1, 1);
     }
+    desenharEstado(x, j, l, cx, cy, by, sw, v.anim);
   }
 
   // Projéteis com rastro
@@ -136,6 +137,51 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
   if (j.tela !== 'titulo') {
     desenharSetas(x, j, ox, oy, s, K);
     desenharMinimapa(x, j, K);
+  }
+}
+
+/**
+ * Sinais do que está acontecendo com a criatura: barra de conjuração sob o HP, estrelas de atordoamento,
+ * raízes de quem está preso, gotas de lentidão, faíscas de dano contínuo e seta de debuff.
+ */
+function desenharEstado(x: CanvasRenderingContext2D, j: Jogo, l: Lutador, cx: number, cy: number, by: number, sw: number, anim: number): void {
+  const a = l.acao;
+  if (a && a.conjuracao > 0) {
+    const g = golpeDe(j.c, a.golpe);
+    const feito = g.conjuracao > 0 ? 1 - a.conjuracao / g.conjuracao : 1;
+    x.fillStyle = '#1a1c2c';
+    x.fillRect(cx - 8, by + 3, 16, 2);
+    x.fillStyle = j.c.tipos[g.tipo]?.cor ?? '#f4f4f4';
+    x.fillRect(cx - 7, by + 3, Math.round(14 * feito), 1);
+  }
+  for (const cd of l.condicoes) {
+    switch (cd.tipo) {
+      case 'atordoado':
+        x.fillStyle = '#ffcd75';
+        for (let q = 0; q < 3; q++) {
+          const ang = anim * 6 + (q * Math.PI * 2) / 3;
+          x.fillRect(Math.round(cx + Math.cos(ang) * 7), Math.round(by - 3 + Math.sin(ang) * 2), 1, 1);
+        }
+        break;
+      case 'preso':
+        x.fillStyle = '#38b764';
+        for (let q = -1; q <= 1; q++) x.fillRect(cx + q * (sw - 1) - (q === 0 ? 0 : q), cy - 3, 1, 4);
+        x.fillRect(cx - sw + 1, cy, sw * 2 - 2, 1);
+        break;
+      case 'lentidao':
+        x.fillStyle = '#41a6f6';
+        for (let q = 0; q < 3; q++) x.fillRect(cx - sw + 2 + q * sw, cy - 1 + (Math.floor(anim * 4 + q) % 3), 1, 1);
+        break;
+      case 'dano-continuo':
+        x.fillStyle = Math.floor(anim * 10) % 2 ? '#ef7d57' : '#ffcd75';
+        x.fillRect(cx - 4 + (Math.floor(anim * 7) % 9), by + 6 + (Math.floor(anim * 5) % 4), 1, 1);
+        break;
+      case 'debuff':
+        x.fillStyle = '#94b0c2';
+        x.fillRect(cx + 10, by, 3, 1);
+        x.fillRect(cx + 11, by + 1, 1, 1);
+        break;
+    }
   }
 }
 

@@ -58,7 +58,8 @@ let velocidade = 1;
 
 function nova(): void {
   semente = Math.floor(Math.random() * 2 ** 31);
-  b = criarBatalha(c, configDaBatalha(c, 'treino', semente));
+  const id = new URLSearchParams(location.search).get('batalha') ?? 'treino';
+  b = criarBatalha(c, configDaBatalha(c, c.batalhas[id] ? id : 'treino', semente));
   pendentes = [];
   log = [`Semente ${semente}. Vai, ${nome(ativo(b, 0))}!`];
   textos = [];
@@ -87,7 +88,7 @@ function registrar(ev: Evento[]): void {
         break;
       }
       case 'buff':
-        linha = `  ${nome(lutadorPorUid(b, e.lutador))} ganhou ${e.atributo === 'ataque' ? 'ATQ' : 'DEF'}+${e.valor}`;
+        linha = `  ${nome(lutadorPorUid(b, e.lutador))} ganhou ${e.atributo}+${e.valor}`;
         break;
       case 'trocaIniciada':
         linha = `${nome(lutadorPorUid(b, e.saindo))}, volta!`;
@@ -131,7 +132,7 @@ function hud(): void {
     .map((uso, i) => {
       const g = golpeDe(c, uso.id);
       const estado = uso.recarga > 0 ? `${uso.recarga.toFixed(1)} s` : 'pronto';
-      const detalhe = g.dano ? `poder ${g.dano.poder} · alc ${g.alcance}` : `${g.buff?.atributo === 'ataque' ? 'ATQ' : 'DEF'}+${g.buff?.valor}`;
+      const detalhe = `${g.efeitos.map((e) => e.efeito).join(' → ')}${g.alcance ? ` · alc ${g.alcance}` : ''}`;
       return `<button data-golpe="${i}" class="${eq.proximoGolpe === i ? 'fila' : ''}" style="border-left-color:${corDoTipo(g.tipo)}">
         ${i + 1}. ${g.nome} ${eq.proximoGolpe === i ? '· NA FILA' : ''}<span class="linha2">${c.tipos[g.tipo]?.nome} · ${detalhe} · ${estado}</span></button>`;
     })
@@ -212,7 +213,7 @@ function desenhar(dt: number): void {
     if (l.buff) {
       ctx.fillStyle = '#ffcd75';
       ctx.font = '9px monospace';
-      ctx.fillText(l.buff.atributo === 'ataque' ? 'ATQ+' : 'DEF+', p.x + 10, p.y - 10);
+      ctx.fillText(`${l.buff.atributo.slice(0, 3).toUpperCase()}+`, p.x + 10, p.y - 10);
     }
     ctx.globalAlpha = 1;
   }

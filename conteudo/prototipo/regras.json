@@ -15,7 +15,8 @@
     "manter": { "distancia": 55, "folga": 9, "fator": 0.6 },
     "evasivo": { "fator": 0.8, "frequencia": 3, "ondulacao": 0.7 }
   },
-  "ia": { "hpEsquiva": 0.3, "hpBuff": 0.5, "esperaFila": 0.25 },
+  "distanciaMinima": 12,
+  "ia": { "hpEsquiva": 0.3, "hpBuff": 0.5, "esperaFila": 0.25, "hpCura": 0.5, "distanciaFuga": 40 },
   "dificuldades": {
     "facil":   { "ataque": 0.8, "hp": 0.9 },
     "normal":  { "ataque": 1,   "hp": 1 },

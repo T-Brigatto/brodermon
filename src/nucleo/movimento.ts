@@ -1,4 +1,5 @@
 import type { Regras } from '../conteudo/esquema';
+import { velocidadeAtual } from './consulta';
 import type { Lutador, Ponto, Tatica } from './modelo';
 
 /** Anda até `p`. Devolve true quando chegou (a menos de `folga`). */
@@ -7,8 +8,9 @@ export function moverPara(l: Lutador, p: Ponto, folga: number): boolean {
   const dy = p.y - l.y;
   const d = Math.hypot(dx, dy);
   if (d > folga) {
-    l.vx = (dx / d) * l.velocidade;
-    l.vy = (dy / d) * l.velocidade;
+    const v = velocidadeAtual(l);
+    l.vx = (dx / d) * v;
+    l.vy = (dy / d) * v;
     return false;
   }
   l.vx = 0;
@@ -29,7 +31,7 @@ export function moverPorTatica(l: Lutador, alvo: Lutador | null, tatica: Tatica,
   const dist = Math.hypot(dx, dy);
   const nx = dist > 0.5 ? dx / dist : 0;
   const ny = dist > 0.5 ? dy / dist : 0;
-  const s = l.velocidade;
+  const s = velocidadeAtual(l);
 
   switch (tatica) {
     case 'perseguir':

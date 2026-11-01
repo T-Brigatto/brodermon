@@ -3,8 +3,8 @@
 Design e protótipo de um jogo mobile de criaturas colecionáveis com **batalha em tempo real**. "Brodermon" é o codinome da pasta; dentro do jogo o título é **VALE DAS CRIATURAS** (chaves de `localStorage` usam o prefixo `vdc-`).
 
 A Arena foi refeita em **TypeScript + Vite com núcleo determinístico**, e a arquitetura está em [docs/arquitetura.md](docs/arquitetura.md). Ela é jogável em `index.html` e fica idêntica pixel a pixel à original: ver [docs/comparacao/](docs/comparacao/README.md). O projeto tem:
-- o núcleo da batalha, com testes;
-- o conteúdo do protótipo em dicionários JSON, sprites incluídos;
+- o núcleo da batalha, com testes, em que **cada golpe é uma lista de efeitos**: dano, projétil, buff, cura, avançar, recuar, empurrar, puxar, lentidão, prender, atordoar, dano contínuo, debuff e conjuração;
+- o conteúdo do protótipo em dicionários JSON, sprites incluídos, mais 12 golpes de laboratório e a batalha `laboratorio`;
 - o desenho em canvas;
 - as telas em Preact;
 - o som;
@@ -48,7 +48,7 @@ npm run check    # verificação de tipos
 npm run build    # build de produção em dist/
 ```
 
-Opções na URL, equivalentes às props da Arena: `?dificuldade=facil|normal|dificil`, `&assist=0`, `&velocidade=1.25` e `&semente=123`. Em desenvolvimento, o objeto `jogo` fica exposto no console.
+Opções na URL, equivalentes às props da Arena: `?dificuldade=facil|normal|dificil`, `&assist=0`, `&velocidade=1.25` e `&semente=123`. Também `&batalha=laboratorio`, ou qualquer id de `batalhas.json`. Em desenvolvimento, o objeto `jogo` fica exposto no console.
 
 Para validar mudanças visuais, compare com a original da mesma forma que em `docs/comparacao/`: congele o mesmo estado nas duas versões e compare os prints pixel a pixel. Os textos com números são divididos em pedaços igual ao template original, porque essa divisão muda o espaçamento entre letras.
 
@@ -57,7 +57,8 @@ As páginas de design usam o servidor Python: `python -m http.server 8123`, depo
 ## Regras do código
 
 - `src/nucleo/` não usa `Math.random`, `Date`, `performance`, `window`, `document`, timers nem imports de fora (só `../conteudo/esquema` para tipos). O teste `testes/pureza.test.ts` confere isso.
-- Conteúdo novo entra **só nos JSON** de `conteudo/`. O motor não decide regra de conteúdo: a categoria é um rótulo, e o que vale são `dano`, `buff` e `contato` no golpe.
+- Conteúdo novo entra **só nos JSON** de `conteudo/`. O motor não decide regra de conteúdo: a categoria é um rótulo, e o que vale é a lista de `efeitos` do golpe. Um efeito novo, ou seja, uma peça nova no motor, exige código em `src/nucleo/batalha.ts`, esquema em `src/conteudo/esquema.ts`, teste em `testes/efeitos.test.ts` e a linha correspondente em `conteudo/LEIAME.md`.
+- `testes/paridade.test.ts` trava o comportamento das batalhas do protótipo, evento por evento. Só regrave a referência (`GERAR_PARIDADE=1`) quando a mudança de regra for intencional.
 - Toda regra nova vem com teste. Rode `npm test` e `npm run check` antes de dar algo por pronto.
 
 ## Formato `.dc.html` (Claude Design)

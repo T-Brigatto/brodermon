@@ -35,18 +35,62 @@ A categoria é só um rótulo que a interface mostra (ícone e nome). Ela não m
 
 ## golpes.json
 
+Um golpe é uma **lista de efeitos**, executados em ordem. Cada efeito é uma peça que o motor já sabe fazer; para criar um golpe novo, basta combinar peças, sem mexer em código.
+
 ```json
-"labareda":  { "nome": "Labareda", "tipo": "fogo", "categoria": "magico", "recarga": 2.8, "alcance": 88, "dano": { "poder": 50 } },
-"investida": { "nome": "Investida", "tipo": "normal", "recarga": 2.0, "alcance": 23, "contato": true, "dano": { "poder": 35 } },
-"fervor":    { "nome": "Fervor", "tipo": "fogo", "recarga": 5.5, "buff": { "atributo": "ataque", "valor": 5, "duracao": 3 } }
+"labareda": { "nome": "Labareda", "tipo": "fogo", "categoria": "magico", "recarga": 2.8, "alcance": 88,
+  "efeitos": [{ "efeito": "projetil", "poder": 50 }] },
+
+"investida-veloz": { "nome": "Investida Veloz", "tipo": "normal", "recarga": 3.5, "alcance": 80,
+  "efeitos": [
+    { "efeito": "avancar", "distancia": 60, "duracao": 0.25 },
+    { "efeito": "dano", "poder": 40 },
+    { "efeito": "empurrar", "distancia": 35 }
+  ] },
+
+"golpe-carregado": { "nome": "Golpe Carregado", "tipo": "rocha", "recarga": 5, "alcance": 26, "conjuracao": 0.6,
+  "efeitos": [{ "efeito": "dano", "poder": 85 }, { "efeito": "empurrar", "distancia": 45, "duracao": 0.3 }] }
 ```
 
+Campos do golpe:
 - `recarga`: segundos até poder usar de novo.
-- `dano.poder`: força do golpe. Precisa de `alcance`, a distância máxima até o alvo; a arena tem cerca de 300 de largura.
-- `contato: true`: acerta na hora e, se estiver na fila, a criatura anda até o alvo. Sem isso, o golpe vira um projétil que voa até o alvo.
-- `buff`: soma `valor` ao `ataque` ou à `defesa` de quem usou, por `duracao` segundos.
-- Um golpe precisa de `dano`, de `buff` ou dos dois.
-- `categoria` e `animacao` são opcionais.
+- `alcance`: distância máxima até o rival para usar o golpe. É obrigatório quando algum efeito atinge o rival. O chão da arena mede 320 × 130.
+- `conjuracao` (opcional): segundos parado concentrando antes dos efeitos. Ser empurrado, puxado ou atordoado durante a conjuração interrompe o golpe.
+- `categoria` e `animacao`: opcionais.
+
+**Efeitos em quem usa**
+| Efeito | Campos | O que faz |
+|---|---|---|
+| `buff` | `atributo` (`ataque`, `defesa` ou `velocidade`), `valor`, `duracao` | Soma ao atributo. Um buff novo substitui o anterior. |
+| `curar` | `porcento` | Recupera essa porcentagem do HP máximo. |
+| `avancar` | `distancia`, `duracao` | Dispara em direção ao rival e para antes de encostar (`regras.distanciaMinima`). |
+| `recuar` | `distancia`, `duracao` | Salta para longe do rival. |
+
+**Efeitos no rival**
+| Efeito | Campos | O que faz |
+|---|---|---|
+| `dano` | `poder` | Dano na hora, corpo a corpo. |
+| `projetil` | `poder`, `velocidade` (opcional), `efeitos` (opcional) | Projétil que persegue o rival. Ao acertar, causa `poder` de dano (0 = sem dano) e aplica os `efeitos` da lista. |
+| `empurrar` | `distancia`, `duracao` (padrão 0,2) | Joga o rival para longe. |
+| `puxar` | `distancia`, `duracao` (padrão 0,2) | Traz o rival para perto (para antes de encostar). |
+| `lentidao` | `fator` (entre 0 e 1), `duracao` | Multiplica a velocidade do rival. |
+| `prender` | `duracao` | O rival não anda, mas ainda ataca. |
+| `atordoar` | `duracao` | O rival não anda nem ataca. |
+| `dano-continuo` | `porSegundo`, `duracao` | Dano fixo por segundo (queimadura, veneno). Não usa a fórmula nem a eficácia. |
+| `debuff` | `atributo`, `valor`, `duracao` | Tira do atributo do rival. |
+
+Como os efeitos se encadeiam:
+- Efeitos no rival fora de um projétil acontecem na hora e exigem o rival ao alcance (com folga de 4). Se ele tiver fugido, aparece "ERROU".
+- Efeitos com `duracao` em quem usa (`avancar`, `recuar`) fazem o próximo efeito esperar o fim. É assim que "avança e depois bate" funciona.
+- Ser empurrado, puxado ou atordoado interrompe o golpe em andamento.
+- Condições (lentidão, prisão, atordoamento, dano contínuo, debuff) e buffs somem quando a criatura sai de campo. Aplicar de novo a mesma condição renova o tempo.
+
+Como a IA usa cada golpe (ver `regras.ia`):
+- golpe que atinge o rival: usa com o rival ao alcance;
+- cura: usa com HP abaixo de `hpCura`;
+- recuo: usa esquivando e com o rival a menos de `distanciaFuga`;
+- avanço sem dano: usa com o rival longe;
+- buff: usa com HP acima de `hpBuff` e sem buff ativo.
 
 ## especies.json
 
@@ -82,11 +126,29 @@ A categoria é só um rótulo que a interface mostra (ícone e nome). Ela não m
 ] }
 ```
 
-`piloto` é `jogador` ou `ia`.
+- `piloto` é `jogador` ou `ia`.
+- Cada membro do `time` pode ser só o id da espécie, usando os golpes padrão dela, ou a espécie com golpes escolhidos para aquela batalha:
+
+```json
+{ "especie": "brasino", "golpes": ["chama-viva", "investida-veloz", "labareda", "fervor"] }
+```
+
+- A batalha `laboratorio` usa os golpes novos dos dois lados. Abra com `?batalha=laboratorio` na URL do jogo.
 
 ## regras.json
 
-São os números da batalha: a fórmula de dano, as recargas globais, a troca (duração e espera), a velocidade dos projéteis, os limites da arena, as distâncias de cada tática, os limiares da IA e as dificuldades. Mudar um número aqui muda o jogo sem tocar no código.
+São os números da batalha:
+- a fórmula de dano;
+- as recargas globais;
+- a troca (duração e espera);
+- a velocidade dos projéteis;
+- os limites da arena;
+- a `distanciaMinima` entre as criaturas em avanços e puxões;
+- as distâncias de cada tática;
+- os limiares da IA (`hpEsquiva`, `hpBuff`, `hpCura`, `distanciaFuga`…);
+- as dificuldades.
+
+Mudar um número aqui muda o jogo sem tocar no código.
 
 ## Criar um pacote novo
 

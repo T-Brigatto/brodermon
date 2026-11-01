@@ -48,25 +48,65 @@ export const esquemaCategoria = z.object({
   nome: z.string().min(1),
 });
 
+// ---------- Efeitos de golpe ----------
+// Um golpe é uma lista de efeitos executados em ordem. Cada efeito é uma peça que o
+// motor sabe fazer; golpes novos são combinações dessas peças, sem código novo.
+// Distâncias em unidades da arena (o chão tem 320 × 130); tempos em segundos.
+
+const atributo = z.enum(['ataque', 'defesa', 'velocidade']);
+const duracao = positivo;
+
+/** Efeitos que atingem o rival. Num golpe direto, exigem o rival ao alcance na hora em que acontecem. */
+const efeitosNoAlvo = [
+  z.object({ efeito: z.literal('empurrar'), distancia: positivo, duracao: duracao.default(0.2) }),
+  z.object({ efeito: z.literal('puxar'), distancia: positivo, duracao: duracao.default(0.2) }),
+  z.object({ efeito: z.literal('lentidao'), fator: z.number().gt(0).lt(1), duracao }),
+  z.object({ efeito: z.literal('prender'), duracao }),
+  z.object({ efeito: z.literal('atordoar'), duracao }),
+  z.object({ efeito: z.literal('dano-continuo'), porSegundo: positivo, duracao }),
+  z.object({ efeito: z.literal('debuff'), atributo, valor: positivo, duracao }),
+] as const;
+
+export const esquemaEfeitoNoAlvo = z.discriminatedUnion('efeito', [...efeitosNoAlvo]);
+
+export const esquemaEfeito = z.discriminatedUnion('efeito', [
+  /** Dano na hora (corpo a corpo). */
+  z.object({ efeito: z.literal('dano'), poder: positivo }),
+  /** Projétil que persegue o rival; ao acertar causa `poder` de dano e aplica `efeitos`. */
+  z.object({
+    efeito: z.literal('projetil'),
+    poder: z.number().min(0),
+    velocidade: positivo.optional(),
+    efeitos: z.array(esquemaEfeitoNoAlvo).default([]),
+  }),
+  ...efeitosNoAlvo,
+  /** Soma `valor` a um atributo de quem usou, por `duracao`. Um buff novo substitui o anterior. */
+  z.object({ efeito: z.literal('buff'), atributo, valor: positivo, duracao }),
+  /** Recupera uma porcentagem do HP máximo de quem usou. */
+  z.object({ efeito: z.literal('curar'), porcento: z.number().gt(0).max(100) }),
+  /** Quem usou dispara em direção ao rival (para antes de encostar). O próximo efeito espera o fim. */
+  z.object({ efeito: z.literal('avancar'), distancia: positivo, duracao }),
+  /** Quem usou salta para longe do rival. O próximo efeito espera o fim. */
+  z.object({ efeito: z.literal('recuar'), distancia: positivo, duracao }),
+]);
+
+const NO_ALVO = new Set(['dano', 'projetil', ...efeitosNoAlvo.map((e) => e.shape.efeito.value)]);
+
 export const esquemaGolpe = z
   .object({
     nome: z.string().min(1),
     tipo: id,
     categoria: id.optional(),
     recarga: positivo,
-    /** Distância máxima até o alvo, em unidades da arena. Obrigatório quando há dano. */
+    /** Distância máxima até o rival para usar o golpe. Obrigatório quando algum efeito atinge o rival. */
     alcance: positivo.optional(),
-    /** Corpo a corpo: acerta na hora e a criatura anda até o alvo quando o golpe está na fila. */
-    contato: z.boolean().default(false),
-    dano: z.object({ poder: positivo }).optional(),
-    buff: z
-      .object({ atributo: z.enum(['ataque', 'defesa']), valor: z.number(), duracao: positivo })
-      .optional(),
+    /** Segundos parado concentrando antes dos efeitos. Levar atordoamento ou empurrão interrompe. */
+    conjuracao: z.number().min(0).default(0),
+    efeitos: z.array(esquemaEfeito).min(1),
     animacao: z.string().optional(),
   })
-  .refine((g) => g.dano || g.buff, { message: 'o golpe precisa de dano, buff ou os dois' })
-  .refine((g) => !g.dano || g.alcance !== undefined, {
-    message: 'golpe com dano precisa de alcance',
+  .refine((g) => g.alcance !== undefined || !g.efeitos.some((e) => NO_ALVO.has(e.efeito)), {
+    message: 'golpe que atinge o rival precisa de alcance',
     path: ['alcance'],
   });
 
@@ -82,12 +122,14 @@ export const esquemaEspecie = z.object({
 
 export const esquemaPiloto = z.enum(['jogador', 'ia']);
 
+/** Membro do time: só o id da espécie (usa os golpes dela) ou a espécie com golpes escolhidos. */
+export const esquemaMembro = z.union([id, z.object({ especie: id, golpes: z.array(id).min(1).optional() })]);
+
+const esquemaEquipe = z.object({ piloto: esquemaPiloto, time: z.array(esquemaMembro).min(1) });
+
 export const esquemaBatalha = z.object({
   nome: z.string().min(1),
-  equipes: z.tuple([
-    z.object({ piloto: esquemaPiloto, time: z.array(id).min(1) }),
-    z.object({ piloto: esquemaPiloto, time: z.array(id).min(1) }),
-  ]),
+  equipes: z.tuple([esquemaEquipe, esquemaEquipe]),
 });
 
 const ponto = z.object({ x: z.number(), y: z.number() });
@@ -120,7 +162,17 @@ export const esquemaRegras = z.object({
     manter: z.object({ distancia: positivo, folga: positivo, fator: positivo }),
     evasivo: z.object({ fator: positivo, frequencia: positivo, ondulacao: z.number().min(0) }),
   }),
-  ia: z.object({ hpEsquiva: z.number().min(0), hpBuff: z.number().min(0), esperaFila: z.number().min(0) }),
+  /** Avanços e puxões param a esta distância do rival, para as criaturas não se sobreporem. */
+  distanciaMinima: z.number().min(0),
+  ia: z.object({
+    hpEsquiva: z.number().min(0),
+    hpBuff: z.number().min(0),
+    esperaFila: z.number().min(0),
+    /** Usa golpe de cura abaixo desta fração do HP. */
+    hpCura: z.number().min(0),
+    /** Usa golpe de recuo quando o rival chega mais perto que isto (e está esquivando). */
+    distanciaFuga: z.number().min(0),
+  }),
   dificuldades: dicionario(z.object({ ataque: positivo, hp: positivo })),
 });
 
@@ -170,8 +222,17 @@ export const esquemaConteudo = z
     }
     for (const [bid, batalha] of Object.entries(c.batalhas)) {
       batalha.equipes.forEach((eq, e) =>
-        eq.time.forEach((esp, i) => {
-          if (!c.especies[esp]) falta(['batalhas', bid, 'equipes', e, 'time', i], 'espécie', esp);
+        eq.time.forEach((membro, i) => {
+          const caminho = ['batalhas', bid, 'equipes', e, 'time', i];
+          const esp = typeof membro === 'string' ? membro : membro.especie;
+          if (!c.especies[esp]) falta(caminho, 'espécie', esp);
+          if (typeof membro === 'string' || !membro.golpes) return;
+          membro.golpes.forEach((g, k) => {
+            if (!c.golpes[g]) falta([...caminho, 'golpes', k], 'golpe', g);
+          });
+          if (membro.golpes.length > c.regras.maxGolpes) {
+            ctx.addIssue({ code: 'custom', path: [...caminho, 'golpes'], message: `tem ${membro.golpes.length} golpes; o máximo é ${c.regras.maxGolpes} (regras.maxGolpes)` });
+          }
         }),
       );
     }
@@ -180,6 +241,9 @@ export const esquemaConteudo = z
 export type Conteudo = z.infer<typeof esquemaConteudo>;
 export type Tipo = z.infer<typeof esquemaTipo>;
 export type Golpe = z.infer<typeof esquemaGolpe>;
+export type Efeito = z.infer<typeof esquemaEfeito>;
+export type EfeitoNoAlvo = z.infer<typeof esquemaEfeitoNoAlvo>;
+export type Membro = z.infer<typeof esquemaMembro>;
 export type Especie = z.infer<typeof esquemaEspecie>;
 export type Regras = z.infer<typeof esquemaRegras>;
 export type Sprite = z.infer<typeof esquemaSprite>;

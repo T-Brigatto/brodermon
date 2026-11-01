@@ -2,6 +2,7 @@
 //
 // Opções na URL (todas opcionais), equivalentes às props da Arena no Claude Design:
 //   ?dificuldade=facil|normal|dificil  &assist=0  &velocidade=1.25  &semente=123
+//   &batalha=laboratorio  (qualquer id de batalhas.json; padrão "treino")
 
 import { render } from 'preact';
 import { prototipo } from '../conteudo/pacotes';
@@ -17,6 +18,7 @@ const opcoes: Opcoes = {
   assist: q.get('assist') !== '0',
   velocidade: Math.min(1.5, Math.max(0.75, Number(q.get('velocidade') ?? 1) || 1)),
   semente: q.has('semente') ? Number(q.get('semente')) : undefined,
+  batalha: q.get('batalha') ?? undefined,
 };
 const jogo = new Jogo(prototipo, opcoes);
 

@@ -3,7 +3,7 @@
 
 import type { Conteudo, Especie, Golpe } from '../conteudo/esquema';
 import type { Combatente } from './dano';
-import type { Equipe, EstadoBatalha, Lutador, Ponto } from './modelo';
+import type { Atributo, Condicao, Equipe, EstadoBatalha, Lutador, Ponto } from './modelo';
 
 export function especieDe(c: Conteudo, l: Lutador): Especie {
   const e = c.especies[l.especie];
@@ -17,14 +17,31 @@ export function golpeDe(c: Conteudo, id: string): Golpe {
   return g;
 }
 
-/** Atributos que contam no dano agora, já somando o buff ativo. */
+/** Soma do buff ativo menos os debuffs naquele atributo. */
+function modificador(l: Lutador, atributo: Atributo): number {
+  let m = l.buff?.atributo === atributo ? l.buff.valor : 0;
+  for (const cd of l.condicoes) if (cd.tipo === 'debuff' && cd.atributo === atributo) m -= cd.valor;
+  return m;
+}
+
+/** Atributos que contam no dano agora, já com buff e debuffs. */
 export function combatente(c: Conteudo, l: Lutador): Combatente {
-  const b = l.buff;
   return {
     tipos: especieDe(c, l).tipos,
-    ataque: l.ataque + (b?.atributo === 'ataque' ? b.valor : 0),
-    defesa: l.defesa + (b?.atributo === 'defesa' ? b.valor : 0),
+    ataque: Math.max(1, l.ataque + modificador(l, 'ataque')),
+    defesa: Math.max(1, l.defesa + modificador(l, 'defesa')),
   };
+}
+
+/** Velocidade de agora: buff e debuffs somados, e a lentidão mais forte multiplicando. */
+export function velocidadeAtual(l: Lutador): number {
+  let fator = 1;
+  for (const cd of l.condicoes) if (cd.tipo === 'lentidao') fator = Math.min(fator, cd.fator);
+  return Math.max(0, l.velocidade + modificador(l, 'velocidade')) * fator;
+}
+
+export function temCondicao(l: Lutador, tipo: Condicao['tipo']): boolean {
+  return l.condicoes.some((cd) => cd.tipo === tipo);
 }
 
 export const outra = (e: Equipe): Equipe => (e === 0 ? 1 : 0);

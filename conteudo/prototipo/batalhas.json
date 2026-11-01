@@ -5,5 +5,24 @@
       { "piloto": "jogador", "time": ["perereca", "gotinha", "brasino", "brotinho", "faisca", "pedrisco"] },
       { "piloto": "ia",      "time": ["brasino", "faisca", "pedrisco", "brotinho"] }
     ]
+  },
+  "laboratorio": {
+    "nome": "Laboratório de golpes",
+    "equipes": [
+      { "piloto": "jogador", "time": [
+        { "especie": "perereca", "golpes": ["investida-veloz", "ventania", "salto-para-tras", "vento-de-cauda"] },
+        { "especie": "gotinha",  "golpes": ["lamacal", "jato", "rajada-de-vento", "aqua-muro"] },
+        { "especie": "brasino",  "golpes": ["chama-viva", "labareda", "investida-veloz", "fervor"] },
+        { "especie": "brotinho", "golpes": ["cipo-laco", "teia-de-raiz", "folhada", "folego"] },
+        { "especie": "faisca",   "golpes": ["choque-paralisante", "raio", "investida-veloz", "carga"] },
+        { "especie": "pedrisco", "golpes": ["golpe-carregado", "rocha-quebra", "pedrada", "casca"] }
+      ] },
+      { "piloto": "ia", "time": [
+        { "especie": "brasino",  "golpes": ["chama-viva", "investida-veloz", "labareda", "fervor"] },
+        { "especie": "faisca",   "golpes": ["choque-paralisante", "raio", "salto-para-tras", "carga"] },
+        { "especie": "pedrisco", "golpes": ["golpe-carregado", "rocha-quebra", "cascalho", "casca"] },
+        { "especie": "brotinho", "golpes": ["cipo-laco", "teia-de-raiz", "semente", "folego"] }
+      ] }
+    ]
   }
 }

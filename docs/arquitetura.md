@@ -57,13 +57,29 @@ entrada (toque/teclado/rede/IA) ──► Comando[] ──► avancar(estado, co
   - `trocar`
   - `tatica`
 - **Eventos**:
-  - `golpe`, `projetil`, `projetilPerdido`
-  - `dano` (com a eficácia), `buff`
+  - `golpe` (com `conjuracao`), `projetil`, `projetilPerdido`
+  - `dano` (com a eficácia e a `origem`: `contato`, `projetil` ou `continuo`), `buff`, `cura`
+  - `deslocamento` (`avancar`, `recuar`, `empurrar`, `puxar`), `condicao`
+  - `errou`, `interrompido`
   - `trocaIniciada`, `entrou`, `desmaio`
   - `aguardandoEscolha`, `fim`
   - `comandoRecusado` (traz o motivo)
 - Cada equipe tem um `piloto`: `jogador` ou `ia`. A IA define a tática pelo HP e manda a próxima criatura sozinha. Os golpes automáticos (`escolherGolpe`) valem para as duas equipes, e é isso que faz os golpes "saírem sozinhos".
 - O laço do app acumula o tempo real e chama `avancar` quantas vezes for preciso (ver `atualizar` em `src/app/jogo.ts`). A velocidade de jogo multiplica só esse acumulador.
+
+## Golpes como lista de efeitos
+
+O golpe é dado: uma lista de efeitos (`conteudo/LEIAME.md` tem a lista completa). O motor conhece um conjunto fechado de peças e cada golpe é uma combinação delas. Para criar golpes novos, basta editar o JSON. Só uma peça nova exige código, com teste.
+
+- **Ação** (`Lutador.acao`): golpe em andamento. Primeiro corre a `conjuracao`, parado. Depois os efeitos rodam em ordem: os instantâneos na hora, e os que têm duração (`avancar`, `recuar`) fazem o próximo esperar. Enquanto há ação, a criatura não começa outro golpe.
+- **Deslocamento** (`Lutador.deslocamento`): movimento forçado de avanço, recuo, empurrão ou puxão. Enquanto dura, ignora a entrada do jogador e a tática, e no fim a criatura para no lugar.
+- **Condições** (`Lutador.condicoes`): lentidão, preso, atordoado, dano contínuo e debuff, cada uma com tempo restante. Uma nova do mesmo tipo substitui a anterior.
+- **Interrupção**: ser empurrado, puxado ou atordoado corta a ação. Sair de campo limpa buff, condições, deslocamento e ação.
+- **Perfil** (`perfilDoGolpe`): o que o golpe faz, lido dos efeitos (contato, dano, controle, buff, cura, movimento). O motor usa para a recarga global e para a aproximação de golpes na fila; a IA, para decidir quando usar; a interface, para o resumo no card.
+- **Velocidade e atributos** passam por `velocidadeAtual` e `combatente`, que somam buff e debuffs e aplicam a lentidão.
+- Os temporizadores novos usam uma folga de 10⁻⁹ para o resíduo do ponto flutuante não dar um passo a mais.
+
+**Trava de paridade.** Antes do sistema de efeitos, gravei três batalhas do protótipo evento por evento (`testes/fixtures/paridade.json`). O teste `testes/paridade.test.ts` exige que o motor continue reproduzindo cada uma igualzinho. Se uma mudança de regra for intencional, regrave com `GERAR_PARIDADE=1 npx vitest run testes/paridade.test.ts` e explique no commit.
 
 ## Online (planejado)
 
@@ -77,7 +93,7 @@ O núcleo reproduz `design/Arena.dc.html` com estas mudanças deliberadas:
 - As regras ficaram simétricas para as duas equipes: o banco do rival também recarrega, e a troca do rival também cancela os ataques do jogador.
 - O atraso até a próxima criatura depois de um desmaio é 1,0 s para as duas equipes (era 0,9 s para o jogador e 1,0 s para o rival).
 - O dano causado é contado nas duas equipes (era só no jogador).
-- Golpes podem ter dano **e** buff ao mesmo tempo. A categoria é só um rótulo de dados; o motor olha `dano`, `buff` e `contato`.
+- Golpes são listas de efeitos, e a categoria é só um rótulo de dados. Os 19 golpes da Arena viraram listas de um efeito (`dano`, `projetil` ou `buff`) e se comportam exatamente como antes.
 - As primeiras criaturas começam a batalha já prontas. Na Arena, a "entrada" de 0,3 s delas também terminava durante a contagem "PRONTO?/JÁ!", então o efeito é o mesmo. O clarão branco da entrada é só visual.
 
 Ficaram de fora do núcleo, porque são apresentação: a conjuração visual de 0,2 s, o flash, a animação de dano atrasada (`hpLag`), as partículas, os textos flutuantes e a câmera. Eles vivem em `app/jogo.ts` e `desenho/`.
@@ -89,6 +105,9 @@ A paridade visual foi conferida tela a tela: 9 telas idênticas pixel a pixel. V
 ## Problemas conhecidos
 
 - **Impasse de esquiva.** Quando as duas equipes estão com menos de 30% de HP e as duas pilotadas pela IA, as duas passam a ESQUIVAR, fogem para cantos opostos e ninguém mais alcança ninguém. Isso também acontece com o jogador parado na tática ESQUIVAR contra um rival fraco. A regra veio da Arena original e foi mantida para paridade. Ideias para resolver: esquivar só enquanto o rival estiver ao alcance; ou a IA não esquivar se o rival também estiver esquivando. O teste de IA contra IA desliga a esquiva (`ia.hpEsquiva = 0`) enquanto isso não for decidido.
+- **Empate eterno com cura.** Na batalha `laboratorio`, o duelo final costuma ser Brotinho contra Brotinho. Planta resiste a planta e os dois usam Fôlego (cura de 25% a cada 8 s), então a cura vence o dano e a luta não acaba. Não é defeito do motor: é balanceamento (recarga maior, cura menor, ou cura que perde força a cada uso). O simulador de balanceamento é o lugar para medir isso.
+- **Nomes longos no card 2×2.** "Investida Veloz" e "Salto para Trás" aparecem cortados com reticências no card da Arena.
+- **Efeitos extras não aparecem no card.** O resumo mostra só o principal ("Poder 15 · Longe"); o "prende" da Teia de Raiz não aparece.
 
 ## Comandos
 

@@ -3,11 +3,14 @@
 
 import { useEffect, useState } from 'preact/hooks';
 import type { Jogo } from '../app/jogo';
-import { confronto, eficacia, especieDe, golpeDe, type Lutador, type Tatica } from '../nucleo';
+import { confronto, eficacia, especieDe, golpeDe, perfilDoGolpe, type Lutador, type Tatica } from '../nucleo';
+import { descricaoGolpe } from './descricao';
 import { ICONE_PADRAO, aoApertar, corHp, moldura } from './estilo';
 import { GLIFOS } from './glifos';
 import { BarraHp, IconePixel, Retrato, Selos } from './pecas';
 import { Telas } from './telas';
+
+const SIGLA = { ataque: 'ATQ', defesa: 'DEF', velocidade: 'VEL' } as const;
 
 const TATICAS: [Tatica, string, string][] = [
   ['perseguir', 'AVANÇAR', 'Vai pra cima e luta de perto.'],
@@ -53,7 +56,7 @@ export function App({ jogo, aoCanvas }: { jogo: Jogo; aoCanvas: (el: HTMLCanvasE
       atraso: Math.max(pct, j.visual(l).hpLag / l.hpMax),
       cor: corHp(pct),
       texto: `${l.hp}/${l.hpMax}`,
-      buff: l.buff && !l.desmaiado ? `${l.buff.atributo === 'ataque' ? 'ATQ+' : 'DEF+'}${l.buff.valor}` : null,
+      buff: l.buff && !l.desmaiado ? `${SIGLA[l.buff.atributo]}+${l.buff.valor}` : null,
     };
   };
   const E = cartao(rival);
@@ -232,16 +235,14 @@ function Golpes({ jogo: j }: { jogo: Jogo }) {
         const recarregando = uso.recarga > 0;
         const naFila = eq.proximoGolpe === i;
         let selo: [string, string, string] | null = null;
-        if (j.opcoes.assist && g.dano && !rival.desmaiado) {
+        if (j.opcoes.assist && perfilDoGolpe(g).causaDano && !rival.desmaiado) {
           const ef = eficacia(c, g.tipo, especieDe(c, rival).tipos);
           if (ef >= 4) selo = ['x4', '#ffcd75', '#1a1c2c'];
           else if (ef >= 2) selo = ['x2', '#ffcd75', '#1a1c2c'];
           else if (ef === 0) selo = ['x0', '#b13e53', '#f4f4f4'];
           else if (ef < 1) selo = [`x${ef}`, '#333c57', '#c0cbdc'];
         }
-        const meta = g.dano
-          ? `Poder ${g.dano.poder} · ${g.contato ? 'Perto' : 'Longe'}`
-          : `${g.buff?.atributo === 'ataque' ? 'Ataque' : 'Defesa'} +${g.buff?.valor} · ${g.buff?.duracao}s`;
+        const meta = descricaoGolpe(g);
         // Tipo de cor branca (normal) usaria a mesma borda do "golpe recém-usado"; vira cinza.
         const bordaTipo = cor === '#f4f4f4' ? '#94b0c2' : cor;
         const borda = (v.disparo[i] ?? 0) > 0 ? '#f4f4f4' : naFila ? '#ffcd75' : recarregando ? '#333c57' : bordaTipo;

@@ -15,7 +15,9 @@ import {
   especieDe,
   golpeDe,
   lutadorPorUid,
+  type Atributo,
   type Comando,
+  type Condicao,
   type EstadoBatalha,
   type Evento,
   type Lutador,
@@ -37,6 +39,8 @@ export interface Opcoes {
   velocidade: number;
   /** Semente fixa para repetir a mesma batalha (testes, comparação). */
   semente?: number;
+  /** Id em `batalhas.json` (padrão: "treino"). */
+  batalha?: string;
 }
 
 /** Estado só de apresentação de cada criatura; o núcleo não sabe que isto existe. */
@@ -73,6 +77,16 @@ export interface TextoFlutuante {
   esc: number;
   vida: number;
 }
+
+const SIGLA: Record<Atributo, string> = { ataque: 'ATQ', defesa: 'DEF', velocidade: 'VEL' };
+const COR_BUFF: Record<Atributo, string> = { ataque: '#ef7d57', defesa: '#73eff7', velocidade: '#a7f070' };
+const TEXTO_CONDICAO: Record<Condicao['tipo'], [string, string]> = {
+  lentidao: ['LENTO', '#41a6f6'],
+  preso: ['PRESO', '#a7f070'],
+  atordoado: ['ATORDOADO', '#ffcd75'],
+  'dano-continuo': ['FERIDO', '#ef7d57'],
+  debuff: ['ENFRAQUECIDO', '#94b0c2'],
+};
 
 const DIRECOES: Record<string, 'u' | 'd' | 'l' | 'r'> = {
   ArrowUp: 'u', KeyW: 'u', ArrowDown: 'd', KeyS: 'd',
@@ -153,7 +167,8 @@ export class Jogo {
 
   private novaBatalha(): void {
     const semente = this.opcoes.semente ?? Math.floor(Math.random() * 2 ** 31);
-    this.b = criarBatalha(this.c, configDaBatalha(this.c, 'treino', semente, this.opcoes.dificuldade));
+    const batalha = this.opcoes.batalha && this.c.batalhas[this.opcoes.batalha] ? this.opcoes.batalha : 'treino';
+    this.b = criarBatalha(this.c, configDaBatalha(this.c, batalha, semente, this.opcoes.dificuldade));
     this.visuais.clear();
     for (const eq of this.b.equipes) {
       for (const l of eq.lutadores) {
@@ -567,9 +582,40 @@ export class Jogo {
         case 'buff': {
           const l = lutadorPorUid(this.b, e.lutador);
           const h = this.alturaSprite(l);
-          this.textoEm(l, h + 12, e.atributo === 'ataque' ? 'ATQ+' : 'DEF+', '#ffcd75', 1);
-          this.explosaoEm(l, h / 2, e.atributo === 'ataque' ? '#ef7d57' : '#73eff7', 10);
+          this.textoEm(l, h + 12, `${SIGLA[e.atributo]}+`, '#ffcd75', 1);
+          this.explosaoEm(l, h / 2, COR_BUFF[e.atributo], 10);
           this.tocar('buff');
+          break;
+        }
+        case 'cura': {
+          const l = lutadorPorUid(this.b, e.lutador);
+          const h = this.alturaSprite(l);
+          this.textoEm(l, h + 16, `+${e.valor}`, '#a7f070', 2);
+          this.explosaoEm(l, h / 2, '#a7f070', 10);
+          this.tocar('buff');
+          break;
+        }
+        case 'deslocamento': {
+          const l = lutadorPorUid(this.b, e.lutador);
+          if (e.motivo === 'avancar' || e.motivo === 'recuar') this.explosaoEm(l, 0, '#e6b57e', 6);
+          else this.explosaoEm(l, this.alturaSprite(l) / 2, '#f4f4f4', 6);
+          break;
+        }
+        case 'condicao': {
+          const l = lutadorPorUid(this.b, e.lutador);
+          const debuff = l.condicoes.filter((cd) => cd.tipo === 'debuff').at(-1);
+          const [texto, cor] = e.condicao === 'debuff' && debuff?.tipo === 'debuff' ? [`${SIGLA[debuff.atributo]}-`, '#94b0c2'] : TEXTO_CONDICAO[e.condicao];
+          this.textoEm(l, this.alturaSprite(l) + 12, texto, cor, 1, 1.1);
+          break;
+        }
+        case 'errou': {
+          const l = lutadorPorUid(this.b, e.autor);
+          this.textoEm(l, this.alturaSprite(l) + 12, 'ERROU', '#94b0c2', 1);
+          break;
+        }
+        case 'interrompido': {
+          const l = lutadorPorUid(this.b, e.lutador);
+          this.textoEm(l, this.alturaSprite(l) + 12, 'INTERROMPIDO', '#94b0c2', 1);
           break;
         }
         case 'projetil': {
@@ -659,8 +705,13 @@ export class Jogo {
     if (v.lagT <= 0) v.hpLag = Math.max(v.hpLag, v.hpVisto);
     v.hpVisto = Math.max(0, v.hpVisto - e.valor);
     v.lagT = 0.4;
-    v.flash = 0.2;
     const h = this.alturaSprite(alvo);
+    if (e.origem === 'continuo') {
+      // Dano contínuo: número pequeno, sem tremor nem som, para não poluir.
+      this.textoEm(alvo, h + 16, String(e.valor), '#ef7d57', 1, 0.6);
+      return;
+    }
+    v.flash = 0.2;
     const ef = e.eficacia;
     const cor = ef >= 2 ? '#ffcd75' : ef < 1 ? '#94b0c2' : '#f4f4f4';
     this.textoEm(alvo, h + 16, String(e.valor), cor, ef >= 2 ? 3 : 2);
@@ -678,6 +729,6 @@ export class Jogo {
       this.tocar('hit');
     }
     const g = golpeDe(this.c, e.golpe);
-    this.explosaoEm(alvo, h / 2, g.contato ? '#f4f4f4' : (this.c.tipos[g.tipo]?.cor ?? '#f4f4f4'), 8);
+    this.explosaoEm(alvo, h / 2, e.origem === 'contato' ? '#f4f4f4' : (this.c.tipos[g.tipo]?.cor ?? '#f4f4f4'), 8);
   }
 }

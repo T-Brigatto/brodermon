@@ -15,15 +15,17 @@ const erroAo = (mexer: (c: ReturnType<typeof conteudo>) => void): string => {
 };
 
 describe('pacote do protótipo', () => {
-  it('tem os 7 tipos, as 6 criaturas e os 19 golpes da Arena', () => {
+  it('tem os 7 tipos e as 6 criaturas da Arena, usando os 19 golpes originais', () => {
     expect(Object.keys(prototipo.tipos)).toHaveLength(7);
     expect(Object.keys(prototipo.especies)).toHaveLength(6);
-    expect(Object.keys(prototipo.golpes)).toHaveLength(19);
+    const usados = new Set(Object.values(prototipo.especies).flatMap((e) => e.golpes));
+    expect(usados.size).toBe(19);
   });
 
-  it('preenche os padrões: eficácia vazia vira {} e contato vira false', () => {
-    expect(prototipo.golpes['ventania']!.contato).toBe(false);
-    expect(prototipo.golpes['investida']!.contato).toBe(true);
+  it('preenche os padrões: conjuração 0 e projétil sem efeitos extras', () => {
+    const ventania = prototipo.golpes['ventania']!;
+    expect(ventania.conjuracao).toBe(0);
+    expect(ventania.efeitos[0]).toEqual({ efeito: 'projetil', poder: 45, efeitos: [] });
   });
 });
 
@@ -53,12 +55,30 @@ describe('validação', () => {
     expect(erroAo((c) => (c.batalhas['treino']!.equipes[1].time[0] = 'dragao'))).toContain('espécie "dragao" não existe');
   });
 
-  it('recusa golpe sem dano e sem buff', () => {
-    expect(erroAo((c) => delete c.golpes['brisa']!.buff)).toContain('o golpe precisa de dano, buff ou os dois');
+  it('recusa golpe sem efeitos', () => {
+    expect(erroAo((c) => (c.golpes['brisa']!.efeitos = []))).toContain('golpes.brisa.efeitos');
   });
 
-  it('recusa golpe com dano e sem alcance', () => {
-    expect(erroAo((c) => delete c.golpes['jato']!.alcance)).toContain('golpes.jato.alcance');
+  it('recusa golpe que atinge o rival sem alcance', () => {
+    expect(erroAo((c) => delete c.golpes['jato']!.alcance)).toContain('golpe que atinge o rival precisa de alcance');
+  });
+
+  it('aceita golpe só de movimento ou buff sem alcance', () => {
+    const c = conteudo();
+    expect(c.golpes['salto-para-tras']!.alcance).toBeUndefined();
+    expect(() => carregarConteudo(c)).not.toThrow();
+  });
+
+  it('recusa efeito desconhecido e campo errado no efeito', () => {
+    expect(erroAo((c) => ((c.golpes['jato']!.efeitos as unknown[])[0] = { efeito: 'teletransporte' }))).toContain('golpes.jato.efeitos.0');
+    expect(erroAo((c) => ((c.golpes['lamacal']!.efeitos as unknown[])[0] = { efeito: 'projetil', poder: 10, efeitos: [{ efeito: 'lentidao', fator: 2, duracao: 1 }] }))).toContain('fator');
+  });
+
+  it('time de batalha pode escolher os golpes de cada criatura', () => {
+    const c = conteudo();
+    c.batalhas['treino']!.equipes[0].time[0] = { especie: 'perereca', golpes: ['investida-veloz', 'salto-para-tras'] };
+    expect(() => carregarConteudo(c)).not.toThrow();
+    expect(erroAo((x) => (x.batalhas['treino']!.equipes[0].time[0] = { especie: 'perereca', golpes: ['voo'] }))).toContain('golpe "voo" não existe');
   });
 
   it('recusa espécie com mais golpes que o máximo', () => {
