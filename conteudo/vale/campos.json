@@ -3,7 +3,7 @@
   "fumaca-quente": {"nome": "Fumaça quente", "camada": "nevoa", "tipo": "fogo", "imunes": ["fogo"], "pulso": 0.5, "poder": 2},
   "poca": {"nome": "Poça", "camada": "terreno", "tipo": "agua", "imunes": ["agua"], "estado": "encharcado"},
   "umidade": {"nome": "Umidade", "camada": "nevoa", "tipo": "agua", "estado": "umido"},
-  "chao-congelado": {"nome": "Chão congelado", "camada": "terreno", "tipo": "gelo", "imunes": ["gelo"], "estado": "escorregando"},
+  "chao-congelado": {"nome": "Chão congelado", "camada": "terreno", "tipo": "gelo", "imunes": ["gelo"], "estado": "escorregando", "visual": "brilho-de-gelo"},
   "neblina-gelada": {"nome": "Neblina gelada", "camada": "nevoa", "tipo": "gelo", "imunes": ["gelo"], "estado": "neblina", "permanencia": {"segundos": 3, "efeitos": [{"efeito": "estado", "estado": "congelado", "duracao": 1}]}},
   "corrente-de-vento": {"nome": "Corrente de vento", "camada": "terreno", "tipo": "ar", "imunes": ["ar"], "empuxo": {"lado": 45}},
   "turbilhao": {"nome": "Turbilhão", "camada": "nevoa", "tipo": "ar", "projeteis": {"desvio": 60}},
@@ -20,11 +20,11 @@
   "territorio": {"nome": "Território", "camada": "terreno", "tipo": "primordial", "dono": "territorio"},
   "miasma": {"nome": "Miasma", "camada": "nevoa", "tipo": "primordial", "pulso": 1, "poder": 2, "estado": "miasma"},
   "rastro-eletrico": {"nome": "Rastro elétrico", "camada": "terreno", "tipo": "eletricidade", "imunes": ["eletricidade"], "aoEntrar": {"poder": 20}},
-  "vacuo": {"nome": "Vácuo", "camada": "nevoa", "tipo": "ar", "estado": "vacuo", "apaga": {"camadas": ["nevoa"], "tipos": ["fogo"]}},
+  "vacuo": {"nome": "Vácuo", "camada": "nevoa", "tipo": "ar", "estado": "vacuo", "apaga": {"camadas": ["nevoa"], "tipos": ["fogo"]}, "visual": "succao"},
   "tempo-lento": {"nome": "Tempo lento", "camada": "terreno", "tipo": "arcano", "estado": "tempo-lento", "projeteis": {"tempo": 0.4}, "tempo": 0.4},
-  "gravidade-arcana": {"nome": "Gravidade arcana", "camada": "terreno", "tipo": "arcano", "projeteis": {"atrai": 200}},
+  "gravidade-arcana": {"nome": "Gravidade arcana", "camada": "terreno", "tipo": "arcano", "projeteis": {"atrai": 200}, "visual": "succao"},
   "carnivora": {"nome": "Planta carnívora", "camada": "terreno", "tipo": "natureza", "consome": true, "aoEntrar": {"poder": 35, "efeitos": [{"efeito": "prender", "duracao": 1.2}]}},
   "vinhas": {"nome": "Vinhas entrelaçadas", "camada": "terreno", "tipo": "natureza", "afeta": "rival", "dono": "vinhas", "aoEntrar": {"efeitos": [{"efeito": "prender", "duracao": 0.4}]}},
-  "rampa-de-gelo": {"nome": "Rampa de gelo", "camada": "terreno", "tipo": "gelo", "rampa": 1.6},
-  "areia-movedica": {"nome": "Areia movediça", "camada": "terreno", "tipo": "terra", "permanencia": {"segundos": 2, "efeitos": [{"efeito": "prender", "duracao": 1}]}}
+  "rampa-de-gelo": {"nome": "Rampa de gelo", "camada": "terreno", "tipo": "gelo", "rampa": 1.6, "visual": "brilho-de-gelo"},
+  "areia-movedica": {"nome": "Areia movediça", "camada": "terreno", "tipo": "terra", "permanencia": {"segundos": 2, "efeitos": [{"efeito": "prender", "duracao": 1}]}, "visual": "succao"}
 }

@@ -6,7 +6,7 @@ A Arena foi refeita em **TypeScript + Vite com núcleo determinístico**, e a ar
 - o núcleo da batalha, com testes, em que **cada golpe é uma lista de efeitos**: dano, projéteis (guiado, reto, persegue, quica, com estouro, grudar, bumerangue, aura, dreno), formas (área, cone, linha, parede, que podem esperar, durar, andar, crescer e deixar campo), várias de uma vez, efeitos no alvo, estados, teleporte, avanço que atravessa, atração, corrente, objetos (pilar, portais, cópia, pino) e cópia do golpe do rival;
 - **estados** (`estados.json`) e **terrenos e névoas** (`campos.json`) como dicionários, com imunes;
 - dois pacotes de conteúdo: `prototipo` (a Arena original, mais 12 golpes de laboratório e 24 do guia) e `vale` (os 10 elementos e os **103 golpes do guia de golpes**, com criaturas de laboratório);
-- o desenho em canvas, com efeitos especiais em pixel por elemento (`fx` em `tipos.json`; a Arena original não tem);
+- o desenho em canvas, com efeitos especiais em pixel por elemento (`fx` em `tipos.json`; a Arena original não tem). Cada elemento do vale tem animações próprias por papel (`fx.animacoes`: labaredas, jato d'água, espinhos de gelo, relâmpago, rachadura, prisma, vinha, runas, garras…), montadas com peças (`desenho/animacoes.ts`) por receitas (`desenho/receitas.ts`);
 - as telas em Preact;
 - o som;
 - um visualizador de depuração (`depuracao.html`);
@@ -21,7 +21,7 @@ Tudo é em **pt-BR**: interface, nomes, identificadores, comentários e resposta
 conteudo/       pacotes de dicionários (tipos, golpes, espécies, estados, campos, sprites, batalhas, regras): prototipo/ e vale/ — ver conteudo/LEIAME.md
 src/nucleo/     batalha pura: comandos entram, eventos saem (sem DOM, relógio ou Math.random)
 src/conteudo/   esquema Zod + registro dos pacotes
-src/desenho/    canvas: perspectiva, cenário, sprites, fonte de pixel, cena
+src/desenho/    canvas: perspectiva, cenário, sprites, fonte de pixel, cena, efeitos especiais (fx, animacoes, pixels)
 src/interface/  telas em Preact (HUD, cards, time, táticas, título, pausa, escolha, fim, ajuda)
 src/plataforma/ som e preferências
 src/app/        jogo.ts (liga tudo), main.tsx (entrada), depuracao.ts

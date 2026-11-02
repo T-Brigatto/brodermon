@@ -19,7 +19,7 @@ src/conteudo/         esquema (Zod) e registro dos pacotes
 src/nucleo/           batalha pura: passo e golpes (batalha), dano e efeitos no alvo (combate), estados,
                       chão da arena (campo: zonas, terrenos, névoas, objetos, agendados), projéteis,
                       geometria das formas, IA, movimento, sorteio
-src/desenho/          canvas: perspectiva da arena, cenário, sprites, fonte de pixel, cena (setas, minimapa)
+src/desenho/          canvas: perspectiva da arena, cenário, sprites, fonte de pixel, cena (setas, minimapa), efeitos especiais (fx, animacoes, pixels)
 src/interface/        telas em Preact: HUD, cards de golpe, time, táticas, título, pausa, escolha, fim, ajuda
 src/plataforma/       som (WebAudio) e preferências (localStorage)
 src/app/              jogo.ts (controlador), main.tsx (entrada), depuracao.ts (visualizador do núcleo)
@@ -113,7 +113,14 @@ O pacote `conteudo/vale/` tem os 10 elementos e os 103 golpes do guia (10 por el
 
 Tudo isso só existe no pacote `vale` (e no laboratório `formas`): nos golpes da Arena não há estados nem campos, e por isso a paridade continua valendo. Os caminhos novos só rodam quando há zonas, objetos ou estados.
 
-**Efeitos especiais** (`src/desenho/fx.ts`): animações desenhadas pixel a pixel nas cores do elemento (`fx` em `tipos.json`): impacto em estrela com núcleo branco e halo, anel de energia que se abre (áreas), feixe grosso (linhas) e raio quebrado com galhos (Eletricidade); e partículas com o jeito de cada elemento (brasa sobe, gota cai, floco cintila…). A energia de quem conjura e o brilho com rastro dos projéteis são desenhados direto do estado, em `desenho/cena.ts`. O app (`fxDoQuadro` e `fxDaForma` em `src/app/jogo.ts`) solta o resto a cada quadro (o ar dos terrenos e névoas, o sopro das formas canalizadas, os estados com `fx`) e a cada evento (forma acertando, impacto, projétil saindo e sumindo, teleporte, salto do pino).
+**Animações próprias dos elementos** (`fx.animacoes` em `tipos.json`; `visual` em golpes e campos). Cada elemento escolhe uma animação por papel (projétil, área, cone, linha, parede, impacto, terreno, névoa, avanço); a lista completa está em `conteudo/LEIAME.md`. São três camadas:
+- **Peças** (`src/desenho/animacoes.ts`): labareda, baforada, bolha (de fogo ou de água), risco de vento, arco, mancha, clarão, gota, espinho, pedra, rachadura, folha, vinha, runa, garra, mordida, traçado (prisma e corrente), e o funil, o anel e o círculo de runas que seguem uma zona (`Fx.continuos`). Cada peça nasce, anda e se desenha sozinha, nas cores do elemento.
+- **Receitas** (`src/desenho/receitas.ts`): cada nome do dicionário combina peças, por papel: a forma que acerta, a zona que dura, o terreno ou a névoa, o impacto, o projétil (rastro e corpo) e o avanço. Os `Record` obrigam a ter receita para todo nome que o esquema aceita. Uma zona sem receita própria usa a do terreno de mesmo nome.
+- **Motor** (`src/desenho/fx.ts`): guarda as peças vivas (até 1200), passa o tempo e desenha em ordem: no chão (manchas, rachaduras, ondinhas, anéis, círculos), depois fumaça, o que brota (vinhas, espinhos, chamas), o que voa e as partículas.
+
+Labaredas, bolhas, espinhos e vinhas são pintados em camadas (contorno de todos, depois corpo, miolo e núcleo), para os que se encostam virarem um fogaréu, um jato ou um maciço só. Riscos, arcos e anéis têm 2 pixels e sombra na cor escura do elemento, para aparecer no chão claro. Com animação própria, a forma do golpe fica só marcada no chão (`desenho/cena.ts`). O tremor de tela vem da animação (`TREMOR_DA_ANIMACAO` em `app/jogo.ts`). O avanço que não acerta ao passar (Avanço Selvagem) é reconhecido pelo efeito `avancar` em andamento (`acao.passo`).
+
+**Efeitos especiais comuns** (`src/desenho/fx.ts`): animações desenhadas pixel a pixel nas cores do elemento (`fx` em `tipos.json`): impacto em estrela com núcleo branco e halo, anel de energia que se abre (áreas), feixe grosso (linhas) e raio quebrado com galhos (Eletricidade); e partículas com o jeito de cada elemento (brasa sobe, gota cai, floco cintila…). A energia de quem conjura e o brilho com rastro dos projéteis são desenhados direto do estado, em `desenho/cena.ts`. O app (`fxDoQuadro` e `fxDaForma` em `src/app/jogo.ts`) solta o resto a cada quadro (o ar dos terrenos e névoas, o sopro das formas canalizadas, os estados com `fx`) e a cada evento (forma acertando, impacto, projétil saindo e sumindo, teleporte, salto do pino).
 
 **Ritmo do vale** (`regras.json`): 2 s de pausa entre golpes e recargas 1,5× as do guia (`recargaGolpes`); o nome dos golpes aparece sobre as duas criaturas (`anunciarGolpes`). No torneio, IA contra IA, sai um golpe a cada 2,1 s (era 1,2 s) e a luta dura uns 148 s (era 84 s). É só apresentação: usa `Math.random` à vontade e não toca no núcleo. Os tipos do protótipo não têm `fx`, e a Arena original continua idêntica pixel a pixel.
 

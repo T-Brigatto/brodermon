@@ -30,6 +30,22 @@ especies.gotinha.golpes.0: golpe "tsunami" não existe
   - `particula`: cor das faíscas quando a criatura desmaia.
   - `terreno` e `nevoa`: os campos do elemento em `campos.json`.
   - `fx`: efeitos especiais em pixel do elemento: `estilo` e `cores` (da mais escura à mais clara). Os estilos: `brasa` (sobe), `estouro` (espalha rápido), `gota` (cai), `floco` (flutua e cintila), `redemoinho` (gira), `faisca` (risca em zigue-zague), `poeira` (se espalha devagar), `estilhaco` (voa e cai brilhando), `folha` (balança), `estrela` (cintila em cruz) e `garra` (risca). Sem `fx`, o elemento não tem efeito especial: é o caso da Arena original.
+    - `fx.animacoes` (opcional): a animação própria do elemento em cada papel. Papel sem animação usa o efeito comum, igual para todos os elementos e só nas cores de cada um: anel de energia, feixe, bolinha com rastro e estrela de impacto. Todos os elementos do `vale` têm; os tipos da Arena original, não. Qualquer elemento pode usar qualquer animação, nas cores dele.
+
+      | Papel | Animações |
+      |---|---|
+      | `projetil` | `bola-de-fogo` (chama com cauda e rastro), `meia-lua` (lâmina curva), `gota` (gota que pinga no voo), `bolha` (bolha de sabão), `espinho` (lasca comprida: gelo, quartzo, espinho de planta), `esfera-eletrica` (orbe com arcos que estalam), `rocha` (pedra que rola), `lamina-giratoria` (quatro pontas girando), `folha` (folha girando), `orbe` (orbe com estrelinhas em volta) |
+      | `area`, `cone`, `linha`, `parede` | `labaredas` (línguas de fogo que se juntam num fogaréu), `jato-de-fogo` (jato que sai da boca, esfria e vira fumaça), `explosao` (bola de fogo, chamas e fumaça, com tremor), `clarao` (lampejo e raios de luz), `fumaca`, `vento` (riscos que se enrolam e arcos de rajada), `onda-de-vento` (anéis que se abrem), `redemoinho` (funil que gira), `succao` (riscos correndo para o centro), `respingo` (gotas e ondas no chão), `geiser` (coluna de água), `jato-dagua` (jato reto que respinga no fim), `ondulacao` (ondas no chão), `onda` (crista de água que quebra), `espinhos` (estacas ou cristais que brotam do chão), `estalactite` (cai do alto e estoura), `granizo` (pedras de gelo que quicam), `sopro` (bafo na cor do elemento), `avalanche` (neve e blocos rolando), `relampago` (raio do céu), `descarga` (raios do corpo para o chão), `arco-eletrico` (raio de ponta a ponta), `tremor` (rachaduras, pedras e poeira, com tremor), `rachadura` (fenda que corre e levanta o chão), `poeira` (nuvem e areia), `prisma` (luz que se abre em arco-íris), `corrente` (elos), `ressonancia` (anéis finos e lascas), `brilhos` (purpurina), `raizes` (raízes que brotam), `vinha` (vinha que chicoteia), `bruma` (névoa na cor do elemento), `runas` (círculo mágico e runas subindo), `rugido` (ondas no chão e no ar, com tremor), `varrida` (golpe largo que varre o cone) |
+      | `impacto` | `chamusco` (chamas pegando no alvo), `lufada` (riscos de vento e anel de ar), `respingo` (gotas e espuma), `geada` (lascas de gelo e névoa fria), `choque` (raios curtos), `pedrada` (pedras e poeira), `estilhacos` (lascas e brilhos), `folhas`, `estrelas` (estrelas, anel e uma runa), `garras` (três riscos de garra), `mordida` (presas que se fecham) |
+      | `terreno`, `nevoa` | `labaredas`, `fumaca`, `vento` (na direção do empuxo do campo), `redemoinho`, `succao`, `ondulacao` (ondinhas e brilhos), `chuva`, `brilho-de-gelo`, `estatica` (estalos), `nuvem-carregada` (nuvem escura que solta raios), `rachaduras`, `poeira`, `espinhos` (cristais que brotam e duram), `brilhos`, `raizes`, `bruma`, `runas` (o círculo acompanha o campo), `aura` (brasas subindo e um pulso no chão) |
+      | `avanco` | `rastro-de-fogo`, `velocidade` (linhas de velocidade): quem avança com o golpe deixa o rastro |
+
+      ```json
+      "fx": { "estilo": "brasa", "cores": ["#a8322a", "#ef6a3a", "#ffb27a", "#fff09a"],
+        "animacoes": { "projetil": "bola-de-fogo", "area": "labaredas", "cone": "jato-de-fogo", "impacto": "chamusco", "terreno": "labaredas" } }
+      ```
+
+      As cores das animações vêm de `cores`: a 1ª é o contorno e a sombra, a 2ª o corpo, a 3ª o miolo e a 4ª a parte mais quente ou mais clara.
 
 ## categorias.json
 
@@ -69,6 +85,7 @@ Campos do golpe:
 - `conjuracao` (opcional): segundos concentrando antes dos efeitos. Ser empurrado, puxado ou atordoado durante a conjuração interrompe o golpe. As formas do golpe aparecem marcadas no chão durante a conjuração.
 - `durante` (opcional): como quem usa se move durante a conjuração e a canalização. `parado` (padrão), `lento` (velocidade × `regras.golpeLento`) ou `livre`.
 - `categoria` e `animacao`: opcionais.
+- `visual` (opcional, só visual): troca a animação do elemento em algum papel neste golpe, com os mesmos nomes de `fx.animacoes` (sem `terreno` e `nevoa`). Bola de Fogo e Detonação usam `{ "area": "explosao" }`; Tornado, `{ "area": "redemoinho" }`; Mordida Ancestral, `{ "impacto": "mordida" }`.
 
 ### Efeitos em quem usa
 
@@ -220,6 +237,7 @@ Terrenos (no chão) e névoas (no ar). Cada elemento tem os seus (`terreno` e `n
 | `apaga` | Apaga o que entra nele enquanto dura (Vácuo apaga Fogo e névoas). |
 | `dispara` | Dispara um projétil no rival a cada `intervalo` (Círculo rúnico). |
 | `detona` | Explode quando um golpe do `tipo` o acerta (sem golpe no `vale` hoje; testado em `testes/vale-mecanicas.test.ts`). |
+| `visual` | Só visual: a animação deste campo no lugar da do elemento para a camada (`fx.animacoes.terreno` ou `.nevoa`). Vácuo, Areia movediça e Gravidade arcana usam `succao`. |
 
 As reações entre terrenos e névoas de elementos diferentes ainda não foram definidas (pendência do guia); por enquanto, só valem as dos golpes (Decomposição, Ruptura, Vácuo, Onda de Choque, Fome do Fogo).
 

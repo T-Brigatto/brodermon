@@ -1,17 +1,90 @@
-// Efeitos especiais em pixel, no espírito dos FX de mesa virtual: animações desenhadas quadro a
-// quadro (impacto em estrela, bola de fogo, onda de choque, feixe, raio, energia de conjuração,
-// brilho e rastro dos projéteis) e partículas com o jeito de cada elemento (brasa sobe, gota cai,
-// floco cintila…). Só aparecem nos tipos que têm `fx` em tipos.json: a Arena original não tem, e
-// fica igual. Tudo em coordenadas do cenário; é só apresentação, então pode sortear à vontade.
+// Efeitos especiais em pixel, no espírito dos FX de mesa virtual. Há dois níveis:
+// - o comum, igual para todo elemento, só nas cores dele: impacto em estrela, anel de energia, feixe, raio,
+//   energia de conjuração, brilho e rastro dos projéteis, e partículas com o jeito do elemento (brasa sobe, gota
+//   cai, floco cintila…);
+// - as animações próprias, que o elemento escolhe por papel em `fx.animacoes` (tipos.json) e um golpe ou campo
+//   pode trocar em `visual`. As peças (labareda, gota, espinho, risco de vento…) estão em `animacoes.ts`, e as
+//   receitas que montam cada animação com elas, em `receitas.ts`. Aqui ficam as peças vivas, o tempo e o desenho.
+// Só aparecem nos tipos que têm `fx`: a Arena original não tem, e fica igual. Tudo em coordenadas do cenário;
+// é só apresentação, então pode sortear à vontade.
 
-import type { Conteudo, EstiloFx } from '../conteudo/esquema';
+import type {
+  AnimacaoAvanco,
+  AnimacaoCampo,
+  AnimacaoForma,
+  AnimacaoImpacto,
+  AnimacaoProjetil,
+  Campo,
+  Conteudo,
+  PapelGolpe,
+  Tipo,
+  VisualGolpe,
+} from '../conteudo/esquema';
 import { acertaForma, type Geometria, type Ponto, type Posicao } from '../nucleo';
+import {
+  FUMACA,
+  SUMIR,
+  caminhoRachado,
+  quebrado,
+  desenharAnel,
+  desenharArco,
+  desenharBaforada,
+  desenharBaseDoFunil,
+  desenharBolhas,
+  desenharCirculo,
+  desenharClarao,
+  desenharEspinhos,
+  desenharFolha,
+  desenharFunil,
+  desenharGarra,
+  desenharGota,
+  desenharLabaredas,
+  desenharMancha,
+  desenharMordida,
+  desenharPedra,
+  desenharRachadura,
+  desenharRisco,
+  desenharRuna,
+  desenharTracado,
+  desenharVinhas,
+  moverBaforada,
+  moverBolha,
+  moverFolha,
+  moverGota,
+  moverPedra,
+  moverRisco,
+  moverRuna,
+  paleta,
+  passar,
+  visivel,
+  type Arco,
+  type Baforada,
+  type Bolha,
+  type Clarao,
+  type Continuo,
+  type Espinho,
+  type Folha,
+  type Garra,
+  type Gota,
+  type Labareda,
+  type Mancha,
+  type Mordida,
+  type Paleta,
+  type Pedra,
+  type Rachadura,
+  type Risco,
+  type Runa,
+  type Tracado,
+  type Vinha,
+} from './animacoes';
 import { projetar } from './arena';
+import { BRANCO, anel, comAlfa, cruz, disco, elipseNoChao, linha, trama } from './pixels';
+import { AVANCOS, CAMPOS, FORMAS, IMPACTOS, PROJETEIS, ZONAS } from './receitas';
 
-const BRANCO = '#f4f4f4';
+export { anguloNaTela, areaDaForma } from './animacoes';
 
 type Forma = 'ponto' | 'cruz' | 'risco' | 'faisca' | 'trama';
-type Jeito = EstiloFx | 'nevoa';
+export type Jeito = NonNullable<Tipo['fx']>['estilo'] | 'nevoa';
 
 interface Comportamento {
   /** Velocidade de saída (cenário/s), mínima e máxima. */
@@ -79,43 +152,126 @@ type Anim = { t: number; dur: number; cores: string[] } & (
 type NovaAnim<T = Anim> = T extends unknown ? Omit<T, 't' | 'dur' | 'cores'> : never;
 
 const MAXIMO = 900;
+/** Limite das peças das animações próprias (labaredas, riscos, gotas…), somadas. */
+const MAXIMO_PECAS = 1200;
 const sorte = Math.random;
-const entre = ([a, b]: [number, number]) => a + sorte() * (b - a);
+const sortear = ([a, b]: [number, number]) => a + sorte() * (b - a);
 /** Cores do efeito: a mais escura, a do meio e a mais clara. */
 const tons = (c: string[]) => ({ escura: c[0]!, media: c[Math.floor((c.length - 1) / 2)]!, clara: c[c.length - 1]! });
+
+/** Força de um acerto: o dano contínuo e o disparo são leves, o super eficaz é forte. */
+export type Forca = 'leve' | 'normal' | 'forte';
 
 export class Fx {
   particulas: Particula[] = [];
   anims: Anim[] = [];
-  private t = 0;
+  labaredas: Labareda[] = [];
+  baforadas: Baforada[] = [];
+  bolhas: Bolha[] = [];
+  riscos: Risco[] = [];
+  arcos: Arco[] = [];
+  manchas: Mancha[] = [];
+  claroes: Clarao[] = [];
+  gotas: Gota[] = [];
+  espinhos: Espinho[] = [];
+  pedras: Pedra[] = [];
+  rachaduras: Rachadura[] = [];
+  folhas: Folha[] = [];
+  vinhas: Vinha[] = [];
+  runas: Runa[] = [];
+  garras: Garra[] = [];
+  mordidas: Mordida[] = [];
+  tracados: Tracado[] = [];
+  /** Funis, anéis e círculos que seguem uma zona, pela zona. */
+  readonly continuos = new Map<object, Continuo>();
+  private readonly paletas = new Map<string, Paleta>();
+  /** Relógio dos efeitos, em segundos. */
+  t = 0;
 
   constructor(private readonly c: Conteudo) {}
 
   /** O efeito do tipo, ou null (sem efeito). */
-  de(tipo: string): { estilo: EstiloFx; cores: string[] } | null {
+  de(tipo: string): NonNullable<Tipo['fx']> | null {
     return this.c.tipos[tipo]?.fx ?? null;
+  }
+
+  /** A animação de um papel no golpe: a do golpe (`visual`), senão a do elemento; null = efeito comum. */
+  animacao<P extends PapelGolpe>(golpe: string, papel: P): NonNullable<VisualGolpe[P]> | null {
+    const g = this.c.golpes[golpe];
+    const fx = g ? this.de(g.tipo) : null;
+    if (!g || !fx) return null;
+    return (g.visual?.[papel] ?? fx.animacoes?.[papel] ?? null) as NonNullable<VisualGolpe[P]> | null;
+  }
+
+  /** A animação de um terreno ou névoa: a do campo (`visual`), senão a do elemento para a camada. */
+  animacaoDoCampo(campo: Campo): AnimacaoCampo | null {
+    const fx = this.de(campo.tipo);
+    if (!fx) return null;
+    return campo.visual ?? fx.animacoes?.[campo.camada] ?? null;
+  }
+
+  /** Quantas peças das animações próprias estão no ar (esperando ou vivas). */
+  get pecas(): number {
+    return (
+      this.labaredas.length +
+      this.baforadas.length +
+      this.bolhas.length +
+      this.riscos.length +
+      this.arcos.length +
+      this.manchas.length +
+      this.claroes.length +
+      this.gotas.length +
+      this.espinhos.length +
+      this.pedras.length +
+      this.rachaduras.length +
+      this.folhas.length +
+      this.vinhas.length +
+      this.runas.length +
+      this.garras.length +
+      this.mordidas.length +
+      this.tracados.length
+    );
   }
 
   limpar(): void {
     this.particulas = [];
     this.anims = [];
+    this.labaredas = [];
+    this.baforadas = [];
+    this.bolhas = [];
+    this.riscos = [];
+    this.arcos = [];
+    this.manchas = [];
+    this.claroes = [];
+    this.gotas = [];
+    this.espinhos = [];
+    this.pedras = [];
+    this.rachaduras = [];
+    this.folhas = [];
+    this.vinhas = [];
+    this.runas = [];
+    this.garras = [];
+    this.mordidas = [];
+    this.tracados = [];
+    this.continuos.clear();
   }
 
   // ---------- Partículas ----------
 
   /**
    * Uma partícula do tipo num ponto do cenário. `forca` escala a velocidade de saída (0 = só a base);
-   * `vx`/`vy` somam uma velocidade base; `nevoa` usa a lufada de fumaça com as cores do tipo.
+   * `vx`/`vy` somam uma velocidade base; `nevoa` usa a lufada de fumaça com as cores do tipo; `jeito` troca o jeito
+   * do elemento por outro (a estrela que cintila parada, a brasa que sobe).
    */
-  particula(tipo: string, x: number, y: number, op: { vx?: number; vy?: number; forca?: number; nevoa?: boolean } = {}): void {
+  particula(tipo: string, x: number, y: number, op: { vx?: number; vy?: number; forca?: number; nevoa?: boolean; jeito?: Jeito } = {}): void {
     const fx = this.de(tipo);
     if (!fx) return;
-    const jeito: Jeito = op.nevoa ? 'nevoa' : fx.estilo;
+    const jeito: Jeito = op.jeito ?? (op.nevoa ? 'nevoa' : fx.estilo);
     const j = JEITOS[jeito];
     const a = sorte() * Math.PI * 2;
     const forca = op.forca ?? 1;
-    const v = entre(j.velocidade) * forca;
-    const vida = entre(j.vida);
+    const v = sortear(j.velocidade) * forca;
+    const vida = sortear(j.vida);
     if (this.particulas.length >= MAXIMO) this.particulas.shift();
     this.particulas.push({
       x,
@@ -155,7 +311,7 @@ export class Fx {
    * Partículas espalhadas dentro de uma forma no chão, até `altura` acima dele. `sopro` faz elas andarem na
    * direção da forma (cone e linha), com essa velocidade.
    */
-  naForma(tipo: string, g: Geometria, z: Posicao, n: number, op: { altura?: number; forca?: number; sopro?: number; nevoa?: boolean } = {}): void {
+  naForma(tipo: string, g: Geometria, z: Posicao, n: number, op: { altura?: number; forca?: number; sopro?: number; nevoa?: boolean; jeito?: Jeito } = {}): void {
     if (!this.de(tipo)) return;
     let vx = 0;
     let vy = 0;
@@ -170,11 +326,11 @@ export class Fx {
       const p = this.pontoNa(g, z);
       if (!p) continue;
       const s = projetar(p.x, p.y);
-      this.particula(tipo, s.x, s.y - sorte() * (op.altura ?? 0), { vx, vy, forca: op.forca ?? 0.5, nevoa: op.nevoa });
+      this.particula(tipo, s.x, s.y - sorte() * (op.altura ?? 0), { vx, vy, forca: op.forca ?? 0.5, nevoa: op.nevoa, jeito: op.jeito });
     }
   }
 
-  // ---------- Animações ----------
+  // ---------- Animações comuns ----------
 
   private animar(tipo: string, dur: number, a: NovaAnim): void {
     const fx = this.de(tipo);
@@ -207,10 +363,188 @@ export class Fx {
   }
 
   /** Raio quebrado, com brilho e galhos, entre dois pontos do cenário. */
-  raio(tipo: string, a: Ponto, b: Ponto): void {
+  raio(tipo: string, a: Ponto, b: Ponto, dur = 0.24): void {
     const { pontos, galhos } = quebrado(a, b);
-    this.animar(tipo, 0.24, { tipo: 'raio', a, b, pontos, galhos, troca: 0.05 });
+    this.animar(tipo, dur, { tipo: 'raio', a, b, pontos, galhos, troca: 0.05 });
   }
+
+  // ---------- Animações próprias: as receitas ----------
+
+  /** Forma que acertou o campo, com a animação dada no lugar do anel, do feixe e do sopro comuns. */
+  forma(anim: AnimacaoForma, tipo: string, g: Geometria, z: Posicao): void {
+    const p = this.paletaDe(tipo);
+    if (p) FORMAS[anim](this, p, tipo, g, z);
+  }
+
+  /** Um quadro de uma zona de golpe que dura (cone canalizado, área que anda ou cresce), com a animação dada. */
+  zona(anim: AnimacaoForma, tipo: string, g: Geometria, z: Posicao, dt: number, chave: object): void {
+    const p = this.paletaDe(tipo);
+    if (!p) return;
+    const receita = ZONAS[anim];
+    if (receita) receita(this, p, tipo, g, z, dt * 60, chave);
+    else if (anim in CAMPOS) CAMPOS[anim as AnimacaoCampo](this, p, tipo, g, z, dt * 60, chave);
+  }
+
+  /** Um quadro de um terreno ou névoa com a animação dada; `chave` é a zona (para o círculo que a acompanha). */
+  campo(anim: AnimacaoCampo, tipo: string, g: Geometria, z: Posicao, dt: number, def?: Campo, chave: object = z): void {
+    const p = this.paletaDe(tipo);
+    if (p) CAMPOS[anim](this, p, tipo, g, z, dt * 60, chave, def);
+  }
+
+  /** Acerto num ponto do cenário com a animação dada. */
+  impactoDe(anim: AnimacaoImpacto, tipo: string, x: number, y: number, forca: Forca): void {
+    const p = this.paletaDe(tipo);
+    if (p) IMPACTOS[anim](this, p, tipo, x, y, forca === 'forte' ? 2 : forca === 'normal' ? 1 : 0);
+  }
+
+  /** Um quadro do rastro de um projétil, na posição `q` da tela, voando na direção (ux, uy); `raio` no chão. */
+  rastroDoProjetil(anim: AnimacaoProjetil, tipo: string, q: Ponto, ux: number, uy: number, raio: number, dt: number): void {
+    const p = this.paletaDe(tipo);
+    if (p) PROJETEIS[anim].rastro(this, p, tipo, q, ux, uy, raio, dt * 60);
+  }
+
+  /** O corpo do projétil com a animação dada (no lugar da bolinha comum). */
+  desenharProjetil(x: CanvasRenderingContext2D, anim: AnimacaoProjetil, tipo: string, q: Ponto, ux: number, uy: number, raio: number): void {
+    const p = this.paletaDe(tipo);
+    if (p) PROJETEIS[anim].desenhar(x, p, q, ux, uy, raio, this.t);
+  }
+
+  /** Um quadro de quem avança com um golpe: `pe` no chão (tela), `h` a altura do corpo, `ang` a direção na tela. */
+  avanco(anim: AnimacaoAvanco, tipo: string, pe: Ponto, h: number, ang: number, dt: number): void {
+    const p = this.paletaDe(tipo);
+    if (p) AVANCOS[anim](this, p, tipo, pe, h, ang, dt * 60);
+  }
+
+  // ---------- Peças: as receitas soltam por aqui ----------
+
+  private paletaDe(tipo: string): Paleta | null {
+    const fx = this.de(tipo);
+    if (!fx) return null;
+    let p = this.paletas.get(tipo);
+    if (!p) this.paletas.set(tipo, (p = paleta(fx.cores)));
+    return p;
+  }
+
+  private cheio(): boolean {
+    return this.pecas >= MAXIMO_PECAS;
+  }
+
+  labareda(p: Paleta, x: number, y: number, h: number, w: number, vida: number, atraso = 0): void {
+    if (!this.cheio()) this.labaredas.push({ x, y, h, w, vida, total: vida, atraso, fase: sorte() * 10, p });
+  }
+
+  baforada(x: number, y: number, op: { r0: number; r1: number; vx: number; vy: number; vida: number; atraso?: number; cores?: string[] }): void {
+    if (this.cheio()) return;
+    this.baforadas.push({ x, y, vx: op.vx, vy: op.vy, r0: op.r0, r1: op.r1, vida: op.vida, total: op.vida, atraso: op.atraso ?? 0, cores: op.cores ?? FUMACA, fase: sorte() * 10 });
+  }
+
+  /** Bolha de fogo (sobe, `gravidade` negativa, vira fumaça) ou de água (cai, sem fumaça). */
+  bolha(p: Paleta, x: number, y: number, vx: number, vy: number, r0: number, r1: number, vida: number, op: { atraso?: number; fumaca?: boolean; gravidade?: number } = {}): void {
+    if (!this.cheio()) this.bolhas.push({ x, y, vx, vy, r0, r1, vida, total: vida, atraso: op.atraso ?? 0, p, fumaca: op.fumaca ?? true, gravidade: op.gravidade ?? -12 });
+  }
+
+  risco(p: Paleta, x: number, y: number, ang: number, v: number, vida: number, op: { L: number; gira?: number; enrola?: number; grosso?: boolean; atraso?: number }): void {
+    if (this.cheio()) return;
+    this.riscos.push({ x, y, ang, v, vida, total: vida, atraso: op.atraso ?? 0, gira: op.gira ?? 0, enrola: op.enrola ?? 0, L: Math.round(op.L), grosso: op.grosso ?? false, trilha: [], p });
+  }
+
+  arco(
+    p: Paleta,
+    x: number,
+    y: number,
+    r0: number,
+    r1: number,
+    op: { ang?: number; abertura: number; achatado: number; tracos?: number; giro?: number; vida: number; atraso?: number; chao?: boolean; varre?: boolean; grossura?: number },
+  ): void {
+    if (this.cheio()) return;
+    this.arcos.push({
+      x,
+      y,
+      r0,
+      r1,
+      ang: op.ang ?? 0,
+      abertura: op.abertura,
+      achatado: op.achatado,
+      tracos: op.tracos ?? 0,
+      giro: op.giro ?? 0,
+      chao: op.chao ?? false,
+      varre: op.varre ?? false,
+      grossura: op.grossura ?? 1,
+      vida: op.vida,
+      total: op.vida,
+      atraso: op.atraso ?? 0,
+      p,
+    });
+  }
+
+  /** Brilho no chão, num círculo de raio `r` (unidades do chão), que esfria até chão marcado. */
+  mancha(p: Paleta, x: number, y: number, r: number, vida: number): void {
+    const e = elipseNoChao(x, y, r);
+    if (!this.cheio()) this.manchas.push({ x: e.x, y: e.y, rx: e.rx, ry: e.ry, p, vida, total: vida, atraso: 0 });
+  }
+
+  /** Lampejo branco com raios de luz em volta de (x, y) da tela, até `r` pixels. */
+  clarao(p: Paleta, x: number, y: number, r: number, vida: number): void {
+    if (!this.cheio()) this.claroes.push({ x, y, r, p, vida, total: vida, atraso: 0 });
+  }
+
+  /** Gota que cai até a linha `chao` da tela e lá vira uma ondinha. */
+  gota(p: Paleta, x: number, y: number, vx: number, vy: number, chao: number, op: { tam?: number; vida?: number; atraso?: number } = {}): void {
+    const vida = op.vida ?? 1.5;
+    if (!this.cheio()) this.gotas.push({ x, y, vx, vy, chao, tam: op.tam ?? 1, vida, total: vida, atraso: op.atraso ?? 0, p });
+  }
+
+  /** Espinho (estaca ou cristal) que brota em (x, y) da tela. */
+  espinho(p: Paleta, x: number, y: number, h: number, w: number, vida: number, op: { incl?: number; atraso?: number } = {}): void {
+    if (!this.cheio()) this.espinhos.push({ x, y, h, w, incl: op.incl ?? 0, vida, total: vida, atraso: op.atraso ?? 0, p });
+  }
+
+  /** Pedra (lasca, granizo) que voa de (x, y), cai até a linha `chao` e quica. */
+  pedra(p: Paleta, x: number, y: number, vx: number, vy: number, chao: number, op: { tam: number; vida: number; quica?: number; atraso?: number }): void {
+    if (this.cheio()) return;
+    this.pedras.push({ x, y, vx, vy, chao, tam: op.tam, ang: sorte() * 6, giro: (sorte() - 0.5) * 20, quica: op.quica ?? 1, vida: op.vida, total: op.vida, atraso: op.atraso ?? 0, p });
+  }
+
+  /** Rachadura que se abre de `de` (tela) na direção `ang`. */
+  rachadura(p: Paleta, de: Ponto, ang: number, comprimento: number, vida: number, atraso = 0): void {
+    if (!this.cheio()) this.rachaduras.push({ ramos: caminhoRachado(de, ang, comprimento), p, vida, total: vida, atraso });
+  }
+
+  folha(p: Paleta, x: number, y: number, vx: number, vy: number, op: { tam?: number; vida: number; atraso?: number }): void {
+    if (this.cheio()) return;
+    this.folhas.push({ x, y, vx, vy, ang: sorte() * 6, giro: (sorte() - 0.5) * 14, tam: op.tam ?? 2, fase: sorte() * 10, vida: op.vida, total: op.vida, atraso: op.atraso ?? 0, p });
+  }
+
+  /** Vinha (ou raiz) que cresce ao longo de `pontos` (tela). */
+  vinha(p: Paleta, pontos: Ponto[], vida: number, op: { grossura?: number; folhas?: number[]; atraso?: number } = {}): void {
+    if (!this.cheio()) this.vinhas.push({ pontos, grossura: op.grossura ?? 2, folhas: op.folhas ?? [], p, vida, total: vida, atraso: op.atraso ?? 0 });
+  }
+
+  runa(p: Paleta, x: number, y: number, op: { vy?: number; vida: number; atraso?: number }): void {
+    if (!this.cheio()) this.runas.push({ x, y, vy: op.vy ?? -14, glifo: Math.floor(sorte() * 100), p, vida: op.vida, total: op.vida, atraso: op.atraso ?? 0 });
+  }
+
+  garra(p: Paleta, x: number, y: number, ang: number, L: number, vida: number, atraso = 0): void {
+    if (!this.cheio()) this.garras.push({ x, y, ang, L, p, vida, total: vida, atraso });
+  }
+
+  mordida(p: Paleta, x: number, y: number, vida: number): void {
+    if (!this.cheio()) this.mordidas.push({ x, y, p, vida, total: vida, atraso: 0 });
+  }
+
+  /** Prisma (luz que abre em arco-íris) ou corrente, de `a` até `b` na tela. */
+  tracado(p: Paleta, a: Ponto, b: Ponto, forma: Tracado['forma'], vida: number): void {
+    if (!this.cheio()) this.tracados.push({ a, b, forma, p, vida, total: vida, atraso: 0 });
+  }
+
+  /** Funil, anel ou círculo que segue `chave` (uma zona) enquanto for renovado; some `SUMIR` s depois de `segura` sem notícia. */
+  manter(chave: object, forma: Continuo['forma'], x: number, y: number, raio: number, p: Paleta, segura = 0.08): void {
+    const c = this.continuos.get(chave);
+    if (c) Object.assign(c, { x, y, raio, ate: this.t + segura, some: 0 });
+    else this.continuos.set(chave, { forma, x, y, raio, ate: this.t + segura, some: 0, fase: sorte() * 10, p });
+  }
+
+  // ---------- Tempo ----------
 
   atualizar(dt: number): void {
     this.t += dt;
@@ -250,12 +584,47 @@ export class Fx {
         a.troca = 0.05;
       }
     }
+    passar(this.labaredas, dt);
+    passar(this.baforadas, dt, moverBaforada);
+    passar(this.bolhas, dt, moverBolha);
+    passar(this.riscos, dt, moverRisco);
+    passar(this.arcos, dt);
+    passar(this.manchas, dt);
+    passar(this.claroes, dt);
+    passar(this.espinhos, dt);
+    passar(this.pedras, dt, moverPedra);
+    passar(this.rachaduras, dt);
+    passar(this.folhas, dt, moverFolha);
+    passar(this.vinhas, dt);
+    passar(this.runas, dt, moverRuna);
+    passar(this.garras, dt);
+    passar(this.mordidas, dt);
+    passar(this.tracados, dt);
+    // A gota que chega ao chão vira uma ondinha.
+    const pousaram: Gota[] = [];
+    passar(this.gotas, dt, (g, d) => {
+      moverGota(g, d);
+      if (g.y >= g.chao) pousaram.push(g);
+    });
+    for (const g of pousaram) {
+      this.gotas.splice(this.gotas.indexOf(g), 1);
+      this.arco(g.p, g.x, g.chao, 0.5, 2 + g.tam * 1.5, { abertura: Math.PI * 2, achatado: 0.45, vida: 0.25, chao: true });
+    }
+    for (const [chave, c] of this.continuos) if (this.t > c.ate && (c.some += dt) >= SUMIR) this.continuos.delete(chave);
   }
 
   // ---------- Desenho ----------
 
-  /** O que fica no chão (clarões, ondas de choque, anéis): antes das criaturas. */
+  /** O que fica no chão (clarões, ondas de choque, anéis, rachaduras, círculos): antes das criaturas. */
   desenharChao(x: CanvasRenderingContext2D): void {
+    for (const m of this.manchas) if (visivel(m)) desenharMancha(x, m, this.t);
+    for (const r of this.rachaduras) if (visivel(r)) desenharRachadura(x, r);
+    for (const c of this.continuos.values()) {
+      if (c.forma === 'anel') desenharAnel(x, c, this.t);
+      else if (c.forma === 'circulo') desenharCirculo(x, c, this.t);
+      else desenharBaseDoFunil(x, c, this.t);
+    }
+    for (const a of this.arcos) if (a.chao && visivel(a)) desenharArco(x, a);
     for (const a of this.anims) {
       const p = a.t / a.dur;
       const { media, clara } = tons(a.cores);
@@ -282,6 +651,23 @@ export class Fx {
 
   /** Animações no ar, partículas e raios: por cima das criaturas. */
   desenhar(x: CanvasRenderingContext2D): void {
+    // Fumaça atrás de tudo; o que brota do chão (vinhas, espinhos, chamas) e depois o que voa.
+    for (const b of this.baforadas) if (visivel(b)) desenharBaforada(x, b, this.t);
+    desenharVinhas(x, this.vinhas);
+    desenharEspinhos(x, this.espinhos);
+    desenharLabaredas(x, this.labaredas, this.t);
+    desenharBolhas(x, this.bolhas);
+    for (const r of this.pedras) if (visivel(r)) desenharPedra(x, r);
+    for (const f of this.folhas) if (visivel(f)) desenharFolha(x, f);
+    for (const g of this.gotas) if (visivel(g)) desenharGota(x, g);
+    for (const c of this.claroes) if (visivel(c)) desenharClarao(x, c);
+    for (const a of this.arcos) if (!a.chao && visivel(a)) desenharArco(x, a);
+    for (const r of this.riscos) if (visivel(r)) desenharRisco(x, r);
+    for (const f of this.tracados) if (visivel(f)) desenharTracado(x, f, this.t);
+    for (const r of this.runas) if (visivel(r)) desenharRuna(x, r);
+    for (const g of this.garras) if (visivel(g)) desenharGarra(x, g);
+    for (const m of this.mordidas) if (visivel(m)) desenharMordida(x, m);
+    for (const c of this.continuos.values()) if (c.forma === 'funil') desenharFunil(x, c, this.t);
     for (const a of this.anims) {
       const p = a.t / a.dur;
       const { escura, media, clara } = tons(a.cores);
@@ -435,91 +821,4 @@ export class Fx {
       x.fillRect(Math.round(q.x - ux * d - tam / 2), Math.round(q.y - uy * d - tam / 2), tam, tam);
     }
   }
-}
-
-// ---------- Primitivas de pixel ----------
-
-/** Centro e raios no cenário de um círculo de raio `r` no chão (em perspectiva, vira elipse). */
-function elipseNoChao(x: number, y: number, r: number): { x: number; y: number; rx: number; ry: number } {
-  const c = projetar(x, y);
-  return { x: c.x, y: c.y, rx: Math.abs(projetar(x + r, y).x - c.x), ry: Math.abs(projetar(x, y + r).y - c.y) };
-}
-
-function comAlfa(x: CanvasRenderingContext2D, alfa: number, desenho: () => void): void {
-  const antes = x.globalAlpha;
-  x.globalAlpha = antes * Math.max(0, Math.min(1, alfa));
-  desenho();
-  x.globalAlpha = antes;
-}
-
-/** Elipse cheia, em faixas de 1 pixel. */
-function disco(x: CanvasRenderingContext2D, cx: number, cy: number, rx: number, ry: number): void {
-  const r = Math.max(0.5, ry);
-  for (let dy = -Math.floor(r); dy <= Math.floor(r); dy++) {
-    const meia = Math.floor(rx * Math.sqrt(Math.max(0, 1 - (dy / r) ** 2)));
-    x.fillRect(Math.round(cx) - meia, Math.round(cy) + dy, meia * 2 + 1, 1);
-  }
-}
-
-/** Elipse em xadrez (halo, clarão, fumaça). */
-function trama(x: CanvasRenderingContext2D, cx: number, cy: number, rx: number, ry: number, cor: string, fase: number): void {
-  x.fillStyle = cor;
-  const r = Math.max(0.5, ry);
-  const ox = Math.round(cx);
-  const oy = Math.round(cy);
-  for (let dy = -Math.floor(r); dy <= Math.floor(r); dy++) {
-    const meia = Math.floor(rx * Math.sqrt(Math.max(0, 1 - (dy / r) ** 2)));
-    for (let dx = -meia; dx <= meia; dx++) if ((dx + dy + fase) % 2 === 0) x.fillRect(ox + dx, oy + dy, 1, 1);
-  }
-}
-
-/** Contorno de elipse, com `esp` pixels; `pontilhado` pula pixels (de tantos em tantos). */
-function anel(x: CanvasRenderingContext2D, cx: number, cy: number, rx: number, ry: number, esp: number, pontilhado: number): void {
-  const n = Math.max(16, Math.round(Math.PI * (rx + ry)));
-  for (let k = 0; k < n; k++) {
-    if (pontilhado && k % pontilhado) continue;
-    const a = (k / n) * Math.PI * 2;
-    x.fillRect(Math.round(cx + Math.cos(a) * rx), Math.round(cy + Math.sin(a) * ry), 1, 1);
-    if (esp > 1) x.fillRect(Math.round(cx + Math.cos(a) * (rx - 1)), Math.round(cy + Math.sin(a) * (ry - 1)), 1, 1);
-  }
-}
-
-/** Faísca em cruz: o centro e, quando `grande`, os quatro braços. */
-function cruz(x: CanvasRenderingContext2D, cx: number, cy: number, cor: string, grande: boolean): void {
-  x.fillStyle = cor;
-  const px = Math.round(cx);
-  const py = Math.round(cy);
-  x.fillRect(px, py, 1, 1);
-  if (!grande) return;
-  x.fillRect(px - 1, py, 1, 1);
-  x.fillRect(px + 1, py, 1, 1);
-  x.fillRect(px, py - 1, 1, 1);
-  x.fillRect(px, py + 1, 1, 1);
-}
-
-/** Linha de pixels entre dois pontos do cenário, com `esp` de grossura. */
-function linha(x: CanvasRenderingContext2D, a: Ponto, b: Ponto, esp: number): void {
-  const n = Math.max(1, Math.ceil(Math.max(Math.abs(b.x - a.x), Math.abs(b.y - a.y))));
-  const o = Math.floor(esp / 2);
-  for (let k = 0; k <= n; k++) x.fillRect(Math.round(a.x + ((b.x - a.x) * k) / n) - o, Math.round(a.y + ((b.y - a.y) * k) / n) - o, esp, esp);
-}
-
-/** Pontos de um raio quebrado de `a` até `b`, e dois galhos curtos saindo do meio. */
-function quebrado(a: Ponto, b: Ponto): { pontos: Ponto[]; galhos: Ponto[][] } {
-  const d = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-  const n = Math.max(3, Math.round(d / 7));
-  const nx = -(b.y - a.y) / d;
-  const ny = (b.x - a.x) / d;
-  const pontos = Array.from({ length: n + 1 }, (_, i) => {
-    const f = i / n;
-    const desvio = i === 0 || i === n ? 0 : (sorte() * 2 - 1) * 4;
-    return { x: a.x + (b.x - a.x) * f + nx * desvio, y: a.y + (b.y - a.y) * f + ny * desvio };
-  });
-  const galhos = [0, 1].map(() => {
-    const de = pontos[1 + Math.floor(sorte() * (n - 1))]!;
-    const lado = sorte() < 0.5 ? -1 : 1;
-    const comprimento = 6 + sorte() * 8;
-    return [de, { x: de.x + (nx * lado + (b.x - a.x) / d) * comprimento * 0.5, y: de.y + (ny * lado + (b.y - a.y) / d) * comprimento * 0.5 }, { x: de.x + nx * lado * comprimento, y: de.y + ny * lado * comprimento + 2 }];
-  });
-  return { pontos, galhos };
 }

@@ -127,27 +127,14 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
   for (const p of j.b.projeteis) {
     const g = golpeDe(c, p.golpe);
     const tipo = c.tipos[g.tipo];
+    const { x: qx, y: qy, ux, uy } = j.telaDoProjetil(p);
+    const anim = j.fx.animacao(p.golpe, 'projetil');
+    if (anim) {
+      j.fx.desenharProjetil(x, anim, g.tipo, { x: qx, y: qy }, ux, uy, j.raioDoProjetil(p));
+      continue;
+    }
     const cores = tipo?.projetil ?? ['#3b5dc9', '#41a6f6', '#73eff7'];
     const nucleo = cores.length > 3 && Math.random() < 0.5 ? cores[3]! : cores[2]!;
-    const alvo = lutadorPorUid(j.b, p.alvo);
-    const hp = j.alturaProjetil.get(p) ?? j.alturaSprite(alvo) / 2;
-    const qs = projetar(p.x, p.y);
-    const qx = qs.x;
-    const qy = qs.y - hp;
-    let dx: number;
-    let dy: number;
-    if (p.vx || p.vy) {
-      const adiante = projetar(p.x + p.vx * 0.05, p.y + p.vy * 0.05);
-      dx = adiante.x - qs.x;
-      dy = adiante.y - qs.y;
-    } else {
-      const ts = j.em(alvo, j.alturaSprite(alvo) / 2);
-      dx = ts.x - qx;
-      dy = ts.y - qy;
-    }
-    const dl = Math.hypot(dx, dy) || 1;
-    const ux = dx / dl;
-    const uy = dy / dl;
     const hx = Math.round(qx);
     const hy = Math.round(qy);
     j.fx.brilhoProjetil(x, g.tipo, { x: qx, y: qy }, ux, uy);
@@ -213,6 +200,11 @@ function desenharFormas(x: CanvasRenderingContext2D, j: Jogo): void {
       continue;
     }
     const { cor, escura } = cores(z.golpe);
+    // Com animação própria (jato de fogo, funil…), a zona fica só marcada no chão, para a animação aparecer.
+    if (j.fx.animacao(z.golpe, z.geo.forma)) {
+      desenharForma(x, z.geo, z, { miolo: escura, borda: cor, trama: 4, alfa: 0.2, pontilhado: passo });
+      continue;
+    }
     const fase = z.pulso ? (z.tempo % z.pulso) / z.pulso : 0;
     desenharForma(x, z.geo, z, { miolo: escura, borda: cor, trama: 2, alfa: 0.55 - 0.25 * fase });
   }
@@ -233,8 +225,10 @@ function desenharFormas(x: CanvasRenderingContext2D, j: Jogo): void {
   }
   for (const f of j.formas) {
     if (f.vida < 0.08 && Math.floor(f.vida * 60) % 2) continue;
-    const { cor, clara } = cores(f.golpe);
-    desenharForma(x, f.geo, f.z, { miolo: cor, borda: clara, trama: 2, alfa: 0.85 });
+    const { cor, clara, escura } = cores(f.golpe);
+    // Com animação própria, o clarão da forma só marca onde acertou.
+    if (j.fx.animacao(f.golpe, f.geo.forma)) desenharForma(x, f.geo, f.z, { miolo: escura, borda: escura, trama: 4, alfa: 0.18 });
+    else desenharForma(x, f.geo, f.z, { miolo: cor, borda: clara, trama: 2, alfa: 0.85 });
   }
 }
 

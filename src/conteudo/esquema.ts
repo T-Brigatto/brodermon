@@ -16,6 +16,75 @@ const dicionario = <T extends z.ZodType>(item: T) => z.record(id, item);
  */
 export const ESTILOS_FX = ['brasa', 'estouro', 'gota', 'floco', 'redemoinho', 'faisca', 'poeira', 'estilhaco', 'folha', 'estrela', 'garra'] as const;
 
+/**
+ * Animações que o desenho sabe fazer, por papel (o que cada uma desenha está em `conteudo/LEIAME.md`). O elemento
+ * escolhe a de cada papel em `fx.animacoes`; um golpe troca a dele em `visual`, e um campo em `visual`. Papel sem
+ * animação usa o efeito comum (anel, feixe, bolinha). As cores vêm de `fx.cores` do elemento.
+ */
+export const ANIMACOES_FX = {
+  projetil: ['bola-de-fogo', 'meia-lua', 'gota', 'bolha', 'espinho', 'esfera-eletrica', 'rocha', 'lamina-giratoria', 'folha', 'orbe'],
+  forma: [
+    'labaredas',
+    'jato-de-fogo',
+    'explosao',
+    'clarao',
+    'fumaca',
+    'vento',
+    'onda-de-vento',
+    'redemoinho',
+    'succao',
+    'respingo',
+    'geiser',
+    'jato-dagua',
+    'ondulacao',
+    'onda',
+    'espinhos',
+    'estalactite',
+    'granizo',
+    'sopro',
+    'avalanche',
+    'relampago',
+    'descarga',
+    'arco-eletrico',
+    'tremor',
+    'rachadura',
+    'poeira',
+    'prisma',
+    'corrente',
+    'ressonancia',
+    'brilhos',
+    'raizes',
+    'vinha',
+    'bruma',
+    'runas',
+    'rugido',
+    'varrida',
+  ],
+  impacto: ['chamusco', 'lufada', 'respingo', 'geada', 'choque', 'pedrada', 'estilhacos', 'folhas', 'estrelas', 'garras', 'mordida'],
+  campo: ['labaredas', 'fumaca', 'vento', 'redemoinho', 'succao', 'ondulacao', 'chuva', 'brilho-de-gelo', 'estatica', 'nuvem-carregada', 'rachaduras', 'poeira', 'espinhos', 'brilhos', 'raizes', 'bruma', 'runas', 'aura'],
+  avanco: ['rastro-de-fogo', 'velocidade'],
+} as const;
+
+const animacaoDeForma = z.enum(ANIMACOES_FX.forma).optional();
+
+/** Animação de cada papel de um golpe: o elemento define em `fx.animacoes`, o golpe pode trocar em `visual`. */
+const esquemaVisualGolpe = z
+  .object({
+    projetil: z.enum(ANIMACOES_FX.projetil).optional(),
+    area: animacaoDeForma,
+    cone: animacaoDeForma,
+    linha: animacaoDeForma,
+    parede: animacaoDeForma,
+    impacto: z.enum(ANIMACOES_FX.impacto).optional(),
+    avanco: z.enum(ANIMACOES_FX.avanco).optional(),
+  })
+  .strict();
+
+const esquemaAnimacoes = esquemaVisualGolpe.extend({
+  terreno: z.enum(ANIMACOES_FX.campo).optional(),
+  nevoa: z.enum(ANIMACOES_FX.campo).optional(),
+});
+
 export const esquemaTipo = z.object({
   nome: z.string().min(1),
   cor,
@@ -32,7 +101,7 @@ export const esquemaTipo = z.object({
   terreno: id.optional(),
   nevoa: id.optional(),
   /** Efeitos especiais do elemento: estilo das partículas e cores, da mais escura à mais clara. Sem ele, nada de FX. */
-  fx: z.object({ estilo: z.enum(ESTILOS_FX), cores: z.array(cor).min(2) }).optional(),
+  fx: z.object({ estilo: z.enum(ESTILOS_FX), cores: z.array(cor).min(2), animacoes: esquemaAnimacoes.optional() }).optional(),
 });
 
 export const esquemaSprite = z
@@ -352,6 +421,8 @@ export const esquemaGolpe = z
     durante: z.enum(['parado', 'lento', 'livre']).default('parado'),
     efeitos: z.array(esquemaEfeito).min(1),
     animacao: z.string().optional(),
+    /** Só visual: troca a animação de algum papel do elemento neste golpe (`fx.animacoes` em tipos.json). */
+    visual: esquemaVisualGolpe.optional(),
   })
   .superRefine((g, ctx) => {
     const noAlvo = g.efeitos.some((e) => NO_ALVO.has(e.efeito) && !(e.efeito === 'estado' && e.em === 'si'));
@@ -463,6 +534,8 @@ export const esquemaCampo = z.object({
   dispara: z.object({ intervalo: positivo, projetil: esquemaProjetil }).optional(),
   /** Detona quando um golpe do `tipo` acerta o campo: todos dentro levam `poder` e `efeitos`, e o campo some. */
   detona: z.object({ tipo: id, poder: z.number().min(0), efeitos: z.array(esquemaEfeitoNoAlvo).default([]) }).optional(),
+  /** Só visual: animação deste campo no lugar da do elemento (`fx.animacoes.terreno` ou `.nevoa`). */
+  visual: z.enum(ANIMACOES_FX.campo).optional(),
 });
 
 export const esquemaEspecie = z.object({
@@ -664,6 +737,14 @@ export type EfeitoProjetil = z.infer<typeof esquemaProjetil>;
 export type EfeitoPosicionado = z.infer<typeof esquemaPosicionado>;
 export type Estado = z.infer<typeof esquemaEstado>;
 export type EstiloFx = (typeof ESTILOS_FX)[number];
+export type AnimacoesFx = z.infer<typeof esquemaAnimacoes>;
+export type VisualGolpe = z.infer<typeof esquemaVisualGolpe>;
+export type PapelGolpe = keyof VisualGolpe;
+export type AnimacaoProjetil = (typeof ANIMACOES_FX.projetil)[number];
+export type AnimacaoForma = (typeof ANIMACOES_FX.forma)[number];
+export type AnimacaoImpacto = (typeof ANIMACOES_FX.impacto)[number];
+export type AnimacaoCampo = (typeof ANIMACOES_FX.campo)[number];
+export type AnimacaoAvanco = (typeof ANIMACOES_FX.avanco)[number];
 export type Campo = z.infer<typeof esquemaCampo>;
 export type Trajetoria = z.infer<typeof esquemaTrajetoria>;
 export type Membro = z.infer<typeof esquemaMembro>;
