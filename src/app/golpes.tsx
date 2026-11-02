@@ -241,11 +241,26 @@ function Catalogo() {
   const [tipo, setTipo] = useState<string>(q.get('tipo') && c.tipos[q.get('tipo')!] ? q.get('tipo')! : '');
   const [busca, setBusca] = useState(q.get('busca') ?? '');
   const [parado, setParado] = useState(false);
-  const termo = busca.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-  const lista = Object.entries(c.golpes).filter(
-    ([id, g]: [string, Golpe]) => (!tipo || g.tipo === tipo) && (!termo || `${id} ${g.nome}`.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').includes(termo)),
-  );
-  const contagem = (t: string) => Object.values(c.golpes).filter((g) => g.tipo === t).length;
+  const normalizar = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const termo = normalizar(busca.trim());
+  const achados = Object.entries(c.golpes).filter(([id, g]: [string, Golpe]) => !termo || normalizar(`${id} ${g.nome}`).includes(termo));
+  const lista = achados.filter(([, g]) => !tipo || g.tipo === tipo);
+  // Os números dos botões seguem a busca: mostram em que elemento ela acha golpes.
+  const contagem = (t: string) => achados.filter(([, g]) => g.tipo === t).length;
+
+  // A URL acompanha os filtros: recarregar mantém o que está na tela, e nenhuma busca antiga fica presa nela.
+  useEffect(() => {
+    const u = new URL(location.href);
+    for (const [chave, valor] of [
+      ['tipo', tipo],
+      ['busca', busca.trim()],
+    ] as const) {
+      if (valor) u.searchParams.set(chave, valor);
+      else u.searchParams.delete(chave);
+    }
+    history.replaceState(null, '', u);
+  }, [tipo, busca]);
+
   return (
     <>
       <header class="topo">
@@ -270,7 +285,7 @@ function Catalogo() {
         </div>
         <nav class="tipos" aria-label="Filtrar por elemento">
           <button type="button" class={tipo === '' ? 'ativo' : ''} onClick={() => setTipo('')}>
-            Todos
+            Todos <small>{achados.length}</small>
           </button>
           {tipos.map((t) => (
             <button key={t} type="button" class={tipo === t ? 'ativo' : ''} style={`--cor: ${c.tipos[t]!.cor}`} onClick={() => setTipo(t)}>
@@ -283,7 +298,17 @@ function Catalogo() {
         {lista.map(([id]) => (
           <Card key={id} id={id} />
         ))}
-        {lista.length === 0 && <p class="vazio">Nenhum golpe com esse nome.</p>}
+        {lista.length === 0 && (
+          <p class="vazio">
+            Nenhum golpe{tipo ? ` de ${c.tipos[tipo]!.nome}` : ''}
+            {termo ? ` com “${busca.trim()}”` : ''}.{' '}
+            {termo && (
+              <button type="button" onClick={() => setBusca('')}>
+                Limpar busca
+              </button>
+            )}
+          </p>
+        )}
       </main>
     </>
   );
