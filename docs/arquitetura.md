@@ -40,7 +40,7 @@ nucleo  ◄── app/jogo ──► desenho (canvas)
 conteudo        └──────► interface (Preact)  ──► ações voltam para app/jogo
 ```
 
-- **`app/jogo.ts`** é o único lugar que liga as partes. Traduz toque e teclado em comandos, avança o núcleo em passos fixos e transforma cada evento em reação: texto, partícula, tremor, aviso, som e mudança de tela. Também guarda o que é só apresentação, por criatura: o balanço do sprite, o flash, o clarão de entrada, a barra de HP atrasada e a borda do golpe recém-usado.
+- **`app/jogo.ts`** é o único lugar que liga as partes. Traduz toque e teclado em comandos, avança o núcleo em passos fixos e transforma cada evento em reação: texto, partícula, tremor, aviso, som e mudança de tela. Também guarda o que é só apresentação, por criatura: o balanço do sprite, o tempo desde o último golpe (animação de ataque das tiras), o flash, o clarão de entrada, a barra de HP atrasada e a borda do golpe recém-usado.
 - **`desenho/`** e **`interface/`** só leem o estado. A interface redesenha a 12,5 Hz durante a partida, como na Arena, e o canvas a cada quadro.
 - Opções pela URL, equivalentes às props da Arena no Claude Design: `?dificuldade=facil|normal|dificil`, `&assist=0`, `&velocidade=1.25` e `&semente=123` (repete a mesma batalha). Além delas, `&pacote=vale|prototipo` e `&batalha=<id>`.
 
@@ -118,7 +118,15 @@ Tudo isso só existe no pacote `vale` (e no laboratório `formas`): nos golpes d
 - **Receitas** (`src/desenho/receitas.ts`): cada nome do dicionário combina peças, por papel: a forma que acerta, a zona que dura, o terreno ou a névoa, o impacto, o projétil (rastro e corpo) e o avanço. Os `Record` obrigam a ter receita para todo nome que o esquema aceita. Uma zona sem receita própria usa a do terreno de mesmo nome.
 - **Motor** (`src/desenho/fx.ts`): guarda as peças vivas (até 1200), passa o tempo e desenha em ordem: no chão (manchas, rachaduras, ondinhas, anéis, círculos), depois fumaça, o que brota (vinhas, espinhos, chamas), o que voa e as partículas.
 
-Labaredas, bolhas, espinhos e vinhas são pintados em camadas (contorno de todos, depois corpo, miolo e núcleo), para os que se encostam virarem um fogaréu, um jato ou um maciço só. Riscos, arcos e anéis têm 2 pixels e sombra na cor escura do elemento, para aparecer no chão claro. Com animação própria, a forma do golpe fica só marcada no chão (`desenho/cena.ts`). O tremor de tela vem da animação (`TREMOR_DA_ANIMACAO` em `app/jogo.ts`). O avanço que não acerta ao passar (Avanço Selvagem) é reconhecido pelo efeito `avancar` em andamento (`acao.passo`).
+Labaredas, bolhas, espinhos e vinhas são pintados em camadas (contorno de todos, depois corpo, miolo e núcleo), para os que se encostam virarem um fogaréu, um jato ou um maciço só. Riscos, arcos e anéis têm 2 pixels e sombra no tom de contorno do elemento, para aparecer no chão claro.
+
+**Revisão de arte do Claude Design** (2026-11-02; o que mudou está em `design/mudancas-arte.md`, e o catálogo de referência em `design/Catalogo_de_golpes.html`). Cada elemento tem 5 tons em `fx.cores` (contorno, escura, média, clara, brilho), e o contorno das peças e dos projéteis usa o 1º. As bolhas viram gotas alongadas no sentido em que andam; os espinhos têm lado iluminado, lado em sombra, crista e contato escuro no chão; o relâmpago tem halo e contorno. No pacote com arte própria (algum tipo com `fx`), `cena.ts` também troca:
+- os terrenos e as zonas com animação por campos pintados no chão (tinta sólida, quinas arredondadas na linha e na parede, borda clara em cima, média nos lados e contorno embaixo; `desenho/formas.ts`), e a névoa por um véu claro;
+- o portal, o pino do para-raios e o pilar (`desenho/sobreposicoes.ts`);
+- o que fica sobre as criaturas (`desenho/sobreposicoes.ts`): estrelas do atordoado, amarras do preso, anel e gotas da lentidão, chamas do dano contínuo na cor do golpe, seta do debuff, a corrente do acorrentado, setas do buff, bloco de gelo do congelado, anel no chão de cada estado com `fx` e o desenho de alguns estados (bolha de ar, couraça, mira de presa, estática);
+- a energia de conjuração (anel que se fecha e partículas que convergem).
+
+Tudo o que é efeito sai em pixels inteiros de tela (`emPixelsDeTela` em `desenho/pixels.ts`): com o zoom fracionário da câmera, os `fillRect` deixavam listras finas dentro de chamas, fumaça e campos. A Arena original não tem `fx` e passa pelo desenho de antes, idêntica pixel a pixel. Com animação própria, a forma do golpe fica só marcada no chão (`desenho/cena.ts`). O tremor de tela vem da animação (`TREMOR_DA_ANIMACAO` em `app/jogo.ts`). O avanço que não acerta ao passar (Avanço Selvagem) é reconhecido pelo efeito `avancar` em andamento (`acao.passo`).
 
 **Efeitos especiais comuns** (`src/desenho/fx.ts`): animações desenhadas pixel a pixel nas cores do elemento (`fx` em `tipos.json`): impacto em estrela com núcleo branco e halo, anel de energia que se abre (áreas), feixe grosso (linhas) e raio quebrado com galhos (Eletricidade); e partículas com o jeito de cada elemento (brasa sobe, gota cai, floco cintila…). A energia de quem conjura e o brilho com rastro dos projéteis são desenhados direto do estado, em `desenho/cena.ts`. O app (`fxDoQuadro` e `fxDaForma` em `src/app/jogo.ts`) solta o resto a cada quadro (o ar dos terrenos e névoas, o sopro das formas canalizadas, os estados com `fx`) e a cada evento (forma acertando, impacto, projétil saindo e sumindo, teleporte, salto do pino).
 
@@ -137,7 +145,7 @@ Labaredas, bolhas, espinhos e vinhas são pintados em camadas (contorno de todos
 - Vinhas: o tropeço é preso por 0,4 s.
 - Esporos: Natureza é imune ao dano e se cura dentro (o guia dizia que ela regenera).
 
-**Provisório até decisão:** terrenos e névoas não reagem entre si (só as reações dos golpes); as criaturas do `vale` são de laboratório (6 reaproveitam sprites do protótipo, 4 aparecem como bolinha).
+**Provisório até decisão:** terrenos e névoas não reagem entre si (só as reações dos golpes); as criaturas do `vale` são de laboratório (5 reaproveitam sprites do protótipo, 4 aparecem como bolinha); a Briserecs, a Áries e o Sagitário têm sprite animado, importado da folha de poses (`conteudo/LEIAME.md`, "Sprite em tira"); Áries e Sagitário também têm as vistas de frente e de costas (`vistas` em `sprites.json`), usadas quando o rival está quase na mesma vertical; a escolha da vista, com folga para não piscar, é só apresentação (`vistaPara` em `desenho/sprites.ts`, guardada em `Visual.vista` no app). As folhas originais estão em `Thiago/Sprites/`.
 
 **Sem Explosão** (2026-11-01). O guia trazia um 11º elemento, Explosão, que o usuário não autorizou; ele saiu do pacote com os 2 campos (minas, gás volátil), o estado rachado e a criatura de laboratório. Com o ok do usuário, três golpes dele mudaram de elemento, com os números do guia: Detonação foi para o Fogo, Onda de Choque para o Ar e Ruptura para a Terra; nos laboratórios, cada um entrou no lugar de um golpe repetido. Os outros sete (Granada, Bomba-Relógio, Carga Concentrada, Impacto, Campo Minado, Nuvem Volátil e Ponto de Ruptura) saíram. As peças do motor que só eles usavam continuam, testadas em `testes/vale-mecanicas.test.ts` com golpes de teste: projétil que quica e estoura (`quicas`), que gruda (`gruda`), mina (`consome` com `aoEntrar`), gás que detona (`detona`), estrutura que cai com um tipo (`destruidoPor`) e dano recebido por tipo. O estilo de efeito `estouro` (bola de fogo com clarão) também continua disponível em `tipos.json`, sem elemento usando.
 
@@ -160,7 +168,7 @@ O núcleo reproduz `design/Arena.dc.html` com estas mudanças deliberadas:
 
 Ficaram de fora do núcleo, porque são apresentação: a conjuração visual de 0,2 s, o flash, a animação de dano atrasada (`hpLag`), as partículas, os textos flutuantes e a câmera. Eles vivem em `app/jogo.ts` e `desenho/`.
 
-Ficou de fora de vez: a sprite sheet animada da Briserecs. O arquivo nunca esteve no projeto (era um blob do Claude Design), e a própria Arena sempre caía no sprite 24×24. Quando a sheet existir, ela entra pelos dados.
+A sprite sheet animada da Briserecs da Arena nunca esteve no projeto (era um blob do Claude Design), e a própria Arena sempre caía no sprite 24×24, que o protótipo mantém. No `vale`, a Briserecs usa uma tira nova (parado, andando, ataque e dano), feita pelo importador de folhas (`ferramentas/importar-folha.ts`).
 
 A paridade visual foi conferida tela a tela: 9 telas idênticas pixel a pixel. Ver [comparacao/README.md](comparacao/README.md).
 

@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { ANIMACOES_FX, esquemaGolpe, esquemaTipo } from '../src/conteudo/esquema';
 import { prototipo, vale } from '../src/conteudo/pacotes';
+import { paleta } from '../src/desenho/animacoes';
 import { projetar } from '../src/desenho/arena';
 import { Fx } from '../src/desenho/fx';
 
@@ -25,8 +26,8 @@ describe('efeitos especiais', () => {
     // Velocidade vertical aos 20 quadros, antes de qualquer partícula sumir (a vida mínima é 0,35 s).
     for (let i = 0; i < 20; i++) fx.atualizar(1 / 60);
     const media = (tipo: string) => {
-      const cor = vale.tipos[tipo]!.fx!.cores;
-      const ps = fx.particulas.filter((p) => p.cores === cor);
+      const jeito = vale.tipos[tipo]!.fx!.estilo;
+      const ps = fx.particulas.filter((p) => p.jeito === jeito);
       expect(ps).toHaveLength(30);
       return ps.reduce((s, p) => s + p.vy, 0) / ps.length;
     };
@@ -184,6 +185,17 @@ describe('animações próprias dos elementos', () => {
       for (let i = 0; i < 10; i++) fx.avanco(anim, 'fogo', { x: 100 + i * 4, y: 100 }, 20, 0, 1 / 60);
       expect(fx.pecas, anim).toBeGreaterThan(0);
     }
+  });
+
+  it('com 5 tons, o 1º é só do contorno: as partículas e o corpo das peças usam os outros 4', () => {
+    const fogo = vale.tipos['fogo']!.fx!.cores;
+    expect(fogo).toHaveLength(5);
+    const fx = new Fx(vale);
+    fx.explosao('fogo', 100, 100, 3);
+    for (const p of fx.particulas) expect(p.cores).toEqual(fogo.slice(1));
+    expect(paleta(fogo)).toEqual({ contorno: fogo[0], escura: fogo[1], media: fogo[2], clara: fogo[3], quente: fogo[4] });
+    // Com 4 ou menos, como antes: o contorno é o tom escuro.
+    expect(paleta(['#111111', '#222222', '#333333', '#444444'])).toEqual({ contorno: '#111111', escura: '#111111', media: '#222222', clara: '#333333', quente: '#444444' });
   });
 
   it('o funil de uma zona segue a zona enquanto ela existe e some depois', () => {

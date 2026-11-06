@@ -1,0 +1,162 @@
+{
+  "fogo": {
+    "fx": {
+      "cores": [
+        "#4a1424",
+        "#a82a2a",
+        "#ef6a3a",
+        "#ffb02e",
+        "#fff4b8"
+      ]
+    },
+    "projetil": [
+      "#a82a2a",
+      "#ef6a3a",
+      "#ffb02e"
+    ]
+  },
+  "agua": {
+    "fx": {
+      "cores": [
+        "#10285e",
+        "#1d4fa8",
+        "#2f8cf0",
+        "#8ad0ff",
+        "#f2fbff"
+      ]
+    },
+    "projetil": [
+      "#1d4fa8",
+      "#2f8cf0",
+      "#8ad0ff"
+    ]
+  },
+  "gelo": {
+    "fx": {
+      "cores": [
+        "#1a3557",
+        "#3d7fb0",
+        "#7fc8ec",
+        "#d2f3ff",
+        "#f4f4f4"
+      ]
+    },
+    "projetil": [
+      "#3d7fb0",
+      "#7fc8ec",
+      "#d2f3ff"
+    ]
+  },
+  "ar": {
+    "fx": {
+      "cores": [
+        "#0f3a48",
+        "#1f7d8c",
+        "#4cc9d8",
+        "#b8f3f7",
+        "#f4f4f4"
+      ]
+    },
+    "projetil": [
+      "#1f7d8c",
+      "#4cc9d8",
+      "#b8f3f7"
+    ]
+  },
+  "eletricidade": {
+    "fx": {
+      "cores": [
+        "#2a1f4d",
+        "#c27a12",
+        "#f2c230",
+        "#fff09a",
+        "#f4f4f4"
+      ]
+    },
+    "projetil": [
+      "#c27a12",
+      "#f2c230",
+      "#fff09a"
+    ]
+  },
+  "terra": {
+    "fx": {
+      "cores": [
+        "#26160f",
+        "#5a3a26",
+        "#8b5e3c",
+        "#c4925e",
+        "#ecc794"
+      ]
+    },
+    "projetil": [
+      "#5a3a26",
+      "#8b5e3c",
+      "#c4925e"
+    ]
+  },
+  "mineral": {
+    "fx": {
+      "cores": [
+        "#1c2433",
+        "#4d5b6e",
+        "#8a9bb0",
+        "#d4e4f2",
+        "#f4f4f4"
+      ]
+    },
+    "projetil": [
+      "#4d5b6e",
+      "#8a9bb0",
+      "#d4e4f2"
+    ]
+  },
+  "natureza": {
+    "fx": {
+      "cores": [
+        "#0c2e22",
+        "#1f6a3a",
+        "#3fae5a",
+        "#9be08a",
+        "#e3f59a"
+      ]
+    },
+    "projetil": [
+      "#1f6a3a",
+      "#3fae5a",
+      "#9be08a"
+    ]
+  },
+  "arcano": {
+    "fx": {
+      "cores": [
+        "#241040",
+        "#5a2a8f",
+        "#9b5bd6",
+        "#d6a8f5",
+        "#fbe6ff"
+      ]
+    },
+    "projetil": [
+      "#5a2a8f",
+      "#9b5bd6",
+      "#d6a8f5"
+    ]
+  },
+  "primordial": {
+    "fx": {
+      "cores": [
+        "#330b19",
+        "#6e1a30",
+        "#c23b55",
+        "#f08a98",
+        "#ffd8cc"
+      ]
+    },
+    "projetil": [
+      "#6e1a30",
+      "#c23b55",
+      "#f08a98"
+    ]
+  }
+}

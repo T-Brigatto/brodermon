@@ -156,8 +156,11 @@ const MAXIMO = 900;
 const MAXIMO_PECAS = 1200;
 const sorte = Math.random;
 const sortear = ([a, b]: [number, number]) => a + sorte() * (b - a);
-/** Cores do efeito: a mais escura, a do meio e a mais clara. */
-const tons = (c: string[]) => ({ escura: c[0]!, media: c[Math.floor((c.length - 1) / 2)]!, clara: c[c.length - 1]! });
+/** Cores do efeito: contorno, a mais escura, a do meio e a mais clara. Com 5 tons, o 1º é só do contorno. */
+const tons = (c: string[]) =>
+  c.length >= 5
+    ? { contorno: c[0]!, escura: c[1]!, media: c[2]!, clara: c[3]! }
+    : { contorno: c[0]!, escura: c[0]!, media: c[Math.floor((c.length - 1) / 2)]!, clara: c[c.length - 1]! };
 
 /** Força de um acerto: o dano contínuo e o disparo são leves, o super eficaz é forte. */
 export type Forca = 'leve' | 'normal' | 'forte';
@@ -185,6 +188,7 @@ export class Fx {
   /** Funis, anéis e círculos que seguem uma zona, pela zona. */
   readonly continuos = new Map<object, Continuo>();
   private readonly paletas = new Map<string, Paleta>();
+  private readonly rampas = new Map<string, string[]>();
   /** Relógio dos efeitos, em segundos. */
   t = 0;
 
@@ -283,10 +287,17 @@ export class Fx {
       vida,
       total: vida,
       jeito,
-      cores: fx.cores,
+      cores: this.rampaDe(tipo, fx.cores),
       tam: j.tamanhos[Math.floor(sorte() * j.tamanhos.length)]!,
       fase: sorte() * Math.PI * 2,
     });
+  }
+
+  /** Cores das partículas: as do elemento sem o tom de contorno (quando há 5). */
+  private rampaDe(tipo: string, cores: string[]): string[] {
+    let r = this.rampas.get(tipo);
+    if (!r) this.rampas.set(tipo, (r = cores.length >= 5 ? cores.slice(1) : cores));
+    return r;
   }
 
   /** `n` partículas saindo de um ponto do cenário. */
@@ -733,14 +744,23 @@ export class Fx {
         }
         case 'raio': {
           if (Math.floor(a.t * 60) % 4 === 3) break;
-          comAlfa(x, 0.5, () => {
+          // Halo, contorno escuro, corpo claro e núcleo branco; o arco curto (até 40 px) fica fino.
+          const longo = Math.hypot(a.b.x - a.a.x, a.b.y - a.a.y) > 40 ? 1 : 0;
+          const tracar = (pts: Ponto[], esp: number) => {
+            for (let k = 1; k < pts.length; k++) linha(x, pts[k - 1]!, pts[k]!, esp);
+          };
+          comAlfa(x, 0.3, () => {
             x.fillStyle = media;
-            for (let k = 1; k < a.pontos.length; k++) linha(x, a.pontos[k - 1]!, a.pontos[k]!, 3);
+            tracar(a.pontos, 5 + 2 * longo);
           });
+          x.fillStyle = tons(a.cores).contorno;
+          tracar(a.pontos, 3 + 2 * longo);
+          for (const g of a.galhos) tracar(g, 3);
           x.fillStyle = clara;
-          for (const g of a.galhos) for (let k = 1; k < g.length; k++) linha(x, g[k - 1]!, g[k]!, 1);
-          x.fillStyle = BRANCO;
-          for (let k = 1; k < a.pontos.length; k++) linha(x, a.pontos[k - 1]!, a.pontos[k]!, 1);
+          if (longo) tracar(a.pontos, 3);
+          for (const g of a.galhos) tracar(g, 1);
+          x.fillStyle = longo || Math.floor(a.t * 30) % 2 ? BRANCO : clara;
+          tracar(a.pontos, 1);
           break;
         }
       }
@@ -784,23 +804,61 @@ export class Fx {
     }
   }
 
-  /** Energia de quem conjura, no chão: um brilho que cresce embaixo dos pés. `pe` é o ponto do chão no cenário. */
+  /**
+   * Energia de quem conjura, no chão: um brilho embaixo dos pés e um anel tracejado que se fecha até o golpe sair.
+   * `pe` é o ponto do chão no cenário; `prog`, de 0 a 1.
+   */
   cargaChao(x: CanvasRenderingContext2D, tipo: string, pe: Ponto, prog: number): void {
-    const fx = this.de(tipo);
-    if (!fx) return;
-    const { clara } = tons(fx.cores);
-    comAlfa(x, 0.25 + 0.45 * prog, () => trama(x, pe.x, pe.y, 9 + 8 * prog, 3 + 3 * prog, clara, Math.floor(this.t * 10)));
+    const p = this.paletaDe(tipo);
+    if (!p) return;
+    comAlfa(x, 0.2 + 0.35 * prog, () => trama(x, pe.x, pe.y, 8 + 7 * prog, 3 + 2.5 * prog, p.clara, Math.floor(this.t * 10)));
+    const rx = 17 - 10 * prog;
+    const ry = rx * 0.36;
+    const n = Math.max(16, Math.round(Math.PI * (rx + ry)));
+    for (let k = 0; k < n; k++) {
+      const s = k / n;
+      if (Math.floor(s * 16 + this.t * 6) % 2) continue;
+      const a = s * Math.PI * 2;
+      const px = Math.round(pe.x + Math.cos(a) * rx);
+      const py = Math.round(pe.y + Math.sin(a) * ry);
+      x.fillStyle = p.contorno;
+      x.fillRect(px, py + 1, 1, 1);
+      x.fillStyle = prog > 0.85 ? BRANCO : Math.sin(a) > 0 ? p.clara : p.media;
+      x.fillRect(px, py, 1, 1);
+    }
   }
 
-  /** Energia de quem conjura, no ar: faíscas girando e se fechando em volta do corpo. */
+  /** Energia de quem conjura, no ar: partículas girando e convergindo para o corpo, com um clarão no fim. */
   cargaAr(x: CanvasRenderingContext2D, tipo: string, pe: Ponto, h: number, prog: number): void {
-    const fx = this.de(tipo);
-    if (!fx) return;
-    const { clara } = tons(fx.cores);
-    const r = h * 0.9 * (1 - 0.55 * prog) + 3;
-    for (let k = 0; k < 6; k++) {
-      const ang = this.t * (4 + 4 * prog) + (k * Math.PI) / 3;
-      cruz(x, pe.x + Math.cos(ang) * r, pe.y - h / 2 + Math.sin(ang) * r * 0.55, k % 2 ? clara : BRANCO, prog > 0.5 && Math.floor(this.t * 16 + k) % 2 === 0);
+    const p = this.paletaDe(tipo);
+    if (!p) return;
+    const r = h * 0.95 * (1 - 0.6 * prog) + 3;
+    const n = prog > 0.5 ? 8 : 6;
+    const meio = { x: pe.x, y: pe.y - h / 2 };
+    for (let k = 0; k < n; k++) {
+      const a = this.t * (3 + 5 * prog) + (k * Math.PI * 2) / n;
+      const px = pe.x + Math.cos(a) * r;
+      const py = meio.y + Math.sin(a) * r * 0.55;
+      const dx = meio.x - px;
+      const dy = meio.y - py;
+      const d = Math.hypot(dx, dy) || 1;
+      if (prog > 0.3) {
+        // Um risquinho apontando para o centro.
+        x.fillStyle = p.media;
+        linha(x, { x: px + (dx / d) * 1.5, y: py + (dy / d) * 1.5 }, { x: px + (dx / d) * 3, y: py + (dy / d) * 3 }, 1);
+      }
+      x.fillStyle = p.contorno;
+      x.fillRect(Math.round(px), Math.round(py) + 1, 2, 1);
+      x.fillStyle = k % 2 ? p.clara : p.media;
+      x.fillRect(Math.round(px), Math.round(py), 2, 1);
+      if (prog > 0.7 && k % 2 === 0) {
+        x.fillStyle = p.quente;
+        x.fillRect(Math.round(px), Math.round(py) - 1, 1, 1);
+      }
+    }
+    if (prog > 0.9 && Math.floor(this.t * 30) % 2 === 0) {
+      x.fillStyle = p.quente;
+      disco(x, meio.x, meio.y, 2, 2);
     }
   }
 

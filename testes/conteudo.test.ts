@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { carregarConteudo } from '../src/conteudo/esquema';
+import { carregarConteudo, type SpritePixels } from '../src/conteudo/esquema';
 import { prototipo } from '../src/conteudo/pacotes';
 import { conteudo } from './ajuda';
 
@@ -102,11 +102,11 @@ describe('validação', () => {
   });
 
   it('recusa sprite que não é quadrado', () => {
-    expect(erroAo((c) => (c.sprites['gotinha']!.pixels[3] = '0000'))).toContain('precisa ser quadrado');
+    expect(erroAo((c) => ((c.sprites['gotinha'] as SpritePixels).pixels[3] = '0000'))).toContain('precisa ser quadrado');
   });
 
   it('recusa sprite que usa cor fora da paleta', () => {
-    expect(erroAo((c) => (c.sprites['gotinha']!.pixels[5] = 'f'.repeat(24)))).toContain('a paleta só tem');
+    expect(erroAo((c) => ((c.sprites['gotinha'] as SpritePixels).pixels[5] = 'f'.repeat(24)))).toContain('a paleta só tem');
   });
 
   it('recusa sprite de espécie que não existe', () => {

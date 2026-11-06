@@ -14,8 +14,12 @@ export const FUMACA = ['#566c86', '#94b0c2', '#f4f4f4'];
 export const sorte = Math.random;
 export const entre = (a: number, b: number) => a + sorte() * (b - a);
 
-/** Cores de um elemento (`fx.cores`): escura, média, clara e quente (a mais clara de todas). */
+/**
+ * Cores de um elemento (`fx.cores`): contorno, escura, média, clara e quente (a mais clara de todas). Com 5 tons, o
+ * 1º é só do contorno; com 4 ou menos, o contorno usa o tom escuro.
+ */
 export interface Paleta {
+  contorno: string;
   escura: string;
   media: string;
   clara: string;
@@ -23,8 +27,9 @@ export interface Paleta {
 }
 
 export function paleta(c: string[]): Paleta {
+  if (c.length >= 5) return { contorno: c[0]!, escura: c[1]!, media: c[2]!, clara: c[3]!, quente: c[4]! };
   const ultima = c[c.length - 1]!;
-  return { escura: c[0]!, media: c[1] ?? ultima, clara: c[2] ?? ultima, quente: c[3] ?? ultima };
+  return { contorno: c[0]!, escura: c[0]!, media: c[1] ?? ultima, clara: c[2] ?? ultima, quente: c[3] ?? ultima };
 }
 
 /** Tempo de vida de uma peça: espera `atraso` (sem aparecer), depois vive `total` segundos. */
@@ -102,7 +107,7 @@ function fatiasDa(l: Labareda, t: number): { fatias: Fatia[]; quente: boolean; p
  */
 export function desenharLabaredas(x: CanvasRenderingContext2D, lista: Labareda[], t: number): void {
   const todas = lista.filter(visivel).map((l) => ({ l, ...fatiasDa(l, t) }));
-  for (const { l, fatias } of todas) for (const f of fatias) faixa(x, f.cx, f.y, f.meia + 1, l.p.escura);
+  for (const { l, fatias } of todas) for (const f of fatias) faixa(x, f.cx, f.y, f.meia + 1, l.p.contorno);
   for (const { l, fatias } of todas) for (const f of fatias) faixa(x, f.cx, f.y, f.meia, f.rel < 0.6 ? l.p.media : l.p.escura);
   for (const { l, fatias, quente } of todas) {
     for (const f of fatias) if (f.rel < 0.75 && f.meia > 0.8) faixa(x, f.cx, f.y, f.meia * 0.55, f.rel < 0.4 && quente ? l.p.quente : l.p.clara);
@@ -172,39 +177,54 @@ export function moverBolha(b: Bolha, dt: number): void {
 }
 
 /**
- * Bolhas em camadas, como as labaredas: contorno vermelho de todas, corpo, miolo e núcleo. Juntas, viram um jato só,
- * quente perto da boca (branco e amarelo) e mais frio na ponta (laranja e vermelho), que termina em fumaça.
+ * Bolhas em camadas, como as labaredas: contorno de todas, corpo, miolo e núcleo. Juntas, viram um jato só, quente
+ * perto da boca (branco e amarelo) e mais frio na ponta, que termina em fumaça. Cada bolha se alonga numa gota no
+ * sentido em que anda; a miúda não ganha contorno (senão vira mancha escura).
  */
 export function desenharBolhas(x: CanvasRenderingContext2D, lista: Bolha[]): void {
   const vivas = lista.filter(visivel).map((b) => {
     const q = idade(b);
-    // Cresce até 60% da vida; depois afina, como a ponta de uma chama.
-    const r = q < 0.6 ? b.r0 + (b.r1 - b.r0) * (q / 0.6) : b.r1 * (1 - ((q - 0.6) / 0.4) * 0.6);
-    return { b, q, r, fumaca: b.fumaca && q > 0.82 };
+    // Cresce até metade da vida; depois afina, como a ponta de uma chama.
+    const r = q < 0.5 ? b.r0 + (b.r1 - b.r0) * (q / 0.5) : b.r1 * (1 - ((q - 0.5) / 0.5) * 0.55);
+    const v = Math.hypot(b.vx, b.vy);
+    return { b, q, r, dx: v ? b.vx / v : 0, dy: v ? b.vy / v : 0, L: v > 20 ? Math.min(r * 1.6, v * 0.02) : 0, fumaca: b.fumaca && q > 0.75 };
   });
+  type Viva = (typeof vivas)[number];
+  /** O disco da bolha e a cauda afinando para trás. */
+  const gota = (v: Viva, r: number, dy = 0) => {
+    disco(x, v.b.x, v.b.y + dy, r, r);
+    if (v.L < 1) return;
+    const n = Math.min(3, Math.ceil(v.L / 2));
+    for (let k = 1; k <= n; k++) {
+      const s = k / n;
+      const rr = r * (1 - 0.55 * s);
+      disco(x, v.b.x - v.dx * v.L * s, v.b.y - v.dy * v.L * s + dy, rr, rr);
+    }
+  };
   for (const v of vivas) {
     if (!v.fumaca) continue;
-    comAlfa(x, ((1 - v.q) / 0.18) * 0.4, () => {
+    comAlfa(x, ((1 - v.q) / 0.25) * 0.45, () => {
       x.fillStyle = FUMACA[0]!;
-      disco(x, v.b.x, v.b.y, v.r, v.r);
+      gota(v, v.r * 1.1);
     });
   }
   const fogo = vivas.filter((v) => !v.fumaca);
   for (const v of fogo) {
-    x.fillStyle = v.b.p.escura;
-    disco(x, v.b.x, v.b.y, v.r + 1, v.r + 1);
+    if (v.r < 2) continue;
+    x.fillStyle = v.r < 3 ? v.b.p.escura : v.b.p.contorno;
+    gota(v, v.r + 1);
   }
   for (const v of fogo) {
-    x.fillStyle = v.q < 0.68 ? v.b.p.media : v.b.p.escura;
-    disco(x, v.b.x, v.b.y, v.r, v.r);
+    x.fillStyle = v.q < 0.55 ? v.b.p.media : v.b.p.escura;
+    gota(v, v.r);
   }
   for (const v of fogo) {
-    if (v.q >= 0.68 || v.r < 1.2) continue;
+    if (v.q >= 0.65 || v.r < 1.2) continue;
     x.fillStyle = v.q < 0.3 ? v.b.p.quente : v.b.p.clara;
-    disco(x, v.b.x, v.b.y - v.r * 0.15, v.r * 0.6, v.r * 0.6);
+    gota(v, v.r * 0.6, -v.r * 0.15);
   }
   for (const v of fogo) {
-    if (v.q >= 0.25) continue;
+    if (v.q >= 0.22 || v.r < 1.5) continue;
     x.fillStyle = BRANCO;
     disco(x, v.b.x, v.b.y - v.r * 0.15, v.r * 0.3, v.r * 0.3);
   }
@@ -252,7 +272,7 @@ export function desenharRisco(x: CanvasRenderingContext2D, r: Risco): void {
   const n = r.trilha.length;
   const grossura = (f: number) => (f < (r.grosso ? 0.6 : 0.35) ? 2 : 1);
   comAlfa(x, alfa * 0.8, () => {
-    x.fillStyle = r.p.escura;
+    x.fillStyle = r.p.contorno;
     for (let k = 0; k < n; k++) {
       const f = k / n;
       if (f > 0.75 || (f > 0.55 && k % 2)) continue;
@@ -317,7 +337,7 @@ export function desenharArco(x: CanvasRenderingContext2D, a: Arco): void {
   const alfa = a.varre ? (q < 0.45 ? 1 : 1 - (q - 0.45) / 0.55) : 1 - q * q;
   // Sombra escura por fora, a linha clara e, no meio do arco enquanto é novo, mais grossura por dentro.
   comAlfa(x, alfa * 0.8, () => {
-    x.fillStyle = a.p.escura;
+    x.fillStyle = a.p.contorno;
     for (const pt of pontos) x.fillRect(Math.round(pt.x + pt.dx), Math.round(pt.y + pt.dy) + 1, 1, 1);
   });
   comAlfa(x, alfa, () => {
@@ -436,7 +456,7 @@ export function desenharFunil(x: CanvasRenderingContext2D, f: Continuo, t: numbe
         const px = Math.round(a.cx + Math.cos(ang) * a.r);
         const py = Math.round(a.cy + Math.sin(ang) * a.r * 0.32);
         if (frente) {
-          x.fillStyle = f.p.escura;
+          x.fillStyle = f.p.contorno;
           x.fillRect(px, py + 2, 1, 1);
           x.fillStyle = a.s > 0.35 ? BRANCO : f.p.clara;
           x.fillRect(px, py, 1, 2);
@@ -477,7 +497,7 @@ export function desenharAnel(x: CanvasRenderingContext2D, f: Continuo, t: number
       const ang = s * Math.PI * 2;
       const px = Math.round(e.x + Math.cos(ang) * e.rx);
       const py = Math.round(e.y + Math.sin(ang) * e.ry);
-      x.fillStyle = f.p.escura;
+      x.fillStyle = f.p.contorno;
       x.fillRect(px, py + 1, 1, 1);
       x.fillStyle = Math.sin(ang) > 0 ? BRANCO : f.p.clara;
       x.fillRect(px, py - 1, 1, 2);
@@ -492,7 +512,7 @@ export function desenharCirculo(x: CanvasRenderingContext2D, f: Continuo, t: num
   const ponto = (ang: number, r: number) => ({ x: e.x + Math.cos(ang) * r, y: e.y + Math.sin(ang) * r * ach });
   comAlfa(x, 1 - f.some / SUMIR, () => {
     comAlfa(x, 0.2 + 0.08 * Math.sin(t * 5), () => trama(x, e.x, e.y, e.rx * 0.7, e.ry * 0.7, f.p.media, Math.floor(t * 6)));
-    x.fillStyle = f.p.escura;
+    x.fillStyle = f.p.contorno;
     anelCheio(x, e.x, e.y + 1, e.rx, e.ry);
     x.fillStyle = f.p.clara;
     anelCheio(x, e.x, e.y, e.rx, e.ry);
@@ -575,27 +595,36 @@ function fatiasDoEspinho(e: Espinho): Fatia[] {
 }
 
 /**
- * Espinhos em camadas: contorno escuro de todos, depois as faces (a da esquerda clara, a da direita no tom médio), a
- * aresta e a ponta na cor mais clara. Os do mesmo grupo se juntam num maciço só.
+ * Espinhos em camadas: contorno de todos, a sombra no chão, depois as faces (a da esquerda iluminada, a da direita em
+ * sombra) e a crista, que brilha perto da ponta. Os do mesmo grupo se juntam num maciço só.
  */
 export function desenharEspinhos(x: CanvasRenderingContext2D, lista: Espinho[]): void {
   const todos = lista.filter(visivel).map((e) => ({ e, fatias: fatiasDoEspinho(e) }));
   for (const { e, fatias } of todos) {
-    for (const f of fatias) faixa(x, f.cx, f.y, f.meia + 1, e.p.escura);
+    for (const f of fatias) faixa(x, f.cx, f.y, f.meia + 1, e.p.contorno);
     const topo = fatias.at(-1);
-    if (topo) faixa(x, topo.cx, topo.y - 1, 0, e.p.escura);
+    if (topo) faixa(x, topo.cx, topo.y - 1, 0, e.p.contorno);
+  }
+  for (const { e, fatias } of todos) {
+    const base = fatias[0];
+    if (base) comAlfa(x, 0.45, () => faixa(x, base.cx, base.y + 1, Math.round(base.meia) + 2, e.p.contorno));
   }
   for (const { e, fatias } of todos) {
     for (const f of fatias) {
       const m = Math.round(f.meia);
       const cx = Math.round(f.cx);
+      const y = Math.round(f.y);
+      x.fillStyle = e.p.escura;
+      x.fillRect(cx, y, m + 1, 1);
       x.fillStyle = e.p.media;
-      x.fillRect(cx, Math.round(f.y), m + 1, 1);
-      x.fillStyle = e.p.clara;
-      x.fillRect(cx - m, Math.round(f.y), m, 1);
-      if (f.rel > 0.15) {
-        x.fillStyle = e.p.quente;
-        x.fillRect(cx, Math.round(f.y), 1, 1);
+      x.fillRect(cx - m, y, m, 1);
+      if (m >= 2) {
+        x.fillStyle = e.p.clara;
+        x.fillRect(cx - m, y, Math.ceil(m / 2), 1);
+      }
+      if (f.rel > 0.12) {
+        x.fillStyle = f.rel > 0.7 ? e.p.quente : e.p.clara;
+        x.fillRect(cx, y, 1, 1);
       }
     }
   }
@@ -645,12 +674,12 @@ export function desenharPedra(x: CanvasRenderingContext2D, r: Pedra): void {
   const cy = Math.round(r.y);
   const losango = Math.floor((((r.ang % Math.PI) + Math.PI) % Math.PI) / (Math.PI / 4)) % 2 === 1;
   if (losango) {
-    x.fillStyle = r.p.escura;
+    x.fillStyle = r.p.contorno;
     disco(x, cx, cy, t / 2 + 1, t / 2 + 1);
     x.fillStyle = r.p.media;
     disco(x, cx, cy, t / 2, t / 2);
   } else {
-    x.fillStyle = r.p.escura;
+    x.fillStyle = r.p.contorno;
     x.fillRect(cx - Math.ceil(t / 2) - 1, cy - Math.ceil(t / 2) - 1, t + 2, t + 2);
     x.fillStyle = r.p.media;
     x.fillRect(cx - Math.ceil(t / 2), cy - Math.ceil(t / 2), t, t);
@@ -700,7 +729,7 @@ export function desenharRachadura(x: CanvasRenderingContext2D, r: Rachadura): vo
         // A fenda escura com a borda de cima clara (luz batendo na quina).
         x.fillStyle = r.p.clara;
         linha(x, { x: ramo[k - 1]!.x, y: ramo[k - 1]!.y - 1 }, { x: ramo[k]!.x, y: ramo[k]!.y - 1 }, 1);
-        x.fillStyle = r.p.escura;
+        x.fillStyle = r.p.contorno;
         linha(x, ramo[k - 1]!, ramo[k]!, i === 0 ? 2 : 1);
       }
     });
@@ -742,7 +771,7 @@ export function desenharFolhaEm(x: CanvasRenderingContext2D, cx: number, cy: num
   const nx = -uy;
   const ny = ux;
   for (const [cor, borda] of [
-    [p.escura, 1],
+    [p.contorno, 1],
     [p.media, 0],
   ] as const) {
     x.fillStyle = cor;
@@ -773,7 +802,7 @@ export function desenharVinhas(x: CanvasRenderingContext2D, lista: Vinha[]): voi
     return { v, n: Math.round(v.pontos.length * f) };
   });
   for (const { v, n } of vivas) {
-    x.fillStyle = v.p.escura;
+    x.fillStyle = v.p.contorno;
     for (let i = 0; i < n; i++) disco(x, v.pontos[i]!.x, v.pontos[i]!.y, v.grossura / 2 + 1, v.grossura / 2 + 1);
   }
   for (const { v, n } of vivas) {
@@ -829,7 +858,7 @@ export function desenharRuna(x: CanvasRenderingContext2D, r: Runa): void {
   const oy = Math.round(r.y) - 2;
   comAlfa(x, q < 0.15 ? q / 0.15 : q > 0.6 ? (1 - q) / 0.4 : 1, () => {
     for (const [cor, d] of [
-      [r.p.escura, 1],
+      [r.p.contorno, 1],
       [q < 0.3 ? BRANCO : r.p.clara, 0],
     ] as const) {
       x.fillStyle = cor;
@@ -864,7 +893,7 @@ export function desenharGarra(x: CanvasRenderingContext2D, g: Garra): void {
       // Um risco levemente curvo: sombra, contorno no tom médio e o miolo claro, mais grosso no meio.
       const n = Math.max(2, Math.round(ate - de));
       for (const [cor, larg, dy] of [
-        [g.p.escura, 3, 1],
+        [g.p.contorno, 3, 1],
         [g.p.media, 3, 0],
         [q < 0.3 ? BRANCO : g.p.clara, 1, 0],
       ] as const) {
@@ -898,7 +927,7 @@ export function desenharMordida(x: CanvasRenderingContext2D, m: Mordida): void {
     for (const dir of [-1, 1]) {
       const base = m.y + dir * (vao + 5);
       // Gengiva e quatro presas apontando para o meio.
-      x.fillStyle = m.p.escura;
+      x.fillStyle = m.p.contorno;
       x.fillRect(Math.round(m.x - 9), Math.round(base) - (dir < 0 ? 1 : 0), 19, 2);
       x.fillStyle = m.p.media;
       x.fillRect(Math.round(m.x - 8), Math.round(base) - (dir < 0 ? 1 : 0), 17, 1);
@@ -906,7 +935,7 @@ export function desenharMordida(x: CanvasRenderingContext2D, m: Mordida): void {
         for (let r = 0; r < 5; r++) {
           const meia = Math.round((1 - r / 5) * 1.5);
           const y = Math.round(base - dir * (r + 1));
-          x.fillStyle = m.p.escura;
+          x.fillStyle = m.p.contorno;
           x.fillRect(Math.round(m.x + ox) - meia - 1, y, meia * 2 + 3, 1);
           x.fillStyle = r < 2 ? '#d6dfe8' : BRANCO;
           x.fillRect(Math.round(m.x + ox) - meia, y, meia * 2 + 1, 1);
@@ -970,11 +999,11 @@ export function desenharTracado(x: CanvasRenderingContext2D, f: Tracado, t: numb
       const deitado = Math.round(s / 4) % 2 === 0;
       const rx = deitado ? 2.5 : 1.2;
       const ry = deitado ? 1.4 : 2.2;
-      x.fillStyle = f.p.escura;
+      x.fillStyle = f.p.contorno;
       disco(x, px, py, rx + 1, ry + 1);
       x.fillStyle = f.p.clara;
       disco(x, px, py, rx, ry);
-      x.fillStyle = f.p.escura;
+      x.fillStyle = f.p.contorno;
       x.fillRect(Math.round(px), Math.round(py), 1, 1);
       x.fillStyle = f.p.quente;
       x.fillRect(Math.round(px - rx / 2), Math.round(py - ry / 2), 1, 1);

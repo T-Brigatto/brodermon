@@ -152,9 +152,9 @@ function espinhos(fx: Fx, p: Paleta, tipo: string, g: Geometria, z: Posicao, op:
   const area = areaDaForma(g);
   const linhaReta = g.forma === 'linha' || g.forma === 'parede';
   const n = linhaReta ? limitar(Math.round(alcanceDe(g) / (g.forma === 'parede' ? 3.5 : 7)), 4, 16) : limitar(Math.round(area / 70), 3, 14);
-  const h = linhaReta ? 11 : limitar(Math.sqrt(area) / 2.2, 7, 20);
+  const h = linhaReta ? 12 : limitar(Math.sqrt(area) / 2.2, 9, 20);
   const c = projetar(z.x, z.y);
-  if (g.forma === 'area') fx.espinho(p, c.x, c.y, h * 1.3, h * 0.6, entre(0.75, 0.9));
+  if (g.forma === 'area') fx.espinho(p, c.x, c.y, h * 1.45, h * 0.62, entre(0.75, 0.9));
   pontosNa(fx, g, z, n, (s, d) => {
     const incl = g.forma === 'area' ? limitar((s.x - c.x) / Math.max(1, alcanceDe(g)), -1, 1) * 0.3 : entre(-0.15, 0.15);
     fx.espinho(p, s.x, s.y, h * entre(0.6, 1) * (g.forma === 'area' ? 1 - 0.3 * d : 1), h * entre(0.4, 0.55), entre(0.6, 0.85), { incl, atraso: d * (linhaReta ? 0.25 : 0.12) });
@@ -852,7 +852,7 @@ const tamanhoDaLua = (raio: number) => limitar(raio * 2, 6, 12);
 
 /** Disco em camadas (contorno, corpo, miolo, núcleo) com o miolo puxado para a frente. */
 function esfera(x: CanvasRenderingContext2D, p: Paleta, q: Ponto, ux: number, uy: number, R: number, nucleo = BRANCO): void {
-  x.fillStyle = p.escura;
+  x.fillStyle = p.contorno;
   disco(x, q.x, q.y, R + 1, R + 1);
   x.fillStyle = p.media;
   disco(x, q.x, q.y, R, R);
@@ -884,7 +884,7 @@ export const PROJETEIS: Record<AnimacaoProjetil, ReceitaProjetil> = {
         x.fillStyle = cor;
         disco(x, q.x - ux * R * k, q.y - uy * R * k, R * (1 - k * 0.3), R * (1 - k * 0.3));
       }
-      x.fillStyle = p.escura;
+      x.fillStyle = p.contorno;
       disco(x, q.x, q.y, R + 1, R + 1);
       x.fillStyle = p.media;
       disco(x, q.x, q.y, R + tremor, R + tremor);
@@ -910,7 +910,7 @@ export const PROJETEIS: Record<AnimacaoProjetil, ReceitaProjetil> = {
       const cy = q.y - uy * R * 0.6;
       const n = Math.round(R * 3);
       const ponto = (a: number, r: number) => x.fillRect(Math.round(cx + Math.cos(a) * r), Math.round(cy + Math.sin(a) * r), 1, 1);
-      x.fillStyle = p.escura;
+      x.fillStyle = p.contorno;
       for (let k = 0; k <= n; k++) ponto(dir - 1.15 + (2.3 * k) / n, R + 1);
       for (let k = 0; k <= n; k++) {
         const a = dir - 1.15 + (2.3 * k) / n;
@@ -948,7 +948,7 @@ export const PROJETEIS: Record<AnimacaoProjetil, ReceitaProjetil> = {
         [1.6, 0.45],
         [0.9, 0.7],
       ] as const) {
-        x.fillStyle = p.escura;
+        x.fillStyle = p.contorno;
         disco(x, q.x - ux * R * k, q.y - uy * R * k, R * f + 1, R * f + 1);
         x.fillStyle = p.media;
         disco(x, q.x - ux * R * k, q.y - uy * R * k, R * f, R * f);
@@ -967,7 +967,7 @@ export const PROJETEIS: Record<AnimacaoProjetil, ReceitaProjetil> = {
         x.fillStyle = p.media;
         disco(x, q.x, q.y, R, R);
       });
-      x.fillStyle = p.escura;
+      x.fillStyle = p.contorno;
       anel(x, q.x, q.y + 1, R, R, 1, 0);
       x.fillStyle = p.clara;
       anel(x, q.x, q.y, R, R, 1, 0);
@@ -993,7 +993,7 @@ export const PROJETEIS: Record<AnimacaoProjetil, ReceitaProjetil> = {
           const cx = q.x + ux * s;
           const cy = q.y + uy * s;
           if (camada === 0) {
-            x.fillStyle = p.escura;
+            x.fillStyle = p.contorno;
             for (let w = -W - 1; w <= W + 1; w += 0.7) x.fillRect(Math.round(cx + nx * w), Math.round(cy + ny * w), 1, 1);
             continue;
           }
@@ -1032,7 +1032,7 @@ export const PROJETEIS: Record<AnimacaoProjetil, ReceitaProjetil> = {
     desenhar(x, p, q, _ux, _uy, raio, t) {
       // Pedra que rola: contorno, corpo, brilho em cima e duas rachaduras girando.
       const R = limitar(raio * 0.9, 3, 9);
-      x.fillStyle = p.escura;
+      x.fillStyle = p.contorno;
       disco(x, q.x, q.y, R + 1, R + 1);
       x.fillStyle = p.media;
       disco(x, q.x, q.y, R, R);
@@ -1061,7 +1061,7 @@ export const PROJETEIS: Record<AnimacaoProjetil, ReceitaProjetil> = {
             const px = q.x + Math.cos(a) * s;
             const py = q.y + Math.sin(a) * s;
             if (camada === 0) {
-              x.fillStyle = p.escura;
+              x.fillStyle = p.contorno;
               x.fillRect(Math.round(px) - 1, Math.round(py) - 1, 3, 3);
             } else {
               x.fillStyle = s > R - 1.5 ? p.quente : s < R * 0.5 ? p.clara : p.media;

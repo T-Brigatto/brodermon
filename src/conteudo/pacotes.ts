@@ -19,6 +19,21 @@ import valeSprites from '../../conteudo/vale/sprites.json';
 import valeEstados from '../../conteudo/vale/estados.json';
 import valeCampos from '../../conteudo/vale/campos.json';
 
+/** Tiras de sprite (PNG) de cada pacote, pelo caminho do arquivo; o Vite troca pela URL (ou embute, no build único). */
+const imagens = import.meta.glob('../../conteudo/*/sprites/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
+
+/** Troca o caminho `imagem` de cada sprite do pacote pela URL do arquivo. */
+function comImagens(pasta: string, sprites: Record<string, object>): Record<string, object> {
+  return Object.fromEntries(
+    Object.entries(sprites).map(([id, s]) => {
+      if (!('imagem' in s) || typeof s.imagem !== 'string') return [id, s];
+      const url = imagens[`../../conteudo/${pasta}/${s.imagem}`];
+      if (!url) throw new Error(`sprite "${id}" do pacote ${pasta}: não achei conteudo/${pasta}/${s.imagem}`);
+      return [id, { ...s, imagem: url }];
+    }),
+  );
+}
+
 /** Os 7 tipos e as 6 criaturas da Arena original (`design/Arena.dc.html`). */
 export const prototipo = carregarConteudo({ tipos, categorias, golpes, especies, batalhas, regras, sprites });
 
@@ -33,7 +48,7 @@ export const vale = carregarConteudo({
   especies: valeEspecies,
   batalhas: valeBatalhas,
   regras: valeRegras,
-  sprites: valeSprites,
+  sprites: comImagens('vale', valeSprites),
   estados: valeEstados,
   campos: valeCampos,
 });

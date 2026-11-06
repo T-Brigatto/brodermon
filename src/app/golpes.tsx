@@ -9,6 +9,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { Conteudo, Golpe } from '../conteudo/esquema';
 import { pacotes, vale } from '../conteudo/pacotes';
 import { desenharCena } from '../desenho/cena';
+import { carregarSprites } from '../desenho/sprites';
 import { VISTA } from '../desenho/arena';
 import { duracaoDe, fichaDoGolpe } from '../interface/ficha';
 import { aplicarComandos, criarCampo, golpeDe, perfilDoGolpe, type ConfigBatalha, type EstadoBatalha, type Lutador } from '../nucleo';
@@ -249,6 +250,7 @@ function Catalogo() {
   const contagem = (t: string) => achados.filter(([, g]) => g.tipo === t).length;
 
   // A URL acompanha os filtros: recarregar mantém o que está na tela, e nenhuma busca antiga fica presa nela.
+  // Aberto como arquivo ou dentro de outra página, o navegador pode recusar a troca; aí a URL só fica como estava.
   useEffect(() => {
     const u = new URL(location.href);
     for (const [chave, valor] of [
@@ -258,7 +260,11 @@ function Catalogo() {
       if (valor) u.searchParams.set(chave, valor);
       else u.searchParams.delete(chave);
     }
-    history.replaceState(null, '', u);
+    try {
+      history.replaceState(null, '', u);
+    } catch {
+      // sem URL compartilhável, o filtro continua funcionando
+    }
   }, [tipo, busca]);
 
   return (
@@ -314,7 +320,7 @@ function Catalogo() {
   );
 }
 
-render(<Catalogo />, document.getElementById('app')!);
+void carregarSprites(c).then(() => render(<Catalogo />, document.getElementById('app')!));
 
 // Em desenvolvimento, o palco fica acessível no console (para conferir todos os golpes de uma vez).
 if (import.meta.env.DEV) Object.assign(globalThis, { Palco, conteudoDoCatalogo: c });

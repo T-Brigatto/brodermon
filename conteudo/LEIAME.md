@@ -45,7 +45,7 @@ especies.gotinha.golpes.0: golpe "tsunami" não existe
         "animacoes": { "projetil": "bola-de-fogo", "area": "labaredas", "cone": "jato-de-fogo", "impacto": "chamusco", "terreno": "labaredas" } }
       ```
 
-      As cores das animações vêm de `cores`: a 1ª é o contorno e a sombra, a 2ª o corpo, a 3ª o miolo e a 4ª a parte mais quente ou mais clara.
+      As cores das animações vêm de `cores`, com 5 tons: contorno, escura, média, clara e brilho. O 1º só desenha o contorno e a sombra das peças; as partículas usam os outros 4. Com 4 tons ou menos, o contorno usa o tom escuro. O `projetil` do tipo é `[escura, média, clara]` da mesma rampa.
 
 ## categorias.json
 
@@ -261,11 +261,48 @@ As reações entre terrenos e névoas de elementos diferentes ainda não foram d
 }
 ```
 
-- Um sprite por espécie, com a mesma chave de `especies.json`. Hoje todos têm 24×24.
+- Um sprite por espécie, com a mesma chave de `especies.json`. Pode ser uma grade de pixels (acima) ou uma tira em imagem com animações (abaixo).
 - `pixels`: uma string por linha. Cada caractere, de `0` a `f`, é a posição de uma cor na `paleta`. A posição 0 é sempre transparente (`null`).
-- O sprite precisa ser quadrado: N linhas de N caracteres.
+- A grade precisa ser quadrada: N linhas de N caracteres. Ela olha para a esquerda e tem um quadro só (o jogo faz um balanço de 1 px).
 - Espécie sem sprite aparece como uma bolinha na cor do tipo.
-- A skill `fakemon-firered` gera sprites para este jogo.
+
+### Sprite em tira (animado)
+
+```json
+"briserecs": {
+  "imagem": "sprites/briserecs.png", "quadro": 40, "pe": 38, "altura": 20, "olhaPara": "direita",
+  "animacoes": {
+    "parado":  {"quadros": [0, 1, 2, 3], "fps": 4},
+    "andando": {"quadros": [4, 5, 6, 7], "fps": 8},
+    "ataque":  {"quadros": [8, 9, 10, 11], "fps": 10},
+    "dano":    {"quadros": [12], "fps": 1}
+  }
+}
+```
+
+- `imagem`: PNG na pasta `sprites/` do pacote, com os quadros lado a lado, cada um um quadrado de `quadro` px.
+- `pe`: linha dos pés em cada quadro (os pés ficam no meio, na horizontal). `altura`: altura do bicho, usada para a barra de HP, os textos e os efeitos.
+- `olhaPara`: para onde o desenho olha na tira (`direita` ou `esquerda`); o jogo vira quando precisa.
+- `vistas` (opcional): `frente` e `costas`, cada uma com as mesmas animações, em quadros da mesma tira (mesmo `quadro` e mesmo `pe`). A criatura fica de frente ou de costas quando o rival está quase na mesma vertical (mais de ~51° da horizontal; volta ao lado abaixo de ~39°, para não piscar). Sem `vistas`, ela fica sempre de lado, espelhada. Frente e costas não são espelhadas.
+- `animacoes`: `parado` é obrigatória; `andando`, `ataque` e `dano` são opcionais (sem elas, vale a `parado`). Os quadros contam de 0.
+- Quando cada uma toca: `dano` enquanto a criatura pisca depois de levar dano; `ataque` fica no primeiro quadro enquanto ela carrega um golpe e toca uma vez quando o golpe sai; `andando` quando ela se move; senão `parado`, em laço.
+
+### Importar uma folha de poses
+
+As tiras saem das folhas de poses geradas no GPT ou no Gemini (a folha original fica em `sprites-brutos/`). Como pedir a folha, com o layout e o prompt: [docs/guia-sprites.md](../docs/guia-sprites.md). O importador acha o fundo e os quadros da folha, reduz para a altura pedida com uma escala só, reduz as cores a uma paleta comum, alinha os pés e grava a tira e a entrada no `sprites.json`:
+
+```bash
+node ferramentas/importar-folha.ts sprites-brutos/briserecs-estagio1.png
+node ferramentas/importar-folha.ts sprites-brutos/briserecs-estagio1.png --pacote vale --especie briserecs --altura 20 --anim parado=1:1-4 --anim andando=2:1-4 --anim ataque=3:1-4 --anim dano=4:6 --previa previa.png
+```
+
+A primeira linha só mostra a grade que achou (quantos quadros por linha). Na segunda, `--anim NOME=LINHA:COLUNAS` escolhe os quadros de cada animação, contando de 1 como se vê na folha (`1-4` ou `1,3,5`). Outras opções: `--fps parado=4,andando=8`, `--olha esquerda` e `--cores 32`. A `--previa` mostra a tira ampliada sobre o chão da arena.
+
+Com `--frente FOLHA.png` e `--costas FOLHA.png`, as folhas de frente e de costas (mesmo layout, mesmas `--anim`) entram na mesma tira, na escala da vista de lado, e viram `vistas` na entrada:
+
+```bash
+node ferramentas/importar-folha.ts Thiago/Sprites/aries-estagio1-lado.png --frente Thiago/Sprites/aries-estagio1-frente.png --costas Thiago/Sprites/aries-estagio1-costas.png --especie aries --altura 20 --anim parado=1:1-4 --anim andando=2:1-4 --anim ataque=3:1-4 --anim dano=4:1
+```
 
 ## batalhas.json
 

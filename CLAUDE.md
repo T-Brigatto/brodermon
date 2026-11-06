@@ -6,7 +6,7 @@ A Arena foi refeita em **TypeScript + Vite com núcleo determinístico**, e a ar
 - o núcleo da batalha, com testes, em que **cada golpe é uma lista de efeitos**: dano, projéteis (guiado, reto, persegue, quica, com estouro, grudar, bumerangue, aura, dreno), formas (área, cone, linha, parede, que podem esperar, durar, andar, crescer e deixar campo), várias de uma vez, efeitos no alvo, estados, teleporte, avanço que atravessa, atração, corrente, objetos (pilar, portais, cópia, pino) e cópia do golpe do rival;
 - **estados** (`estados.json`) e **terrenos e névoas** (`campos.json`) como dicionários, com imunes;
 - dois pacotes de conteúdo: `prototipo` (a Arena original, mais 12 golpes de laboratório e 24 do guia) e `vale` (os 10 elementos e os **103 golpes do guia de golpes**, com criaturas de laboratório);
-- o desenho em canvas, com efeitos especiais em pixel por elemento (`fx` em `tipos.json`; a Arena original não tem). Cada elemento do vale tem animações próprias por papel (`fx.animacoes`: labaredas, jato d'água, espinhos de gelo, relâmpago, rachadura, prisma, vinha, runas, garras…), montadas com peças (`desenho/animacoes.ts`) por receitas (`desenho/receitas.ts`);
+- o desenho em canvas, com efeitos especiais em pixel por elemento (`fx` em `tipos.json`; a Arena original não tem). Cada elemento do vale tem animações próprias por papel (`fx.animacoes`: labaredas, jato d'água, espinhos de gelo, relâmpago, rachadura, prisma, vinha, runas, garras…), montadas com peças (`desenho/animacoes.ts`) por receitas (`desenho/receitas.ts`). A arte foi revisada pelo Claude Design (`design/mudancas-arte.md`): 5 tons por elemento, campos pintados no chão, condições e estados desenhados (`desenho/sobreposicoes.ts`) e efeitos em pixels inteiros de tela;
 - as telas em Preact;
 - o som;
 - um visualizador de depuração (`depuracao.html`);
@@ -26,6 +26,8 @@ src/interface/  telas em Preact (HUD, cards, time, táticas, título, pausa, esc
 src/plataforma/ som e preferências
 src/app/        jogo.ts (liga tudo), main.tsx (entrada), depuracao.ts
 testes/         Vitest
+ferramentas/   importador de folhas de poses (PNG → tira de sprite + sprites.json), roda com `node`
+sprites-brutos/ folhas de poses originais (GPT), antes da importação
 design/        páginas do Claude Design (.dc.html) + runtime support.js + icones/
 exportados/    HTML autossuficientes (abrem sem o runtime)
 origem/        zip original "Redesign da interface do jogo" — não editar
@@ -38,6 +40,7 @@ docs/          referência detalhada (ler antes de mexer no assunto)
 - [docs/inventario.md](docs/inventario.md): o que é cada arquivo de design, status e dependências
 - [docs/jogo.md](docs/jogo.md): regras da Arena, criaturas, golpes, tabela de tipos e fórmula de dano
 - [docs/sistema-visual.md](docs/sistema-visual.md): paletas, cores por tipo, fontes, ícones e card de golpe
+- [docs/guia-sprites.md](docs/guia-sprites.md): como pedir folhas de poses ao GPT/Gemini (layout, prompt, evoluções) e importar
 
 ## Como rodar
 
@@ -88,7 +91,7 @@ As páginas de design usam o servidor Python: `python -m http.server 8123`, depo
 1. **Dois sistemas de tipos.** A Arena usa 7 tipos antigos (normal, fogo, agua, planta, eletrico, rocha, ar) com tabela de eficácia. Os labs e cards usam 10 tipos novos (fogo, agua, ar, terra, eletricidade, natureza, mineral, arcano, primordial, gelo), **ainda sem tabela de eficácia**.
 2. **Três famílias de ícones**: pixel 8×8 na Arena; vetoriais em `icones/`; e os do card final, redesenhados (paths próprios; categoria Físico = estrela de impacto, Mágico = orbe com ondas, Especial = chevron aberto).
 3. **Paletas diferentes** por página (Sweetie 16 na Arena, cores de selo, *accents* do card final).
-4. A sprite sheet da Briserecs aponta para `/_blob/e19be4fbcf47d7118afaa4f4256df2e3`, um blob do Claude Design que não existe aqui. A Arena cai no sprite 24×24 embutido.
+4. A sprite sheet da Briserecs aponta para `/_blob/e19be4fbcf47d7118afaa4f4256df2e3`, um blob do Claude Design que não existe aqui. A Arena cai no sprite 24×24 embutido. No `vale`, a Briserecs tem uma tira animada nova (`conteudo/vale/sprites/briserecs.png`).
 5. A categoria Especial é descrita como "buff, defesa ou efeito sem dano", mas Rajada e Raio Curto são Especial com poder.
 6. Nomes trocados: `Lab de Tipos.dc.html` tem o título "LAB DE SELOS" (selos em pixel art); `Lab de Selos.dc.html` é a exploração de ícones vetoriais em rodadas.
 7. `Lab de Golpes.dc.html`: a prop `fonte` é calculada, mas o template usa uma fonte fixa.
@@ -98,4 +101,4 @@ As páginas de design usam o servidor Python: `python -m http.server 8123`, depo
 - Pixel art: `image-rendering: pixelated`; bordas de 2px feitas com `box-shadow` nos 4 lados (sem `border-radius` na Arena); usar as cores da paleta documentada.
 - Acessibilidade já presente na Arena (`aria-label`, `role`, foco visível `#ffcd75`): manter ao editar.
 - Dependências atuais: Preact e Zod (jogo); Vite, TypeScript, Vitest e @types/node (desenvolvimento). Perguntar antes de adicionar outras.
-- A skill `fakemon-firered` gera sprites para este jogo (96×96, tira de 4 quadros, data-URI e dados da espécie).
+- Os sprites vêm de folhas de poses geradas pelo usuário no GPT, importadas com `node ferramentas/importar-folha.ts` (ver "Sprite em tira" em `conteudo/LEIAME.md`); a vista de lado é obrigatória, e frente e costas são opcionais (`--frente`, `--costas`). A skill `fakemon-firered` foi descontinuada: não usar nem sugerir.

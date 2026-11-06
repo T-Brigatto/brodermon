@@ -104,7 +104,7 @@ export const esquemaTipo = z.object({
   fx: z.object({ estilo: z.enum(ESTILOS_FX), cores: z.array(cor).min(2), animacoes: esquemaAnimacoes.optional() }).optional(),
 });
 
-export const esquemaSprite = z
+export const esquemaSpritePixels = z
   .object({
     /** Cor de cada índice; o índice 0 é sempre transparente (use null). */
     paleta: z.array(cor.nullable()).min(2),
@@ -124,6 +124,48 @@ export const esquemaSprite = z
       }
     });
   });
+
+/** Animações de um sprite em imagem, pelo que a criatura está fazendo. */
+export const ANIMACOES_SPRITE = ['parado', 'andando', 'ataque', 'dano'] as const;
+
+const esquemaAnimacaoSprite = z.object({
+  /** Quadros da tira, na ordem (contando de 0). */
+  quadros: z.array(z.number().int().min(0)).min(1),
+  /** Quadros por segundo. No ataque, a animação toca uma vez enquanto o golpe sai. */
+  fps: positivo,
+});
+
+const esquemaAnimacoesSprite = z
+  .object({ parado: esquemaAnimacaoSprite, andando: esquemaAnimacaoSprite.optional(), ataque: esquemaAnimacaoSprite.optional(), dano: esquemaAnimacaoSprite.optional() })
+  .strict();
+
+/** Vistas do sprite: de lado (a tira principal, espelhada quando precisa), de frente (olhando para a câmera) e de costas. */
+export const VISTAS_SPRITE = ['lado', 'frente', 'costas'] as const;
+
+/**
+ * Sprite em imagem: uma tira PNG com os quadros lado a lado (feita por `ferramentas/importar-folha.ts`). Cada quadro é
+ * um quadrado de `quadro` pixels, com os pés na linha `pe` e no meio, na horizontal.
+ */
+export const esquemaSpriteImagem = z.object({
+  /** Caminho da tira dentro da pasta do pacote (`sprites/ID.png`); o registro dos pacotes troca pela URL. */
+  imagem: z.string().min(1),
+  quadro: z.number().int().positive(),
+  pe: z.number().int().min(0),
+  /** Altura do bicho em pixels (dos pés ao topo), para a barra de HP, os textos e os efeitos. */
+  altura: z.number().int().positive(),
+  /** Para onde o desenho olha na tira, na vista de lado. */
+  olhaPara: z.enum(['direita', 'esquerda']).default('direita'),
+  /** Animações da vista de lado. */
+  animacoes: esquemaAnimacoesSprite,
+  /**
+   * Vistas de frente e de costas, com quadros na mesma tira (mesmo `quadro` e mesmo `pe`). O jogo as usa quando o
+   * rival está quase na mesma vertical; sem elas, a criatura fica sempre de lado.
+   */
+  vistas: z.object({ frente: esquemaAnimacoesSprite.optional(), costas: esquemaAnimacoesSprite.optional() }).strict().optional(),
+});
+
+/** Sprite de uma espécie: grade de pixels (um quadro só) ou tira em imagem com animações. */
+export const esquemaSprite = z.union([esquemaSpritePixels, esquemaSpriteImagem]);
 
 export const esquemaCategoria = z.object({
   nome: z.string().min(1),
@@ -751,6 +793,9 @@ export type Membro = z.infer<typeof esquemaMembro>;
 export type Especie = z.infer<typeof esquemaEspecie>;
 export type Regras = z.infer<typeof esquemaRegras>;
 export type Sprite = z.infer<typeof esquemaSprite>;
+export type SpritePixels = z.infer<typeof esquemaSpritePixels>;
+export type SpriteImagem = z.infer<typeof esquemaSpriteImagem>;
+export type AnimacaoSprite = (typeof ANIMACOES_SPRITE)[number];
 export type Piloto = z.infer<typeof esquemaPiloto>;
 
 /** Valida um pacote cru. Lança um erro com uma linha por problema, no formato `caminho: mensagem`. */
@@ -764,13 +809,17 @@ interface Problema {
   path: PropertyKey[];
   message: string;
   issues?: Problema[];
+  /** Numa união, os problemas de cada opção. */
+  errors?: Problema[][];
 }
 
-// Erros em chaves de dicionário vêm aninhados ("Invalid key in record"); mostra a mensagem de dentro.
+// Erros em chaves de dicionário vêm aninhados ("Invalid key in record"); mostra a mensagem de dentro. Numa união que
+// não serviu (sprite em grade ou em tira), mostra os problemas da opção que chegou mais perto.
 function formatar(issues: readonly Problema[], prefixo: PropertyKey[] = []): string[] {
   return issues.flatMap((i) => {
     const caminho = [...prefixo, ...i.path];
     if (i.issues?.length) return formatar(i.issues, caminho);
+    if (i.errors?.length) return formatar([...i.errors].sort((a, b) => a.length - b.length)[0]!, caminho);
     return [`${caminho.map(String).join('.') || '(raiz)'}: ${i.message}`];
   });
 }

@@ -40,8 +40,8 @@ export function Retrato(p: { c: Conteudo; especie: string | null; paraDireita: b
     const el = ref.current;
     if (!el) return;
     if (!p.especie) el.getContext('2d')?.clearRect(0, 0, el.width, el.height);
-    else pintarRetrato(el, p.c, p.especie, p.paraDireita, desmaiado);
-  }, [p.c, p.especie, p.paraDireita, desmaiado]);
+    else pintarRetrato(el, p.c, p.especie, p.paraDireita, desmaiado, p.tam);
+  }, [p.c, p.especie, p.paraDireita, desmaiado, p.tam]);
   return (
     <canvas
       ref={ref}

@@ -8,6 +8,7 @@
 import { render } from 'preact';
 import { pacotes, vale } from '../conteudo/pacotes';
 import { desenharCena } from '../desenho/cena';
+import { carregarSprites } from '../desenho/sprites';
 import { App } from '../interface/App';
 import '../interface/arena.css';
 import { Jogo, type Opcoes } from './jogo';
@@ -21,11 +22,10 @@ const opcoes: Opcoes = {
   semente: q.has('semente') ? Number(q.get('semente')) : undefined,
   batalha: q.get('batalha') ?? undefined,
 };
-const jogo = new Jogo(pacotes[q.get('pacote') ?? ''] ?? vale, opcoes);
+const conteudo = pacotes[q.get('pacote') ?? ''] ?? vale;
+const jogo = new Jogo(conteudo, opcoes);
 
 let canvas: HTMLCanvasElement | null = null;
-render(<App jogo={jogo} aoCanvas={(el) => (canvas = el)} />, document.getElementById('app')!);
-
 let ultimo = performance.now();
 function quadro(agora: number): void {
   const dt = Math.min(0.05, Math.max(0, (agora - ultimo) / 1000));
@@ -34,7 +34,12 @@ function quadro(agora: number): void {
   if (canvas) desenharCena(canvas, jogo);
   requestAnimationFrame(quadro);
 }
-requestAnimationFrame(quadro);
+// As tiras de sprite carregam antes da primeira tela.
+void carregarSprites(conteudo).then(() => {
+  render(<App jogo={jogo} aoCanvas={(el) => (canvas = el)} />, document.getElementById('app')!);
+  ultimo = performance.now();
+  requestAnimationFrame(quadro);
+});
 
 addEventListener('keydown', (ev) => jogo.tecla(ev, true));
 addEventListener('keyup', (ev) => jogo.tecla(ev, false));

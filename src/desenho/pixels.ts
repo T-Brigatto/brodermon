@@ -77,3 +77,58 @@ export function faixa(x: CanvasRenderingContext2D, cx: number, y: number, meia: 
   x.fillStyle = cor;
   x.fillRect(Math.round(cx) - m, Math.round(y), m * 2 + 1, 1);
 }
+
+/**
+ * Desenha em pixels inteiros de tela: cada retângulo do cenário vira um retângulo de tela com as bordas
+ * arredondadas para o pixel. Com o zoom fracionário da câmera, os `fillRect` deixavam listras finas dentro de
+ * chamas, fumaça e campos; assim os pixels saem cheios, como nos sprites. Só vale com a câmera sem rotação.
+ */
+export function emPixelsDeTela(x: CanvasRenderingContext2D, desenho: (x: CanvasRenderingContext2D) => void): void {
+  const m = x.getTransform?.();
+  if (!m || m.b || m.c) {
+    desenho(x);
+    return;
+  }
+  const { a: sx, d: sy, e: ox, f: oy } = m;
+  const tela = {
+    canvas: x.canvas,
+    get fillStyle() {
+      return x.fillStyle;
+    },
+    set fillStyle(v: CanvasRenderingContext2D['fillStyle']) {
+      x.fillStyle = v;
+    },
+    get globalAlpha() {
+      return x.globalAlpha;
+    },
+    set globalAlpha(v: number) {
+      x.globalAlpha = v;
+    },
+    get imageSmoothingEnabled() {
+      return x.imageSmoothingEnabled;
+    },
+    set imageSmoothingEnabled(v: boolean) {
+      x.imageSmoothingEnabled = v;
+    },
+    fillRect(px: number, py: number, w: number, h: number) {
+      const l = Math.round(px * sx + ox);
+      const t = Math.round(py * sy + oy);
+      x.fillRect(l, t, Math.round((px + w) * sx + ox) - l, Math.round((py + h) * sy + oy) - t);
+    },
+    drawImage(imagem: CanvasImageSource, dx: number, dy: number, dw?: number, dh?: number) {
+      // O sprite volta para o espaço do cenário, igual ao desenho de fora.
+      x.save();
+      x.setTransform(m);
+      if (dw === undefined || dh === undefined) x.drawImage(imagem, dx, dy);
+      else x.drawImage(imagem, dx, dy, dw, dh);
+      x.restore();
+    },
+  };
+  x.save();
+  x.setTransform(1, 0, 0, 1, 0, 0);
+  try {
+    desenho(tela as unknown as CanvasRenderingContext2D);
+  } finally {
+    x.restore();
+  }
+}

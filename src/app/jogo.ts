@@ -5,7 +5,7 @@
 import type { AnimacaoForma, Conteudo } from '../conteudo/esquema';
 import { AR, CENARIO, VISTA, desprojetar, projetar } from '../desenho/arena';
 import { Fx, areaDaForma } from '../desenho/fx';
-import { spriteDe } from '../desenho/sprites';
+import { spriteDe, vistaPara, type Vista } from '../desenho/sprites';
 import {
   PASSO,
   aplicarComandos,
@@ -55,12 +55,18 @@ export interface Visual {
   cast: number;
   /** Clarão branco da entrada em campo. */
   entrada: number;
+  /** Segundos desde que o último golpe saiu (animação de ataque dos sprites em tira). */
+  desdeOGolpe: number;
+  /** Carregava um golpe no quadro anterior: quando para, o golpe saiu. */
+  conjurando: boolean;
   /** Barra vermelha que desce devagar atrás do HP. */
   hpLag: number;
   lagT: number;
   hpVisto: number;
   /** Borda branca no card do golpe recém-usado. */
   disparo: number[];
+  /** Vista do sprite (de lado, de frente ou de costas), pelo ângulo até o rival; só vale nas tiras com `vistas`. */
+  vista: Vista;
 }
 
 export interface Particula {
@@ -190,8 +196,8 @@ export class Jogo {
     for (const eq of this.b.equipes) {
       for (const l of eq.lutadores) {
         this.visuais.set(l.uid, {
-          anim: l.equipe * 0.3, flash: 0, cast: 0, entrada: 0,
-          hpLag: l.hp, lagT: 0, hpVisto: l.hp, disparo: l.golpes.map(() => 0),
+          anim: l.equipe * 0.3, flash: 0, cast: 0, entrada: 0, desdeOGolpe: 99, conjurando: false,
+          hpLag: l.hp, lagT: 0, hpVisto: l.hp, disparo: l.golpes.map(() => 0), vista: 'lado',
         });
       }
     }
@@ -454,12 +460,20 @@ export class Jogo {
       const v = this.visual(l);
       v.disparo = v.disparo.map((t) => (t > 0 ? t - dt : 0));
     }
-    for (const l of [this.eu(), this.rival()]) {
+    const emCampo = [this.eu(), this.rival()];
+    for (const l of emCampo) {
       const v = this.visual(l);
       v.anim += dt;
       if (v.flash > 0) v.flash -= dt;
       if (v.cast > 0) v.cast = Math.max(0, v.cast - dt);
       if (v.entrada > 0) v.entrada = Math.max(0, v.entrada - dt);
+      const conjurando = !!l.acao && l.acao.conjuracao > 0;
+      if (v.conjurando && !conjurando) v.desdeOGolpe = 0;
+      v.conjurando = conjurando;
+      v.desdeOGolpe += dt;
+      // A criatura olha para o rival (como o `olhando` do núcleo); a vista do sprite segue o ângulo até ele.
+      const outro = emCampo[l === emCampo[0] ? 1 : 0]!;
+      if (!outro.desmaiado && !l.desmaiado) v.vista = vistaPara(outro.x - l.x, outro.y - l.y, v.vista);
     }
     this.atualizarProjeteis(dt);
     this.fxDoQuadro(dt);
@@ -710,6 +724,7 @@ export class Jogo {
           const l = lutadorPorUid(this.b, e.autor);
           const v = this.visual(l);
           v.cast = 0.2;
+          if (!e.conjuracao) v.desdeOGolpe = 0;
           if (l.equipe === 0) v.disparo[e.indice] = 0.25;
           // O nome sai sobre o rival; com `anunciarGolpes`, sobre as duas criaturas (e fica mais tempo para ler).
           if (l.equipe === 1 || this.c.regras.anunciarGolpes) {

@@ -1,5 +1,8 @@
 // Desenha um quadro da arena: cenário, marcador de destino, criaturas, projéteis,
 // partículas, textos, setas de quem saiu da tela e minimapa. Porte de `draw` da Arena.
+// No pacote com efeitos próprios (tipos com `fx`), os campos, objetos, condições e estados usam a arte de
+// `sobreposicoes.ts`, e tudo o que é efeito sai em pixels inteiros de tela (`emPixelsDeTela`). A Arena original,
+// sem `fx`, continua com o desenho de sempre, pixel a pixel.
 
 import type { Jogo } from '../app/jogo';
 import type { EfeitoForma } from '../conteudo/esquema';
@@ -8,7 +11,19 @@ import { AR, VISTA, projetar } from './arena';
 import { desenharTexto } from './fonte';
 import { desenharForma } from './formas';
 import { criarCenario } from './fundo';
-import { canvasDoSprite, spriteDe } from './sprites';
+import { emPixelsDeTela } from './pixels';
+import {
+  desenharAuraDeEstado,
+  desenharBlocoDeGelo,
+  desenharBuff,
+  desenharCondicoes,
+  desenharObjetoComArte,
+  desenharSobreEstado,
+  paletaDoTipo,
+  temArte,
+  tintaDoCampo,
+} from './sobreposicoes';
+import { canvasDoSprite, quadroDoMomento, spriteDe } from './sprites';
 
 let cenario: ReturnType<typeof criarCenario> | null = null;
 
@@ -54,9 +69,15 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
     x.fillRect(wx, wy, 1, 1);
   }
 
-  desenharFormas(x, j);
-  desenharObjetos(x, j);
-  j.fx.desenharChao(x);
+  // Com arte própria, os efeitos saem em pixels inteiros de tela; sem ela, como sempre.
+  const arte = temArte(c);
+  const camada = (desenho: (x: CanvasRenderingContext2D) => void) => (arte ? emPixelsDeTela(x, desenho) : desenho(x));
+
+  camada((x) => {
+    desenharFormas(x, j, arte);
+    desenharObjetos(x, j, arte);
+    j.fx.desenharChao(x);
+  });
 
   // Criaturas em campo, de trás para a frente
   const emCampo = [j.eu(), j.rival()].filter((l) => !l.desmaiado).sort((a, b) => a.y - b.y);
@@ -75,8 +96,11 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
     x.fillRect(cx - sw, cy, sw * 2, 1);
     x.fillRect(cx - sw + 2, cy + 1, sw * 2 - 4, 1);
     const andando = Math.abs(l.vx) + Math.abs(l.vy) > 6;
-    const balanco = Math.floor(v.anim / (andando ? 0.15 : 0.45)) % 2;
-    if (l.buff) {
+    // Sprite em tira: a animação faz o balanço. Na grade de pixels, ele sobe 1 px de tempos em tempos.
+    const balanco = sp.animacoes ? 0 : Math.floor(v.anim / (andando ? 0.15 : 0.45)) % 2;
+    const temEstado = l.condicoes.some((cd) => cd.tipo === 'estado');
+    if (arte && temEstado) camada((x) => desenharAuraDeEstado(x, c, l, cx, cy, sw, v.anim));
+    if (l.buff && !arte) {
       x.fillStyle = l.buff.atributo === 'ataque' ? '#ef7d57' : l.buff.atributo === 'velocidade' ? '#a7f070' : '#73eff7';
       for (let q = 0; q < 4; q++) {
         const a = v.anim * 4 + (q * Math.PI) / 2;
@@ -91,7 +115,7 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
     // Energia de quem conjura (só nos tipos com efeito especial): brilho no chão antes do sprite, faíscas depois.
     const carga = l.acao && l.acao.conjuracao > 0 ? golpeDe(c, l.acao.golpe) : null;
     const prog = carga && carga.conjuracao > 0 ? 1 - l.acao!.conjuracao / carga.conjuracao : 0;
-    if (carga) j.fx.cargaChao(x, carga.tipo, { x: cx, y: cy }, prog);
+    if (carga) camada((x) => j.fx.cargaChao(x, carga.tipo, { x: cx, y: cy }, prog));
     if (m?.intangivel && m.atingivelPor.length) {
       // Embaixo da terra: só o monte de terra andando.
       x.fillStyle = '#6e4123';
@@ -99,15 +123,37 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
       x.fillStyle = '#b9773f';
       x.fillRect(cx - 3, cy - 3, 6, 1);
     } else {
-      const sprite = canvasDoSprite(c, l.especie, l.olhando > 0, branco ? '#f4f4f4' : null);
+      const congelado = m?.trava === 'tudo';
+      const vista = sp.vistas ? v.vista : 'lado';
+      const quadro = quadroDoMomento(
+        sp,
+        {
+          tempo: congelado ? 0 : v.anim,
+          conjurando: !!carga,
+          desdeOGolpe: v.desdeOGolpe,
+          ferido: v.flash > 0,
+          andando: andando && !congelado,
+        },
+        vista,
+      );
+      const sprite = canvasDoSprite(c, l.especie, l.olhando > 0, branco ? '#f4f4f4' : null, quadro, vista);
       const alfa = x.globalAlpha;
       if (m?.intangivel) x.globalAlpha = 0.45;
       if (t === 1) x.drawImage(sprite, cx - sp.n / 2 + avanco, cy - sp.pe - balanco);
       else x.drawImage(sprite, Math.round(cx - (sp.n * t) / 2 + avanco), Math.round(cy - sp.pe * t - balanco), sp.n * t, sp.n * t);
       x.globalAlpha = alfa;
-      if (m?.trava === 'tudo') desenharGelo(x, cx, cy, h * t);
+      if (m?.trava === 'tudo') {
+        if (arte) camada((x) => desenharBlocoDeGelo(x, cx, cy, h * t, v.anim));
+        else desenharGelo(x, cx, cy, h * t);
+      }
     }
-    if (carga) j.fx.cargaAr(x, carga.tipo, { x: cx, y: cy }, h * t, prog);
+    if (arte && (l.buff || temEstado)) {
+      camada((x) => {
+        if (l.buff) desenharBuff(x, l.buff.atributo, cx, cy, h * t, v.anim);
+        desenharSobreEstado(x, c, l, cx, cy, h * t, v.anim);
+      });
+    }
+    if (carga) camada((x) => j.fx.cargaAr(x, carga.tipo, { x: cx, y: cy }, h * t, prog));
     const bx = cx - 8;
     const by = topo - 5;
     const pct = l.hp / l.hpMax;
@@ -120,10 +166,28 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
       x.fillRect(cx - 1, by - 4, 3, 1);
       x.fillRect(cx, by - 3, 1, 1);
     }
-    desenharEstado(x, j, l, cx, cy, by, sw, v.anim);
+    desenharEstado(x, j, l, cx, cy, by, sw, v.anim, arte ? camada : null);
   }
 
-  // Projéteis com rastro: o guiado aponta para o alvo; os outros, para onde estão voando.
+  camada((x) => desenharNoAr(x, j));
+  x.drawImage(cenario.frente, 0, 0);
+
+  // Textos na resolução da tela, para a fonte de pixel ficar nítida
+  x.setTransform(1, 0, 0, 1, 0, 0);
+  const o = Math.max(1, Math.round(K * 1.5));
+  for (const t of j.textos) {
+    if (t.vida < 0.25 && Math.floor(t.vida * 24) % 2) continue;
+    desenharTexto(x, t.s, ox + t.x * s, oy + t.y * s, t.cor, t.esc * 2 * K, o);
+  }
+  if (j.tela !== 'titulo') {
+    desenharSetas(x, j, ox, oy, s, K);
+    desenharMinimapa(x, j, K);
+  }
+}
+
+/** Projéteis com rastro (o guiado aponta para o alvo; os outros, para onde estão voando), partículas e efeitos. */
+function desenharNoAr(x: CanvasRenderingContext2D, j: Jogo): void {
+  const c = j.c;
   for (const p of j.b.projeteis) {
     const g = golpeDe(c, p.golpe);
     const tipo = c.tipos[g.tipo];
@@ -153,35 +217,20 @@ export function desenharCena(cv: HTMLCanvasElement, j: Jogo): void {
     x.fillRect(Math.round(p.x), Math.round(p.y), p.tam, p.tam);
   }
   j.fx.desenhar(x);
-  x.drawImage(cenario.frente, 0, 0);
-
-  // Textos na resolução da tela, para a fonte de pixel ficar nítida
-  x.setTransform(1, 0, 0, 1, 0, 0);
-  const o = Math.max(1, Math.round(K * 1.5));
-  for (const t of j.textos) {
-    if (t.vida < 0.25 && Math.floor(t.vida * 24) % 2) continue;
-    desenharTexto(x, t.s, ox + t.x * s, oy + t.y * s, t.cor, t.esc * 2 * K, o);
-  }
-  if (j.tela !== 'titulo') {
-    desenharSetas(x, j, ox, oy, s, K);
-    desenharMinimapa(x, j, K);
-  }
 }
 
 /**
- * Sinais do que está acontecendo com a criatura: barra de conjuração sob o HP, estrelas de atordoamento,
- * raízes de quem está preso, gotas de lentidão, faíscas de dano contínuo e seta de debuff.
- */
-/**
  * No chão, antes das criaturas: terrenos (trama cheia) e névoas (trama rala, sem sombra), as zonas que duram
  * (mais fortes no instante do pulso), as marcas que ainda vão acertar, a marca das formas durante a conjuração
- * (a trama enche quando falta pouco) e o clarão das formas instantâneas.
+ * (a trama enche quando falta pouco) e o clarão das formas instantâneas. Com `arte`, terrenos e zonas com
+ * animação viram campos pintados nas cores do elemento (tinta, quinas arredondadas, borda com luz e sombra) e a
+ * névoa vira um véu claro.
  */
-function desenharFormas(x: CanvasRenderingContext2D, j: Jogo): void {
+function desenharFormas(x: CanvasRenderingContext2D, j: Jogo, arte: boolean): void {
   const c = j.c;
   const coresDoTipo = (id: string) => {
     const tipo = c.tipos[id];
-    return { cor: tipo?.cor ?? '#f4f4f4', escura: tipo?.projetil?.[0] ?? '#3b5dc9', clara: tipo?.projetil?.[2] ?? '#f4f4f4' };
+    return { cor: tipo?.cor ?? '#f4f4f4', escura: tipo?.projetil?.[0] ?? '#3b5dc9', clara: tipo?.projetil?.[2] ?? '#f4f4f4', p: arte ? paletaDoTipo(c, id) : null };
   };
   const cores = (golpe: string) => coresDoTipo(golpeDe(c, golpe).tipo);
   const passo = Math.floor(performance.now() / 120) % 3;
@@ -194,15 +243,19 @@ function desenharFormas(x: CanvasRenderingContext2D, j: Jogo): void {
     }
     const def = z.campo ? c.campos[z.campo] : undefined;
     if (def) {
-      const { cor, escura, clara } = coresDoTipo(def.tipo);
-      if (def.camada === 'nevoa') desenharForma(x, z.geo, z, { miolo: clara, borda: clara, trama: 4, alfa: 0.35 + onda, pontilhado: passo, semSombra: true });
+      const { cor, escura, clara, p } = coresDoTipo(def.tipo);
+      if (def.camada === 'nevoa') {
+        if (p) desenharForma(x, z.geo, z, { miolo: p.clara, borda: p.clara, trama: 0, tinta: 0.14 + onda * 0.6, alfa: 0.3 + onda, pontilhado: passo, semSombra: true, arredondado: true });
+        else desenharForma(x, z.geo, z, { miolo: clara, borda: clara, trama: 4, alfa: 0.35 + onda, pontilhado: passo, semSombra: true });
+      } else if (p) desenharForma(x, z.geo, z, { miolo: tintaDoCampo(p), trama: 0, tinta: 0.3, alfa: 0.45, arredondado: true, campo: p });
       else desenharForma(x, z.geo, z, { miolo: escura, borda: cor, trama: 2, alfa: 0.45 });
       continue;
     }
-    const { cor, escura } = cores(z.golpe);
+    const { cor, escura, p } = cores(z.golpe);
     // Com animação própria (jato de fogo, funil…), a zona fica só marcada no chão, para a animação aparecer.
     if (j.fx.animacao(z.golpe, z.geo.forma)) {
-      desenharForma(x, z.geo, z, { miolo: escura, borda: cor, trama: 4, alfa: 0.2, pontilhado: passo });
+      if (p) desenharForma(x, z.geo, z, { miolo: p.escura, trama: 4, alfa: 0.2, pontilhado: passo, arredondado: true, campo: p });
+      else desenharForma(x, z.geo, z, { miolo: escura, borda: cor, trama: 4, alfa: 0.2, pontilhado: passo });
       continue;
     }
     const fase = z.pulso ? (z.tempo % z.pulso) / z.pulso : 0;
@@ -225,17 +278,30 @@ function desenharFormas(x: CanvasRenderingContext2D, j: Jogo): void {
   }
   for (const f of j.formas) {
     if (f.vida < 0.08 && Math.floor(f.vida * 60) % 2) continue;
-    const { cor, clara, escura } = cores(f.golpe);
+    const { cor, clara, escura, p } = cores(f.golpe);
     // Com animação própria, o clarão da forma só marca onde acertou.
-    if (j.fx.animacao(f.golpe, f.geo.forma)) desenharForma(x, f.geo, f.z, { miolo: escura, borda: escura, trama: 4, alfa: 0.18 });
-    else desenharForma(x, f.geo, f.z, { miolo: cor, borda: clara, trama: 2, alfa: 0.85 });
+    if (j.fx.animacao(f.golpe, f.geo.forma)) {
+      if (p) desenharForma(x, f.geo, f.z, { miolo: p.escura, trama: 4, alfa: 0.18, arredondado: true, campo: p });
+      else desenharForma(x, f.geo, f.z, { miolo: escura, borda: escura, trama: 4, alfa: 0.18 });
+    } else desenharForma(x, f.geo, f.z, { miolo: cor, borda: clara, trama: 2, alfa: 0.85 });
   }
 }
 
-/** Objetos na arena: portais (anel), pino (haste com o alcance marcado), pilar (bloco de cristal) e a cópia falsa. */
-function desenharObjetos(x: CanvasRenderingContext2D, j: Jogo): void {
+/**
+ * Objetos na arena: portais (anel), pino (haste com o alcance marcado), pilar (bloco de cristal) e a cópia falsa.
+ * Com `arte`, o desenho de `sobreposicoes.ts` (portal girando, para-raios com globo, cristal facetado).
+ */
+function desenharObjetos(x: CanvasRenderingContext2D, j: Jogo, arte: boolean): void {
   const c = j.c;
   const piscar = Math.floor(performance.now() / 150) % 2;
+  if (arte) {
+    const t = performance.now() / 1000;
+    for (const o of j.b.objetos) {
+      const z = { x: o.x, y: o.y, ux: 1, uy: 0 };
+      desenharObjetoComArte(x, j, o, t, piscar, (p, raio) => desenharForma(x, { forma: 'area', raio }, z, { miolo: p.escura, trama: 4, alfa: 0.25, pontilhado: piscar, campo: p }));
+    }
+    return;
+  }
   for (const o of j.b.objetos) {
     const q = projetar(o.x, o.y);
     const cx = Math.round(q.x);
@@ -287,7 +353,22 @@ function desenharGelo(x: CanvasRenderingContext2D, cx: number, cy: number, h: nu
   x.fillRect(cx + Math.round(h * 0.2), cy - Math.round(h * 0.6), 1, Math.round(h * 0.3));
 }
 
-function desenharEstado(x: CanvasRenderingContext2D, j: Jogo, l: Lutador, cx: number, cy: number, by: number, sw: number, anim: number): void {
+/**
+ * Sinais do que está acontecendo com a criatura: barra de conjuração sob o HP, estrelas de atordoamento,
+ * raízes de quem está preso, gotas de lentidão, faíscas de dano contínuo e seta de debuff. Com arte (`camada`),
+ * as condições usam o desenho de `sobreposicoes.ts`.
+ */
+function desenharEstado(
+  x: CanvasRenderingContext2D,
+  j: Jogo,
+  l: Lutador,
+  cx: number,
+  cy: number,
+  by: number,
+  sw: number,
+  anim: number,
+  camada: ((desenho: (x: CanvasRenderingContext2D) => void) => void) | null,
+): void {
   const a = l.acao;
   if (a && (a.conjuracao > 0 || a.canal)) {
     // Conjurando, a barra enche; canalizando, esvazia até o fim.
@@ -299,6 +380,10 @@ function desenharEstado(x: CanvasRenderingContext2D, j: Jogo, l: Lutador, cx: nu
     x.fillRect(cx - 8, by + 3, 16, 2);
     x.fillStyle = j.c.tipos[g.tipo]?.cor ?? '#f4f4f4';
     x.fillRect(cx - 7, by + 3, Math.round(14 * feito), 1);
+  }
+  if (camada) {
+    if (l.condicoes.some((cd) => cd.tipo !== 'estado')) camada((x) => desenharCondicoes(x, j, l, cx, cy, by, sw, anim));
+    return;
   }
   for (const cd of l.condicoes) {
     switch (cd.tipo) {
