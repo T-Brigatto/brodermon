@@ -301,7 +301,7 @@ A primeira linha só mostra a grade que achou (quantos quadros por linha). Na se
 Com `--frente FOLHA.png` e `--costas FOLHA.png`, as folhas de frente e de costas (mesmo layout, mesmas `--anim`) entram na mesma tira, na escala da vista de lado, e viram `vistas` na entrada:
 
 ```bash
-node ferramentas/importar-folha.ts Thiago/Sprites/aries-estagio1-lado.png --frente Thiago/Sprites/aries-estagio1-frente.png --costas Thiago/Sprites/aries-estagio1-costas.png --especie aries --altura 20 --anim parado=1:1-4 --anim andando=2:1-4 --anim ataque=3:1-4 --anim dano=4:1
+node ferramentas/importar-folha.ts sprites-brutos/aries-estagio1-lado.png --frente sprites-brutos/aries-estagio1-frente.png --costas sprites-brutos/aries-estagio1-costas.png --especie aries --altura 20 --anim parado=1:1-4 --anim andando=2:1-4 --anim ataque=3:1-4 --anim dano=4:1
 ```
 
 ## batalhas.json
