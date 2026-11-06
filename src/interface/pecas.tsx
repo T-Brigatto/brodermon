@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'preact/hooks';
 import type { Conteudo } from '../conteudo/esquema';
 import { pintarRetrato } from '../desenho/sprites';
 import { ICONE_PADRAO, sombraIcone } from './estilo';
+import { GLIFOS_TIPOS } from './glifos-tipos';
 
 export function IconePixel(p: { linhas: readonly string[]; escala: number; cor: string; left: number; top: number }) {
   return (
@@ -11,6 +12,28 @@ export function IconePixel(p: { linhas: readonly string[]; escala: number; cor: 
       style={`position: absolute; left: ${p.left}px; top: ${p.top}px; width: ${p.escala}px; height: ${p.escala}px; box-shadow: ${sombraIcone(p.linhas, p.escala, p.cor)}`}
     />
   );
+}
+
+/**
+ * Ícone de um tipo dentro de um selo quadrado de `tam` px: o glifo 5a de `design/icones/tipos/`, se o tipo tiver um,
+ * senão o ícone de pixel 8×8 de `tipos.json` (`escala` e `off` posicionam esse), senão o quadrado padrão.
+ */
+export function IconeTipo(p: { c: Conteudo; tipo: string; tam: number; escala: number; off: number }) {
+  const g = GLIFOS_TIPOS[p.tipo];
+  if (g) {
+    const lado = p.tam - 2;
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        width={lado}
+        height={lado}
+        aria-hidden="true"
+        style={`position: absolute; left: 1px; top: 1px; display: block; color: ${g.cor}`}
+        dangerouslySetInnerHTML={{ __html: g.svg }}
+      />
+    );
+  }
+  return <IconePixel linhas={p.c.tipos[p.tipo]?.icone ?? ICONE_PADRAO} escala={p.escala} cor="#1a1c2c" left={p.off} top={p.off} />;
 }
 
 /** Selos de tipo de uma criatura. `tam` 16 (cartões) ou 14 (time, listas); `anel` é a cor do contorno. */
@@ -24,7 +47,7 @@ export function Selos(p: { c: Conteudo; tipos: readonly string[]; apagado: boole
         const anel = p.anel ? `; box-shadow: 0 0 0 2px ${p.anel}` : '';
         return (
           <span key={t} style={`flex: none; position: relative; display: block; width: ${p.tam}px; height: ${p.tam}px; background: ${fundo}${anel}`}>
-            <IconePixel linhas={tipo?.icone ?? ICONE_PADRAO} escala={1} cor="#1a1c2c" left={off} top={off} />
+            <IconeTipo c={p.c} tipo={t} tam={p.tam} escala={1} off={off} />
           </span>
         );
       })}

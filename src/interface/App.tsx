@@ -5,9 +5,9 @@ import { useEffect, useState } from 'preact/hooks';
 import type { Jogo } from '../app/jogo';
 import { confronto, eficacia, especieDe, golpeDe, perfilDoGolpe, recargaDe, type Lutador, type Tatica } from '../nucleo';
 import { descricaoGolpe } from './descricao';
-import { ICONE_PADRAO, aoApertar, corHp, moldura } from './estilo';
+import { aoApertar, corHp, moldura } from './estilo';
 import { GLIFOS } from './glifos';
-import { BarraHp, IconeCategoria, IconePixel, Retrato, Selos } from './pecas';
+import { BarraHp, IconeCategoria, IconePixel, IconeTipo, Retrato, Selos } from './pecas';
 import { Telas } from './telas';
 
 const SIGLA = { ataque: 'ATQ', defesa: 'DEF', velocidade: 'VEL' } as const;
@@ -261,7 +261,7 @@ function Golpes({ jogo: j }: { jogo: Jogo }) {
           >
             <span style="display: flex; align-items: center; gap: 8px; height: 22px; width: 100%">
               <span style={`position: relative; flex: none; display: block; width: 22px; height: 22px; background: ${recarregando ? '#566c86' : cor}`}>
-                <IconePixel linhas={tipo?.icone ?? ICONE_PADRAO} escala={2} cor="#1a1c2c" left={1} top={1} />
+                <IconeTipo c={c} tipo={g.tipo} tam={22} escala={2} off={1} />
               </span>
               <span style={`flex: 1; min-width: 0; font-size: 15px; line-height: 16px; font-weight: 700; letter-spacing: .5px; color: ${recarregando ? '#94b0c2' : '#f4f4f4'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis`}>
                 {g.nome.toUpperCase()}

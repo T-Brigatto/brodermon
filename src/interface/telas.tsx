@@ -2,9 +2,9 @@
 
 import type { Jogo } from '../app/jogo';
 import { confronto, eficacia, especieDe, type Lutador } from '../nucleo';
-import { ICONE_PADRAO, corHp, moldura } from './estilo';
+import { corHp, moldura } from './estilo';
 import { GLIFOS } from './glifos';
-import { IconePixel, Retrato, Selos } from './pecas';
+import { IconePixel, IconeTipo, Retrato, Selos } from './pecas';
 
 const BOTAO_VERDE = `border: 0; border-radius: 0; background: #a7f070; color: #1a1c2c; font-family: 'Press Start 2P', monospace; cursor: pointer; box-shadow: ${moldura('#f4f4f4', 'inset 0 -5px 0 0 #38b764')}`;
 const BOTAO_VERDE_BRILHO = `border: 0; border-radius: 0; background: #a7f070; color: #1a1c2c; font-family: 'Press Start 2P', monospace; cursor: pointer; box-shadow: ${moldura('#f4f4f4', 'inset 0 -5px 0 0 #38b764, inset 0 2px 0 0 rgba(244,244,244,.5)')}`;
@@ -338,8 +338,8 @@ function Ajuda({ jogo: j }: { jogo: Jogo }) {
                 <span style="flex: none; width: 86px" />
                 {tipos.map((t) => (
                   <span key={t} role="img" aria-label={c.tipos[t]!.nome.toUpperCase()} style={`flex: 1; height: 30px; display: flex; align-items: center; justify-content: center; background: ${c.tipos[t]!.cor}`}>
-                    <span style="position: relative; display: block; width: 16px; height: 16px">
-                      <IconePixel linhas={c.tipos[t]!.icone ?? ICONE_PADRAO} escala={2} cor="#1a1c2c" left={-2} top={-2} />
+                    <span style="position: relative; display: block; width: 18px; height: 18px">
+                      <IconeTipo c={c} tipo={t} tam={18} escala={2} off={-1} />
                     </span>
                   </span>
                 ))}
@@ -347,8 +347,8 @@ function Ajuda({ jogo: j }: { jogo: Jogo }) {
               {tipos.map((a) => (
                 <div key={a} style="display: flex; gap: 3px">
                   <span style={`flex: none; width: 86px; height: 30px; box-sizing: border-box; padding: 0 6px; display: flex; align-items: center; gap: 5px; background: ${c.tipos[a]!.cor}; color: #1a1c2c; font-size: 12px; line-height: 12px; font-weight: 700`}>
-                    <span style="position: relative; flex: none; display: block; width: 8px; height: 8px">
-                      <IconePixel linhas={c.tipos[a]!.icone ?? ICONE_PADRAO} escala={1} cor="#1a1c2c" left={-1} top={-1} />
+                    <span style="position: relative; flex: none; display: block; width: 12px; height: 12px">
+                      <IconeTipo c={c} tipo={a} tam={12} escala={1} off={1} />
                     </span>
                     {c.tipos[a]!.nome.toUpperCase()}
                   </span>
