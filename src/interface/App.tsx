@@ -7,7 +7,7 @@ import { confronto, eficacia, especieDe, golpeDe, perfilDoGolpe, recargaDe, type
 import { descricaoGolpe } from './descricao';
 import { ICONE_PADRAO, aoApertar, corHp, moldura } from './estilo';
 import { GLIFOS } from './glifos';
-import { BarraHp, IconePixel, Retrato, Selos } from './pecas';
+import { BarraHp, IconeCategoria, IconePixel, Retrato, Selos } from './pecas';
 import { Telas } from './telas';
 
 const SIGLA = { ataque: 'ATQ', defesa: 'DEF', velocidade: 'VEL' } as const;
@@ -248,7 +248,8 @@ function Golpes({ jogo: j }: { jogo: Jogo }) {
         const borda = (v.disparo[i] ?? 0) > 0 ? '#f4f4f4' : naFila ? '#ffcd75' : recarregando ? '#333c57' : bordaTipo;
         const estado = naFila ? 'PRÓXIMO' : recarregando ? `${uso.recarga.toFixed(1)}s` : '';
         const progresso = recarregando ? (1 - uso.recarga / recargaDe(c, g)) * 100 : 100;
-        const aria = `Golpe ${i + 1}: ${g.nome}, ${tipo?.nome ?? g.tipo}, ${meta}${selo ? `, efeito ${selo[0]}` : ''}${naFila ? ', próximo da fila' : recarregando ? ', recarregando' : ', pronto'}`;
+        const categoria = g.categoria ? c.categorias[g.categoria]?.nome : undefined;
+        const aria = `Golpe ${i + 1}: ${g.nome}, ${tipo?.nome ?? g.tipo}${categoria ? `, ${categoria}` : ''}, ${meta}${selo ? `, efeito ${selo[0]}` : ''}${naFila ? ', próximo da fila' : recarregando ? ', recarregando' : ', pronto'}`;
         return (
           <button
             key={i}
@@ -268,7 +269,10 @@ function Golpes({ jogo: j }: { jogo: Jogo }) {
               {selo && <span style={`flex: none; font-size: 12px; line-height: 12px; font-weight: 700; padding: 3px 4px; background: ${selo[1]}; color: ${selo[2]}`}>{selo[0]}</span>}
             </span>
             <span style="display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%; font-size: 12px; line-height: 12px">
-              <span style={`color: ${recarregando ? '#94b0c2' : '#c0cbdc'}; white-space: nowrap`}>{meta}</span>
+              <span style={`display: flex; align-items: center; gap: 5px; color: ${recarregando ? '#94b0c2' : '#c0cbdc'}; white-space: nowrap`}>
+                {g.categoria && <IconeCategoria categoria={g.categoria} tam={13} cor={recarregando ? '#94b0c2' : '#c0cbdc'} />}
+                {meta}
+              </span>
               <span style={`color: ${naFila ? '#ffcd75' : '#f4f4f4'}; font-weight: 700; white-space: nowrap`}>{estado}</span>
             </span>
             <span style="position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: #10121e">

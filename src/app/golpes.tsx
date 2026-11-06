@@ -12,6 +12,7 @@ import { desenharCena } from '../desenho/cena';
 import { carregarSprites } from '../desenho/sprites';
 import { VISTA } from '../desenho/arena';
 import { duracaoDe, fichaDoGolpe } from '../interface/ficha';
+import { IconeCategoria } from '../interface/pecas';
 import { aplicarComandos, criarCampo, golpeDe, perfilDoGolpe, type ConfigBatalha, type EstadoBatalha, type Lutador } from '../nucleo';
 import { Jogo } from './jogo';
 import './golpes.css';
@@ -207,7 +208,12 @@ function Card({ id }: { id: string }) {
         <header>
           <h2>{g.nome}</h2>
           <span class="chip tipo">{tipo?.nome ?? g.tipo}</span>
-          {g.categoria && <span class="chip">{c.categorias[g.categoria]?.nome ?? g.categoria}</span>}
+          {g.categoria && (
+            <span class="chip" style="display: inline-flex; align-items: center; gap: 4px">
+              <IconeCategoria categoria={g.categoria} tam={12} cor="currentColor" />
+              {c.categorias[g.categoria]?.nome ?? g.categoria}
+            </span>
+          )}
           <code>{id}</code>
         </header>
         <dl class="numeros">

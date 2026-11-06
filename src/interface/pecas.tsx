@@ -32,6 +32,28 @@ export function Selos(p: { c: Conteudo; tipos: readonly string[]; apagado: boole
   );
 }
 
+/**
+ * Ícones de categoria do golpe, opção 6b do Claude Design (`design/icones/categorias/`): Físico = garras,
+ * Mágico = projétil, Especial = chevrons. Os traçados são os mesmos dos SVGs, numa caixa de 24×24.
+ */
+const CATEGORIAS_6B: Record<string, { cheio?: string; traco?: string; largura?: number }> = {
+  fisico: { traco: 'M8 3C7 8 5.5 12 3 16M14 3c-1 6-2.5 11-5.5 16M20 3c-1 5-2.5 9-5 13', largura: 3.2 },
+  magico: { cheio: 'M16.5 7.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9z', traco: 'M2 12h8M4 7.5h6.5M4 16.5h6.5', largura: 2.6 },
+  especial: { cheio: 'M3 10.5 12 3l9 7.5V15L12 7.5 3 15zM3 18.5 12 11l9 7.5V23L12 15.5 3 23z' },
+};
+
+/** Ícone 6b da categoria, em `tam` px e na cor dada; categoria sem ícone não desenha nada. */
+export function IconeCategoria(p: { categoria: string; tam: number; cor: string }) {
+  const d = CATEGORIAS_6B[p.categoria];
+  if (!d) return null;
+  return (
+    <svg viewBox="0 0 24 24" width={p.tam} height={p.tam} aria-hidden="true" style="flex: none; display: block">
+      {d.cheio && <path d={d.cheio} fill={p.cor} fill-rule="evenodd" />}
+      {d.traco && <path d={d.traco} fill="none" stroke={p.cor} stroke-width={d.largura} stroke-linecap="round" stroke-linejoin="round" />}
+    </svg>
+  );
+}
+
 /** Retrato em pixel (canvas de 24 ou 26 px mostrado em dobro). Só repinta quando muda a espécie, o lado ou o desmaio. */
 export function Retrato(p: { c: Conteudo; especie: string | null; paraDireita: boolean; desmaiado?: boolean; tam: 24 | 26 }) {
   const ref = useRef<HTMLCanvasElement>(null);
