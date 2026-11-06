@@ -40,6 +40,7 @@ docs/          referência detalhada (ler antes de mexer no assunto)
 - [docs/inventario.md](docs/inventario.md): o que é cada arquivo de design, status e dependências
 - [docs/jogo.md](docs/jogo.md): regras da Arena, criaturas, golpes, tabela de tipos e fórmula de dano
 - [docs/sistema-visual.md](docs/sistema-visual.md): paletas, cores por tipo, fontes, ícones e card de golpe
+- [docs/direcao-visual.md](docs/direcao-visual.md): a régua da interface aprovada (cores, fonte Outfit, grade, componentes da batalha) e a tela de prova em `design/provas/`
 - [docs/guia-sprites.md](docs/guia-sprites.md): como pedir folhas de poses ao GPT/Gemini (layout, prompt, evoluções) e importar
 
 ## Como rodar
@@ -86,6 +87,7 @@ As páginas de design usam o servidor Python: `python -m http.server 8123`, depo
 - **Arena**: protótipo jogável completo (título, contagem, batalha, pausa, troca forçada, fim, ajuda), tela de 390×844.
 - **Escala da arena** (2026-11-01): área andável de 296 × 118 unidades. Os tamanhos do guia de golpes (`origem/Guia_de_formulacao_de_golpes_Arena_Vale_das_Criaturas.md`) valem nessa unidade; o 143 × 88 do guia estava errado.
 - **Os 103 golpes do guia** estão no pacote `vale`: 10 elementos, 10 golpes cada, 11 em Fogo, Ar e Terra. Os ajustes feitos no guia e o que segue provisório (terrenos sem reação entre si, criaturas de laboratório) estão em [docs/arquitetura.md](docs/arquitetura.md).
+- **Direção visual da interface** (2026-11-06): a "chapada" de [docs/direcao-visual.md](docs/direcao-visual.md), com a tela de batalha aprovada em `design/provas/batalha-chapada.html`. Navy neutro, três cores semânticas (âmbar, verde, vermelho), fonte Outfit, grade de 8 px e alturas fixas. A cor do elemento só no selo de tipo. Toda tela nova nasce dessa régua e é renderizada e conferida (print) antes de ser mostrada; a régua só muda com o usuário. O canvas com as direções estudadas (A a G e as provas) está em https://claude.ai/artifact/MEpjNq4eoCL6YanD2pxbRp.
 - **Não existe o elemento Explosão** (2026-11-01). O guia trazia um 11º elemento que o usuário não autorizou; ele saiu do jogo. Com o ok do usuário, três golpes dele mudaram de elemento: Detonação (Fogo), Onda de Choque (Ar) e Ruptura (Terra); os outros sete saíram. Não acrescentar elemento, golpe ou mecânica que o usuário não pediu, mesmo que esteja num documento: perguntar antes.
 
 ## Inconsistências conhecidas (verificar antes de assumir)
