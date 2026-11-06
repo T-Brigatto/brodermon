@@ -53,6 +53,8 @@ npm run check    # verificação de tipos
 npm run build    # build de produção em dist/
 ```
 
+O repositório é `T-Brigatto/brodermon` no GitHub. A Action `.github/workflows/pages.yml` roda os testes, faz o build e publica `dist/` no GitHub Pages a cada push na `main`, em `https://t-brigatto.github.io/brodermon/`. O build usa caminhos relativos (`base: './'` no Vite), então `dist/` também funciona servido de qualquer subpasta.
+
 Opções na URL, equivalentes às props da Arena: `?dificuldade=facil|normal|dificil`, `&assist=0`, `&velocidade=1.25` e `&semente=123`. `&pacote=` escolhe o conteúdo: `vale` (padrão, os 103 golpes do guia) ou `prototipo` (a Arena original). `&batalha=` escolhe qualquer id de `batalhas.json` do pacote; sem ela, vale a primeira (`torneio` no vale, `treino` no protótipo). No vale há um laboratório por elemento: `lab-fogo`, `lab-agua`… Em desenvolvimento, o objeto `jogo` fica exposto no console.
 
 Para validar mudanças visuais, abra `?pacote=prototipo` e compare com a original da mesma forma que em `docs/comparacao/`: congele o mesmo estado nas duas versões e compare os prints pixel a pixel. Os textos com números são divididos em pedaços igual ao template original, porque essa divisão muda o espaçamento entre letras.
