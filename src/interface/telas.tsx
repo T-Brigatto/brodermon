@@ -103,7 +103,7 @@ function Titulo({ jogo: j }: { jogo: Jogo }) {
   return (
     <div style="position: absolute; inset: 0; display: flex; flex-direction: column">
       <div style="height: 72px; flex: none; background: #141625; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 -2px 0 0 #262b44">
-        <span style="font-size: 13px; line-height: 13px; font-weight: 600; letter-spacing: 4px; color: #94b0c2">VALE DAS CRIATURAS</span>
+        <span style="font-size: 13px; line-height: 13px; font-weight: 600; letter-spacing: 4px; color: #94b0c2">BRODERMON</span>
       </div>
       <div style="height: 336px; flex: none; box-sizing: border-box; padding-top: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; background: linear-gradient(180deg, rgba(20,22,37,.25) 0%, rgba(20,22,37,0) 45%, rgba(20,22,37,.75) 100%); pointer-events: none">
         <span style="font-family: 'Press Start 2P', monospace; font-size: 44px; line-height: 44px; color: #ffcd75; text-shadow: 0 4px 0 #b13e53, 4px 4px 0 #b13e53, 0 8px 0 #1a1c2c, 4px 8px 0 #1a1c2c">ARENA</span>

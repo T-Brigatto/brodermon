@@ -1,6 +1,6 @@
-# Brodermon — Vale das Criaturas
+# Brodermon
 
-Design e protótipo de um jogo mobile de criaturas colecionáveis com **batalha em tempo real**. "Brodermon" é o codinome da pasta; dentro do jogo o título é **VALE DAS CRIATURAS** (chaves de `localStorage` usam o prefixo `vdc-`).
+Design e protótipo de um jogo mobile de criaturas colecionáveis com **batalha em tempo real**. O jogo se chama **Brodermon** (título da tela inicial e das páginas). "Vale das Criaturas" foi o nome antigo: ainda aparece no prefixo `vdc-` das chaves de `localStorage` e nas páginas de design.
 
 A Arena foi refeita em **TypeScript + Vite com núcleo determinístico**, e a arquitetura está em [docs/arquitetura.md](docs/arquitetura.md). O jogo (`index.html`) abre por padrão o pacote `vale`, com os 103 golpes do guia. Com `?pacote=prototipo`, abre a Arena original, idêntica pixel a pixel: ver [docs/comparacao/](docs/comparacao/README.md). O projeto tem:
 - o núcleo da batalha, com testes, em que **cada golpe é uma lista de efeitos**: dano, projéteis (guiado, reto, persegue, quica, com estouro, grudar, bumerangue, aura, dreno), formas (área, cone, linha, parede, que podem esperar, durar, andar, crescer e deixar campo), várias de uma vez, efeitos no alvo, estados, teleporte, avanço que atravessa, atração, corrente, objetos (pilar, portais, cópia, pino) e cópia do golpe do rival;
