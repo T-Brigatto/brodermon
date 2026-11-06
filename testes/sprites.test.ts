@@ -64,28 +64,31 @@ describe('sprite em tira', () => {
   });
 });
 
-describe('vista pelo ângulo até o rival', () => {
-  it('rival à frente (y maior) dá a vista de frente; atrás, de costas; na horizontal, de lado', () => {
-    expect(vistaPara(10, 0, 'lado')).toBe('lado');
-    expect(vistaPara(0, 10, 'lado')).toBe('frente');
-    expect(vistaPara(0, -10, 'lado')).toBe('costas');
-    expect(vistaPara(-10, 30, 'costas')).toBe('frente');
+describe('vista pela direção em que a criatura anda', () => {
+  it('descendo (y maior) fica de frente; subindo, de costas; na horizontal, de lado', () => {
+    expect(vistaPara(40, 0, 'lado')).toBe('lado');
+    expect(vistaPara(0, 40, 'lado')).toBe('frente');
+    expect(vistaPara(0, -40, 'lado')).toBe('costas');
+    expect(vistaPara(-20, 50, 'costas')).toBe('frente');
   });
 
-  it('tem folga: entra na vertical acima de 1,25 e só volta ao lado abaixo de 0,8', () => {
+  it('parada (ou com a velocidade zerada por golpe ou empurrão) fica de lado, mesmo se estava de costas', () => {
+    expect(vistaPara(0, 0, 'costas')).toBe('lado');
+    expect(vistaPara(2, -3, 'frente')).toBe('lado');
+  });
+
+  it('tem folga: entra na vertical acima de 45° e só volta ao lado abaixo de 0,7', () => {
     let v: Vista = 'lado';
-    v = vistaPara(10, 10, v);
-    expect(v).toBe('lado'); // 45°: ainda de lado
-    v = vistaPara(10, 13, v);
+    v = vistaPara(40, 36, v);
+    expect(v).toBe('lado'); // um pouco abaixo de 45°: ainda de lado
+    v = vistaPara(40, 44, v);
     expect(v).toBe('frente');
-    v = vistaPara(10, 10, v);
-    expect(v).toBe('frente'); // 45° de novo: continua de frente
-    v = vistaPara(10, 7, v);
+    v = vistaPara(40, 32, v);
+    expect(v).toBe('frente'); // na faixa de folga: continua de frente
+    v = vistaPara(40, 24, v);
     expect(v).toBe('lado');
     // Na faixa de folga, trocar de frente para costas passa pelo lado.
-    expect(vistaPara(10, -10, 'frente')).toBe('lado');
-    // Sem direção (os dois no mesmo ponto), mantém a vista.
-    expect(vistaPara(0, 0, 'costas')).toBe('costas');
+    expect(vistaPara(40, -40, 'frente')).toBe('lado');
   });
 });
 

@@ -23,23 +23,27 @@ export interface SpriteMedido {
 }
 
 /**
- * Entra de frente ou de costas quando o rival está a mais de ~51° da horizontal (|dy| > 1,25·|dx|) e volta para o lado
- * só abaixo de ~39° (|dy| < 0,8·|dx|): a folga evita a vista piscar quando os dois andam em volta um do outro.
+ * Andando a mais de 45° da horizontal (|vy| > |vx|) a criatura fica de frente ou de costas, e volta para o lado só
+ * abaixo de ~35° (|vy| < 0,7·|vx|): a folga evita a vista piscar numa diagonal.
  */
-const ENTRA_VERTICAL = 1.25;
-const SAI_VERTICAL = 0.8;
+const ENTRA_VERTICAL = 1.0;
+const SAI_VERTICAL = 0.7;
+/** Abaixo desta velocidade (|vx| + |vy|, unidades/s) a criatura conta como parada: o mesmo limiar da animação de andar. */
+export const ANDANDO = 6;
 
 /**
- * Vista para desenhar uma criatura olhando para (dx, dy), no plano da arena (y cresce para a frente, em direção à
- * câmera). `atual` é a vista do quadro anterior, para a histerese.
+ * Vista para desenhar uma criatura que anda com velocidade (vx, vy), no plano da arena (y cresce para a frente, em
+ * direção à câmera): de costas subindo para o fundo, de frente descendo, de lado na horizontal. Parada, ou com a
+ * velocidade zerada por quem chama (golpe em andamento, empurrão), fica de lado, virada para o rival. `atual` é a
+ * vista do quadro anterior, para a histerese.
  */
-export function vistaPara(dx: number, dy: number, atual: Vista): Vista {
-  const adx = Math.abs(dx);
-  const ady = Math.abs(dy);
-  if (adx < 1e-6 && ady < 1e-6) return atual;
-  const vertical: Vista = dy > 0 ? 'frente' : 'costas';
-  if (ady > adx * ENTRA_VERTICAL) return vertical;
-  if (ady < adx * SAI_VERTICAL) return 'lado';
+export function vistaPara(vx: number, vy: number, atual: Vista): Vista {
+  const avx = Math.abs(vx);
+  const avy = Math.abs(vy);
+  if (avx + avy <= ANDANDO) return 'lado';
+  const vertical: Vista = vy > 0 ? 'frente' : 'costas';
+  if (avy > avx * ENTRA_VERTICAL) return vertical;
+  if (avy < avx * SAI_VERTICAL) return 'lado';
   return atual === vertical ? atual : 'lado';
 }
 

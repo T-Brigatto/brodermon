@@ -5,7 +5,7 @@ Como pedir folhas de poses ao ChatGPT ou ao Gemini e transformar cada uma em spr
 ## O que o jogo precisa
 
 - **Vista lateral, olhando para a direita**, em todos os quadros. O jogo vira o desenho quando a criatura olha para a esquerda. É a folha obrigatória.
-- **Frente e costas** (opcionais): mais duas folhas, com o mesmo layout e as mesmas quatro animações, uma com a criatura olhando para a câmera e outra de costas. O jogo usa quando o rival está quase na mesma vertical (acima ou abaixo na arena); sem elas, a criatura fica sempre de lado. Áries e Sagitário têm as três.
+- **Frente e costas** (opcionais): mais duas folhas, com o mesmo layout e as mesmas quatro animações, uma com a criatura olhando para a câmera e outra de costas. O jogo usa quando a criatura anda para o fundo da arena (costas) ou para a frente (frente); parada ou golpeando, ela fica de lado. Sem elas, a criatura fica sempre de lado. Áries e Sagitário têm as três.
 - **Quatro animações**: parado, andando, ataque e dano.
 - **Tamanho final**: as criaturas de hoje têm de 19 a 24 px de altura, e a Briserecs entrou com 20. A IA desenha grande e o importador reduz. O tamanho dos estágios 2 e 3 ainda não foi decidido.
 

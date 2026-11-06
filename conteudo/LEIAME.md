@@ -283,7 +283,7 @@ As reações entre terrenos e névoas de elementos diferentes ainda não foram d
 - `imagem`: PNG na pasta `sprites/` do pacote, com os quadros lado a lado, cada um um quadrado de `quadro` px.
 - `pe`: linha dos pés em cada quadro (os pés ficam no meio, na horizontal). `altura`: altura do bicho, usada para a barra de HP, os textos e os efeitos.
 - `olhaPara`: para onde o desenho olha na tira (`direita` ou `esquerda`); o jogo vira quando precisa.
-- `vistas` (opcional): `frente` e `costas`, cada uma com as mesmas animações, em quadros da mesma tira (mesmo `quadro` e mesmo `pe`). A criatura fica de frente ou de costas quando o rival está quase na mesma vertical (mais de ~51° da horizontal; volta ao lado abaixo de ~39°, para não piscar). Sem `vistas`, ela fica sempre de lado, espelhada. Frente e costas não são espelhadas.
+- `vistas` (opcional): `frente` e `costas`, cada uma com as mesmas animações, em quadros da mesma tira (mesmo `quadro` e mesmo `pe`). A vista segue para onde a criatura anda: de costas subindo para o fundo da arena, de frente descendo (mais de 45° da horizontal; volta ao lado abaixo de ~35°, para não piscar). Parada, andando na horizontal, golpeando ou empurrada, ela fica de lado, virada para o rival. Sem `vistas`, ela fica sempre de lado, espelhada. Frente e costas não são espelhadas.
 - `animacoes`: `parado` é obrigatória; `andando`, `ataque` e `dano` são opcionais (sem elas, vale a `parado`). Os quadros contam de 0.
 - Quando cada uma toca: `dano` enquanto a criatura pisca depois de levar dano; `ataque` fica no primeiro quadro enquanto ela carrega um golpe e toca uma vez quando o golpe sai; `andando` quando ela se move; senão `parado`, em laço.
 

@@ -65,7 +65,7 @@ export interface Visual {
   hpVisto: number;
   /** Borda branca no card do golpe recém-usado. */
   disparo: number[];
-  /** Vista do sprite (de lado, de frente ou de costas), pelo ângulo até o rival; só vale nas tiras com `vistas`. */
+  /** Vista do sprite (de lado, de frente ou de costas), pela direção em que a criatura anda; só vale nas tiras com `vistas`. */
   vista: Vista;
 }
 
@@ -460,8 +460,7 @@ export class Jogo {
       const v = this.visual(l);
       v.disparo = v.disparo.map((t) => (t > 0 ? t - dt : 0));
     }
-    const emCampo = [this.eu(), this.rival()];
-    for (const l of emCampo) {
+    for (const l of [this.eu(), this.rival()]) {
       const v = this.visual(l);
       v.anim += dt;
       if (v.flash > 0) v.flash -= dt;
@@ -471,9 +470,9 @@ export class Jogo {
       if (v.conjurando && !conjurando) v.desdeOGolpe = 0;
       v.conjurando = conjurando;
       v.desdeOGolpe += dt;
-      // A criatura olha para o rival (como o `olhando` do núcleo); a vista do sprite segue o ângulo até ele.
-      const outro = emCampo[l === emCampo[0] ? 1 : 0]!;
-      if (!outro.desmaiado && !l.desmaiado) v.vista = vistaPara(outro.x - l.x, outro.y - l.y, v.vista);
+      // A vista do sprite segue para onde a criatura anda por conta própria; golpeando ou empurrada, fica de lado.
+      const anda = !l.acao && !l.deslocamento && !l.desmaiado;
+      v.vista = vistaPara(anda ? l.vx : 0, anda ? l.vy : 0, v.vista);
     }
     this.atualizarProjeteis(dt);
     this.fxDoQuadro(dt);

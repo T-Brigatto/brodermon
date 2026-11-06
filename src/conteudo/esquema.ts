@@ -158,8 +158,8 @@ export const esquemaSpriteImagem = z.object({
   /** Animações da vista de lado. */
   animacoes: esquemaAnimacoesSprite,
   /**
-   * Vistas de frente e de costas, com quadros na mesma tira (mesmo `quadro` e mesmo `pe`). O jogo as usa quando o
-   * rival está quase na mesma vertical; sem elas, a criatura fica sempre de lado.
+   * Vistas de frente e de costas, com quadros na mesma tira (mesmo `quadro` e mesmo `pe`). O jogo as usa quando a
+   * criatura anda para o fundo ou para a frente da arena; sem elas, a criatura fica sempre de lado.
    */
   vistas: z.object({ frente: esquemaAnimacoesSprite.optional(), costas: esquemaAnimacoesSprite.optional() }).strict().optional(),
 });
