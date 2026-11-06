@@ -43,3 +43,6 @@ jobs:
     steps:
       - id: deploy
         uses: actions/deploy-pages@v4
+        with:
+          # O Pages às vezes fica muito tempo em "updating_pages"; o padrão de 10 min chegou a estourar.
+          timeout: 1800000
