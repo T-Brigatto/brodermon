@@ -2,9 +2,10 @@
 
 import type { Jogo } from '../app/jogo';
 import { confronto, eficacia, especieDe, type Lutador } from '../nucleo';
-import { corHp, moldura } from './estilo';
+import { ICONE_PADRAO, corHp, moldura } from './estilo';
+import { GLIFOS_TIPOS } from './glifos-tipos';
 import { GLIFOS } from './glifos';
-import { IconePixel, IconeTipo, Retrato, Selos } from './pecas';
+import { GlifoTipo, IconePixel, Retrato, Selos } from './pecas';
 
 const BOTAO_VERDE = `border: 0; border-radius: 0; background: #a7f070; color: #1a1c2c; font-family: 'Press Start 2P', monospace; cursor: pointer; box-shadow: ${moldura('#f4f4f4', 'inset 0 -5px 0 0 #38b764')}`;
 const BOTAO_VERDE_BRILHO = `border: 0; border-radius: 0; background: #a7f070; color: #1a1c2c; font-family: 'Press Start 2P', monospace; cursor: pointer; box-shadow: ${moldura('#f4f4f4', 'inset 0 -5px 0 0 #38b764, inset 0 2px 0 0 rgba(244,244,244,.5)')}`;
@@ -63,7 +64,7 @@ function Escolha({ jogo: j }: { jogo: Jogo }) {
                 <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 9px">
                   <span style="display: flex; align-items: center; gap: 6px">
                     <span style="font-size: 15px; line-height: 15px; font-weight: 700; letter-spacing: .5px">{j.nome(l).toUpperCase()}</span>
-                    <Selos c={c} tipos={tipos} apagado={false} tam={14} />
+                    <Selos c={c} tipos={tipos} apagado={false} tamPixel={14} />
                   </span>
                   <span style="display: flex; align-items: center; gap: 8px">
                     <span style="flex: 1; display: block; height: 6px; background: #10121e">
@@ -96,7 +97,7 @@ function Titulo({ jogo: j }: { jogo: Jogo }) {
     >
       <Retrato c={c} especie={l.especie} paraDireita={!rival} tam={26} />
       <span style="position: absolute; right: -4px; bottom: -4px; display: flex; gap: 2px">
-        <Selos c={c} tipos={especieDe(c, l).tipos} apagado={false} tam={14} anel="#141625" />
+        <Selos c={c} tipos={especieDe(c, l).tipos} apagado={false} tamPixel={14} anel="#141625" />
       </span>
     </span>
   );
@@ -338,8 +339,8 @@ function Ajuda({ jogo: j }: { jogo: Jogo }) {
                 <span style="flex: none; width: 86px" />
                 {tipos.map((t) => (
                   <span key={t} role="img" aria-label={c.tipos[t]!.nome.toUpperCase()} style={`flex: 1; height: 30px; display: flex; align-items: center; justify-content: center; background: ${c.tipos[t]!.cor}`}>
-                    <span style="position: relative; display: block; width: 18px; height: 18px">
-                      <IconeTipo c={c} tipo={t} tam={18} escala={2} off={-1} />
+                    <span style="position: relative; display: block; width: 16px; height: 16px">
+                      {GLIFOS_TIPOS[t] ? <GlifoTipo tipo={t} tam={14} /> : <IconePixel linhas={c.tipos[t]!.icone ?? ICONE_PADRAO} escala={2} cor="#1a1c2c" left={-2} top={-2} />}
                     </span>
                   </span>
                 ))}
@@ -347,8 +348,8 @@ function Ajuda({ jogo: j }: { jogo: Jogo }) {
               {tipos.map((a) => (
                 <div key={a} style="display: flex; gap: 3px">
                   <span style={`flex: none; width: 86px; height: 30px; box-sizing: border-box; padding: 0 6px; display: flex; align-items: center; gap: 5px; background: ${c.tipos[a]!.cor}; color: #1a1c2c; font-size: 12px; line-height: 12px; font-weight: 700`}>
-                    <span style="position: relative; flex: none; display: block; width: 12px; height: 12px">
-                      <IconeTipo c={c} tipo={a} tam={12} escala={1} off={1} />
+                    <span style={`position: relative; flex: none; display: block; width: ${GLIFOS_TIPOS[a] ? 10 : 8}px; height: ${GLIFOS_TIPOS[a] ? 10 : 8}px`}>
+                      {GLIFOS_TIPOS[a] ? <GlifoTipo tipo={a} tam={10} /> : <IconePixel linhas={c.tipos[a]!.icone ?? ICONE_PADRAO} escala={1} cor="#1a1c2c" left={-1} top={-1} />}
                     </span>
                     {c.tipos[a]!.nome.toUpperCase()}
                   </span>

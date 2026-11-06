@@ -7,7 +7,7 @@ import { confronto, eficacia, especieDe, golpeDe, perfilDoGolpe, recargaDe, type
 import { descricaoGolpe } from './descricao';
 import { aoApertar, corHp, moldura } from './estilo';
 import { GLIFOS } from './glifos';
-import { BarraHp, IconeCategoria, IconePixel, IconeTipo, Retrato, Selos } from './pecas';
+import { BarraHp, IconePixel, Retrato, SeloTipo, Selos } from './pecas';
 import { Telas } from './telas';
 
 const SIGLA = { ataque: 'ATQ', defesa: 'DEF', velocidade: 'VEL' } as const;
@@ -88,7 +88,7 @@ export function App({ jogo, aoCanvas }: { jogo: Jogo; aoCanvas: (el: HTMLCanvasE
           <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 9px">
             <div style="display: flex; align-items: center; gap: 6px; height: 18px">
               <span style="font-size: 16px; line-height: 16px; font-weight: 700; letter-spacing: .5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{E.nome}</span>
-              <Selos c={c} tipos={E.tipos} apagado={rival.desmaiado} tam={16} />
+              <Selos c={c} tipos={E.tipos} apagado={rival.desmaiado} tamPixel={16} />
               {E.buff && <span style="flex: none; font-size: 12px; line-height: 12px; font-weight: 700; padding: 2px 4px; background: #ffcd75; color: #1a1c2c">{E.buff}</span>}
               <span style="flex: 1" />
               <span role="img" aria-label={`Rival: ${rivaisDePe} de ${rivais.length} criaturas de pé`} style="flex: none; display: flex; gap: 4px">
@@ -170,7 +170,7 @@ export function App({ jogo, aoCanvas }: { jogo: Jogo; aoCanvas: (el: HTMLCanvasE
             <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 9px">
               <div style="display: flex; align-items: center; gap: 6px; height: 18px">
                 <span style="font-size: 16px; line-height: 16px; font-weight: 700; letter-spacing: .5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{P.nome}</span>
-                <Selos c={c} tipos={P.tipos} apagado={eu.desmaiado} tam={16} />
+                <Selos c={c} tipos={P.tipos} apagado={eu.desmaiado} tamPixel={16} />
                 {P.buff && <span style="flex: none; font-size: 12px; line-height: 12px; font-weight: 700; padding: 2px 4px; background: #ffcd75; color: #1a1c2c">{P.buff}</span>}
                 <span style="flex: 1" />
                 <span style="flex: none; font-size: 12px; line-height: 12px; letter-spacing: 1px; color: #ffcd75">VOCÊ</span>
@@ -259,20 +259,15 @@ function Golpes({ jogo: j }: { jogo: Jogo }) {
             {...aoApertar(() => j.filaGolpe(i))}
             style={`position: relative; height: 66px; margin: 0; padding: 10px 10px 0; border: 0; border-radius: 0; background: ${recarregando ? '#1d2035' : (tipo?.fundo ?? '#30344d')}; color: #f4f4f4; font-family: inherit; text-align: left; display: flex; flex-direction: column; gap: 9px; cursor: pointer; touch-action: none; box-shadow: ${moldura(borda)}`}
           >
-            <span style="display: flex; align-items: center; gap: 8px; height: 22px; width: 100%">
-              <span style={`position: relative; flex: none; display: block; width: 22px; height: 22px; background: ${recarregando ? '#566c86' : cor}`}>
-                <IconeTipo c={c} tipo={g.tipo} tam={22} escala={2} off={1} />
-              </span>
+            <span style="display: flex; align-items: center; gap: 10px; height: 22px; width: 100%">
+              <SeloTipo c={c} tipo={g.tipo} tam={22} apagado={recarregando} categoria={g.categoria} filete={recarregando ? '#1d2035' : (tipo?.fundo ?? '#30344d')} />
               <span style={`flex: 1; min-width: 0; font-size: 15px; line-height: 16px; font-weight: 700; letter-spacing: .5px; color: ${recarregando ? '#94b0c2' : '#f4f4f4'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis`}>
                 {g.nome.toUpperCase()}
               </span>
               {selo && <span style={`flex: none; font-size: 12px; line-height: 12px; font-weight: 700; padding: 3px 4px; background: ${selo[1]}; color: ${selo[2]}`}>{selo[0]}</span>}
             </span>
             <span style="display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%; font-size: 12px; line-height: 12px">
-              <span style={`display: flex; align-items: center; gap: 5px; color: ${recarregando ? '#94b0c2' : '#c0cbdc'}; white-space: nowrap`}>
-                {g.categoria && <IconeCategoria categoria={g.categoria} tam={13} cor={recarregando ? '#94b0c2' : '#c0cbdc'} />}
-                {meta}
-              </span>
+              <span style={`color: ${recarregando ? '#94b0c2' : '#c0cbdc'}; white-space: nowrap`}>{meta}</span>
               <span style={`color: ${naFila ? '#ffcd75' : '#f4f4f4'}; font-weight: 700; white-space: nowrap`}>{estado}</span>
             </span>
             <span style="position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: #10121e">
@@ -330,7 +325,7 @@ function Time({ jogo: j }: { jogo: Jogo }) {
               <span style={`position: relative; display: block; width: 52px; height: 52px; background: ${l.desmaiado ? '#1d2035' : emCampo ? '#2f3d7a' : '#252c52'}; box-shadow: ${moldura(borda, '0 6px 0 0 #10121e')}`}>
                 <Retrato c={c} especie={l.especie} paraDireita desmaiado={l.desmaiado} tam={26} />
                 <span style="position: absolute; right: -4px; bottom: -4px; display: flex; gap: 2px">
-                  <Selos c={c} tipos={tipos} apagado={l.desmaiado} tam={14} anel="#1a1c2c" />
+                  <Selos c={c} tipos={tipos} apagado={l.desmaiado} tamPixel={14} anel="#1a1c2c" />
                 </span>
                 {vant !== 0 && (
                   <span aria-hidden="true" style={`position: absolute; left: -4px; top: -4px; width: 16px; height: 12px; background: #1a1c2c; box-shadow: 0 0 0 2px ${vant > 0 ? '#38b764' : '#b13e53'}`}>

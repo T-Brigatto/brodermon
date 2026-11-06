@@ -20,6 +20,22 @@ export function sombraIcone(linhas: readonly string[], S: number, cor: string): 
   return s;
 }
 
+/**
+ * Medidas dos selos finais do Claude Design (`design/Selos Finais.dc.html`), a regra única de tamanho do jogo:
+ * selo de tipo (5a) em 22 px com glifo de 14 e raio 5, ou em 16 px com glifo de 10 e raio 4; selo de categoria (6b)
+ * em 18 px com ícone de 12 e raio 5, fundo claro e ícone escuro.
+ */
+export const SELO_TIPO = {
+  22: { glifo: 14, raio: 5 },
+  16: { glifo: 10, raio: 4 },
+} as const;
+export const SELO_CATEGORIA = { tam: 18, icone: 12, raio: 5, fundo: '#e9ecf2', tinta: '#14243a' } as const;
+/**
+ * Selo de categoria encaixado no canto inferior direito do selo de tipo de 22 px, como no card do 6b do Lab de Selos:
+ * metade do tamanho do selo, deslocado 4 px para fora, com um filete de 1 px da cor do card em volta.
+ */
+export const SELO_CATEGORIA_CANTO = { tam: 12, icone: 8, raio: 3, deslocamento: 4, filete: 1 } as const;
+
 /** Ícone de quem ainda não desenhou um para o tipo. */
 export const ICONE_PADRAO = ['........', '.######.', '.######.', '.######.', '.######.', '.######.', '.######.', '........'];
 

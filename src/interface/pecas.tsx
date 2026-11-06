@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import type { Conteudo } from '../conteudo/esquema';
 import { pintarRetrato } from '../desenho/sprites';
-import { ICONE_PADRAO, sombraIcone } from './estilo';
+import { ICONE_PADRAO, SELO_CATEGORIA, SELO_CATEGORIA_CANTO, SELO_TIPO, sombraIcone } from './estilo';
 import { GLIFOS_TIPOS } from './glifos-tipos';
 
 export function IconePixel(p: { linhas: readonly string[]; escala: number; cor: string; left: number; top: number }) {
@@ -14,43 +14,75 @@ export function IconePixel(p: { linhas: readonly string[]; escala: number; cor: 
   );
 }
 
-/**
- * Ícone de um tipo dentro de um selo quadrado de `tam` px: o glifo 5a de `design/icones/tipos/`, se o tipo tiver um,
- * senão o ícone de pixel 8×8 de `tipos.json` (`escala` e `off` posicionam esse), senão o quadrado padrão.
- */
-export function IconeTipo(p: { c: Conteudo; tipo: string; tam: number; escala: number; off: number }) {
+/** Glifo 5a de um tipo (`design/icones/tipos/`), com `tam` px de lado, centrado no pai; null se o tipo não tiver SVG. */
+export function GlifoTipo(p: { tipo: string; tam: number; cor?: string }) {
   const g = GLIFOS_TIPOS[p.tipo];
-  if (g) {
-    const lado = p.tam - 2;
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        width={lado}
-        height={lado}
-        aria-hidden="true"
-        style={`position: absolute; left: 1px; top: 1px; display: block; color: ${g.cor}`}
-        dangerouslySetInnerHTML={{ __html: g.svg }}
-      />
-    );
-  }
-  return <IconePixel linhas={p.c.tipos[p.tipo]?.icone ?? ICONE_PADRAO} escala={p.escala} cor="#1a1c2c" left={p.off} top={p.off} />;
+  if (!g) return null;
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={p.tam}
+      height={p.tam}
+      aria-hidden="true"
+      style={`position: absolute; left: 50%; top: 50%; margin: ${-p.tam / 2}px 0 0 ${-p.tam / 2}px; display: block; color: ${p.cor ?? g.cor}`}
+      dangerouslySetInnerHTML={{ __html: g.svg }}
+    />
+  );
 }
 
-/** Selos de tipo de uma criatura. `tam` 16 (cartões) ou 14 (time, listas); `anel` é a cor do contorno. */
-export function Selos(p: { c: Conteudo; tipos: readonly string[]; apagado: boolean; tam: 14 | 16; anel?: string }) {
-  const off = p.tam === 16 ? 3 : 2;
+/**
+ * Selo de tipo nas medidas dos selos finais: 22 px (card de golpe) ou 16 px (HUD, time, listas). Com o glifo 5a do
+ * tipo, é o quadrado arredondado do design; sem ele (tipos do protótipo), o selo de pixel da Arena, com o ícone 8×8 de
+ * `tipos.json` nas medidas originais (`tamPixel` 14, 16 ou 22).
+ */
+export function SeloTipo(p: {
+  c: Conteudo;
+  tipo: string;
+  tam: 16 | 22;
+  tamPixel?: 14 | 16 | 22;
+  apagado?: boolean;
+  anel?: string;
+  /** Categoria do golpe encaixada no canto do selo (card do 6b); `filete` é a cor do card em volta dela. */
+  categoria?: string;
+  filete?: string;
+}) {
+  const tipo = p.c.tipos[p.tipo];
+  const fundo = p.apagado ? '#566c86' : (tipo?.cor ?? '#94b0c2');
+  const anel = p.anel ? `; box-shadow: 0 0 0 2px ${p.anel}` : '';
+  if (GLIFOS_TIPOS[p.tipo]) {
+    const m = SELO_TIPO[p.tam];
+    const C = SELO_CATEGORIA_CANTO;
+    const canto = p.categoria && CATEGORIAS_6B[p.categoria];
+    return (
+      <span style={`flex: none; position: relative; display: block; width: ${p.tam}px; height: ${p.tam}px; border-radius: ${m.raio}px; background: ${fundo}${anel}`}>
+        <GlifoTipo tipo={p.tipo} tam={m.glifo} />
+        {canto && (
+          <span
+            style={`position: absolute; right: ${-C.deslocamento}px; bottom: ${-C.deslocamento}px; display: flex; align-items: center; justify-content: center; width: ${C.tam}px; height: ${C.tam}px; border-radius: ${C.raio}px; background: ${p.apagado ? '#94b0c2' : SELO_CATEGORIA.fundo}; box-shadow: 0 0 0 ${C.filete}px ${p.filete ?? '#1a1c2c'}`}
+          >
+            <IconeCategoria categoria={p.categoria!} tam={C.icone} cor={SELO_CATEGORIA.tinta} />
+          </span>
+        )}
+      </span>
+    );
+  }
+  const tam = p.tamPixel ?? p.tam;
+  const escala = tam === 22 ? 2 : 1;
+  const off = tam === 22 ? 1 : tam === 16 ? 3 : 2;
+  return (
+    <span style={`flex: none; position: relative; display: block; width: ${tam}px; height: ${tam}px; background: ${fundo}${anel}`}>
+      <IconePixel linhas={tipo?.icone ?? ICONE_PADRAO} escala={escala} cor="#1a1c2c" left={off} top={off} />
+    </span>
+  );
+}
+
+/** Selos de tipo de uma criatura, em 16 px; `tamPixel` é a medida do selo de pixel do protótipo (14 no time e nas listas). */
+export function Selos(p: { c: Conteudo; tipos: readonly string[]; apagado: boolean; tamPixel: 14 | 16; anel?: string }) {
   return (
     <>
-      {p.tipos.map((t) => {
-        const tipo = p.c.tipos[t];
-        const fundo = p.apagado ? '#566c86' : (tipo?.cor ?? '#94b0c2');
-        const anel = p.anel ? `; box-shadow: 0 0 0 2px ${p.anel}` : '';
-        return (
-          <span key={t} style={`flex: none; position: relative; display: block; width: ${p.tam}px; height: ${p.tam}px; background: ${fundo}${anel}`}>
-            <IconeTipo c={p.c} tipo={t} tam={p.tam} escala={1} off={off} />
-          </span>
-        );
-      })}
+      {p.tipos.map((t) => (
+        <SeloTipo key={t} c={p.c} tipo={t} tam={16} tamPixel={p.tamPixel} apagado={p.apagado} anel={p.anel} />
+      ))}
     </>
   );
 }
@@ -76,6 +108,7 @@ export function IconeCategoria(p: { categoria: string; tam: number; cor: string 
     </svg>
   );
 }
+
 
 /** Retrato em pixel (canvas de 24 ou 26 px mostrado em dobro). Só repinta quando muda a espécie, o lado ou o desmaio. */
 export function Retrato(p: { c: Conteudo; especie: string | null; paraDireita: boolean; desmaiado?: boolean; tam: 24 | 26 }) {
