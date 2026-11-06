@@ -1,5 +1,5 @@
 # Publica o jogo no GitHub Pages a cada push na main: roda os testes, faz o build e envia a pasta dist/.
-# Exige, uma vez, em Settings → Pages, a origem "GitHub Actions".
+# O passo configure-pages liga o Pages do repositório na primeira vez (origem "GitHub Actions").
 name: Publicar no GitHub Pages
 
 on:
@@ -21,6 +21,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
