@@ -296,6 +296,9 @@ function Ajuda({ jogo: j }: { jogo: Jogo }) {
   const aba = (ativa: boolean) =>
     `margin: 2px; height: 36px; padding: 0 12px; border: 0; border-radius: 0; background: ${ativa ? '#f4f4f4' : 'transparent'}; color: ${ativa ? '#1a1c2c' : '#c0cbdc'}; font-family: inherit; font-size: 13px; line-height: 13px; font-weight: 700; letter-spacing: 1px; cursor: pointer; box-shadow: ${moldura('#333c57')}`;
   const tipos = Object.keys(c.tipos);
+  /** Todos os tipos têm o glifo 5a: tabela com os selos finais, de células quadradas iguais. */
+  const arte = tipos.every((t) => !!GLIFOS_TIPOS[t]);
+  const celula = `flex: 1; min-width: 0; ${arte ? 'aspect-ratio: 1' : 'height: 30px'}; display: flex; align-items: center; justify-content: center`;
   return (
     <div role="dialog" aria-label="Ajuda" style="position: absolute; inset: 0; background: #141625; display: flex; flex-direction: column">
       <div style="height: 72px; flex: none; box-sizing: border-box; padding: 0 14px; display: flex; align-items: center; gap: 10px; box-shadow: inset 0 -2px 0 0 #262b44">
@@ -334,11 +337,12 @@ function Ajuda({ jogo: j }: { jogo: Jogo }) {
         ) : (
           <div style="display: flex; flex-direction: column; gap: 16px">
             <span style="font-size: 14px; line-height: 19px; color: #c0cbdc; text-wrap: pretty">Linha: tipo do golpe. Coluna: tipo de quem recebe.</span>
+            {/* Com os glifos 5a, a primeira coluna é igual ao cabeçalho: só o glifo, em células iguais. O protótipo mantém os nomes e as medidas da Arena. */}
             <div style="display: flex; flex-direction: column; gap: 3px">
               <div style="display: flex; gap: 3px">
-                <span style="flex: none; width: 86px" />
+                <span style={arte ? 'flex: 1' : 'flex: none; width: 86px'} />
                 {tipos.map((t) => (
-                  <span key={t} role="img" aria-label={c.tipos[t]!.nome.toUpperCase()} style={`flex: 1; height: 30px; display: flex; align-items: center; justify-content: center; background: ${c.tipos[t]!.cor}`}>
+                  <span key={t} role="img" aria-label={c.tipos[t]!.nome.toUpperCase()} style={`${celula}; background: ${c.tipos[t]!.cor}`}>
                     <span style="position: relative; display: block; width: 16px; height: 16px">
                       {GLIFOS_TIPOS[t] ? <GlifoTipo tipo={t} tam={14} /> : <IconePixel linhas={c.tipos[t]!.icone ?? ICONE_PADRAO} escala={2} cor="#1a1c2c" left={-2} top={-2} />}
                     </span>
@@ -347,17 +351,25 @@ function Ajuda({ jogo: j }: { jogo: Jogo }) {
               </div>
               {tipos.map((a) => (
                 <div key={a} style="display: flex; gap: 3px">
-                  <span style={`flex: none; width: 86px; height: 30px; box-sizing: border-box; padding: 0 6px; display: flex; align-items: center; gap: 5px; background: ${c.tipos[a]!.cor}; color: #1a1c2c; font-size: 12px; line-height: 12px; font-weight: 700`}>
-                    <span style={`position: relative; flex: none; display: block; width: ${GLIFOS_TIPOS[a] ? 10 : 8}px; height: ${GLIFOS_TIPOS[a] ? 10 : 8}px`}>
-                      {GLIFOS_TIPOS[a] ? <GlifoTipo tipo={a} tam={10} /> : <IconePixel linhas={c.tipos[a]!.icone ?? ICONE_PADRAO} escala={1} cor="#1a1c2c" left={-1} top={-1} />}
+                  {arte ? (
+                    <span role="img" aria-label={c.tipos[a]!.nome.toUpperCase()} style={`${celula}; background: ${c.tipos[a]!.cor}`}>
+                      <span style="position: relative; display: block; width: 16px; height: 16px">
+                        <GlifoTipo tipo={a} tam={14} />
+                      </span>
                     </span>
-                    {c.tipos[a]!.nome.toUpperCase()}
-                  </span>
+                  ) : (
+                    <span style={`flex: none; width: 86px; height: 30px; box-sizing: border-box; padding: 0 6px; display: flex; align-items: center; gap: 5px; background: ${c.tipos[a]!.cor}; color: #1a1c2c; font-size: 12px; line-height: 12px; font-weight: 700`}>
+                      <span style="position: relative; flex: none; display: block; width: 8px; height: 8px">
+                        <IconePixel linhas={c.tipos[a]!.icone ?? ICONE_PADRAO} escala={1} cor="#1a1c2c" left={-1} top={-1} />
+                      </span>
+                      {c.tipos[a]!.nome.toUpperCase()}
+                    </span>
+                  )}
                   {tipos.map((d) => {
                     const v = eficacia(c, a, [d]);
                     const [txt, fundo, cor] = v >= 2 ? ['2x', '#ffcd75', '#1a1c2c'] : v === 0 ? ['0x', '#b13e53', '#f4f4f4'] : v < 1 ? ['.5x', '#333c57', '#c0cbdc'] : ['', '#1d2035', '#1d2035'];
                     return (
-                      <span key={d} style={`flex: 1; height: 30px; display: flex; align-items: center; justify-content: center; background: ${fundo}; color: ${cor}; font-size: 12px; line-height: 12px; font-weight: 700`}>
+                      <span key={d} style={`${celula}; background: ${fundo}; color: ${cor}; font-size: 12px; line-height: 12px; font-weight: 700`}>
                         {txt}
                       </span>
                     );
