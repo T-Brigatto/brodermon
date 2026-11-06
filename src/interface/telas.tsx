@@ -5,7 +5,7 @@ import { confronto, eficacia, especieDe, type Lutador } from '../nucleo';
 import { ICONE_PADRAO, corHp, moldura } from './estilo';
 import { GLIFOS_TIPOS } from './glifos-tipos';
 import { GLIFOS } from './glifos';
-import { GlifoTipo, IconePixel, Retrato, Selos } from './pecas';
+import { IconePixel, Retrato, SeloTipo, Selos } from './pecas';
 
 const BOTAO_VERDE = `border: 0; border-radius: 0; background: #a7f070; color: #1a1c2c; font-family: 'Press Start 2P', monospace; cursor: pointer; box-shadow: ${moldura('#f4f4f4', 'inset 0 -5px 0 0 #38b764')}`;
 const BOTAO_VERDE_BRILHO = `border: 0; border-radius: 0; background: #a7f070; color: #1a1c2c; font-family: 'Press Start 2P', monospace; cursor: pointer; box-shadow: ${moldura('#f4f4f4', 'inset 0 -5px 0 0 #38b764, inset 0 2px 0 0 rgba(244,244,244,.5)')}`;
@@ -342,20 +342,22 @@ function Ajuda({ jogo: j }: { jogo: Jogo }) {
               <div style="display: flex; gap: 3px">
                 <span style={arte ? 'flex: 1' : 'flex: none; width: 86px'} />
                 {tipos.map((t) => (
-                  <span key={t} role="img" aria-label={c.tipos[t]!.nome.toUpperCase()} style={`${celula}; background: ${c.tipos[t]!.cor}`}>
-                    <span style="position: relative; display: block; width: 16px; height: 16px">
-                      {GLIFOS_TIPOS[t] ? <GlifoTipo tipo={t} tam={14} /> : <IconePixel linhas={c.tipos[t]!.icone ?? ICONE_PADRAO} escala={2} cor="#1a1c2c" left={-2} top={-2} />}
-                    </span>
+                  <span key={t} role="img" aria-label={c.tipos[t]!.nome.toUpperCase()} style={`${celula}; background: ${arte ? 'transparent' : c.tipos[t]!.cor}`}>
+                    {arte ? (
+                      <SeloTipo c={c} tipo={t} tam="100%" />
+                    ) : (
+                      <span style="position: relative; display: block; width: 16px; height: 16px">
+                        <IconePixel linhas={c.tipos[t]!.icone ?? ICONE_PADRAO} escala={2} cor="#1a1c2c" left={-2} top={-2} />
+                      </span>
+                    )}
                   </span>
                 ))}
               </div>
               {tipos.map((a) => (
                 <div key={a} style="display: flex; gap: 3px">
                   {arte ? (
-                    <span role="img" aria-label={c.tipos[a]!.nome.toUpperCase()} style={`${celula}; background: ${c.tipos[a]!.cor}`}>
-                      <span style="position: relative; display: block; width: 16px; height: 16px">
-                        <GlifoTipo tipo={a} tam={14} />
-                      </span>
+                    <span role="img" aria-label={c.tipos[a]!.nome.toUpperCase()} style={celula}>
+                      <SeloTipo c={c} tipo={a} tam="100%" />
                     </span>
                   ) : (
                     <span style={`flex: none; width: 86px; height: 30px; box-sizing: border-box; padding: 0 6px; display: flex; align-items: center; gap: 5px; background: ${c.tipos[a]!.cor}; color: #1a1c2c; font-size: 12px; line-height: 12px; font-weight: 700`}>

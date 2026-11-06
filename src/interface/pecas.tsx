@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import type { Conteudo } from '../conteudo/esquema';
 import { pintarRetrato } from '../desenho/sprites';
-import { ICONE_PADRAO, SELO_CATEGORIA, SELO_CATEGORIA_CANTO, SELO_TIPO, sombraIcone } from './estilo';
+import { ICONE_PADRAO, SELO, SELO_CATEGORIA, sombraIcone } from './estilo';
 import { GLIFOS_TIPOS } from './glifos-tipos';
 
 export function IconePixel(p: { linhas: readonly string[]; escala: number; cor: string; left: number; top: number }) {
@@ -15,60 +15,91 @@ export function IconePixel(p: { linhas: readonly string[]; escala: number; cor: 
 }
 
 /** Glifo 5a de um tipo (`design/icones/tipos/`), com `tam` px de lado, centrado no pai; null se o tipo não tiver SVG. */
-export function GlifoTipo(p: { tipo: string; tam: number; cor?: string }) {
-  const g = GLIFOS_TIPOS[p.tipo];
-  if (!g) return null;
+/**
+ * Ícones de categoria do golpe, opção 6b do Claude Design (`design/icones/categorias/`): Físico = garras,
+ * Mágico = projétil, Especial = chevrons. Os traçados são os mesmos dos SVGs, numa caixa de 24×24.
+ */
+const CATEGORIAS_6B: Record<string, { cheio?: string; traco?: string; largura?: number }> = {
+  fisico: { traco: 'M8 3C7 8 5.5 12 3 16M14 3c-1 6-2.5 11-5.5 16M20 3c-1 5-2.5 9-5 13', largura: 3.2 },
+  magico: { cheio: 'M16.5 7.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9z', traco: 'M2 12h8M4 7.5h6.5M4 16.5h6.5', largura: 2.6 },
+  especial: { cheio: 'M3 10.5 12 3l9 7.5V15L12 7.5 3 15zM3 18.5 12 11l9 7.5V23L12 15.5 3 23z' },
+};
+
+/** Os `<path>` do ícone 6b, na caixa de 24×24, na cor dada. */
+function CaminhosCategoria(p: { categoria: string; cor: string }) {
+  const d = CATEGORIAS_6B[p.categoria];
+  if (!d) return null;
   return (
-    <svg
-      viewBox="0 0 24 24"
-      width={p.tam}
-      height={p.tam}
-      aria-hidden="true"
-      style={`position: absolute; left: 50%; top: 50%; margin: ${-p.tam / 2}px 0 0 ${-p.tam / 2}px; display: block; color: ${p.cor ?? g.cor}`}
-      dangerouslySetInnerHTML={{ __html: g.svg }}
-    />
+    <>
+      {d.cheio && <path d={d.cheio} fill={p.cor} fill-rule="evenodd" />}
+      {d.traco && <path d={d.traco} fill="none" stroke={p.cor} stroke-width={d.largura} stroke-linecap="round" stroke-linejoin="round" />}
+    </>
+  );
+}
+
+/** Ícone 6b da categoria, em `tam` px e na cor dada; categoria sem ícone não desenha nada. */
+export function IconeCategoria(p: { categoria: string; tam: number; cor: string }) {
+  if (!CATEGORIAS_6B[p.categoria]) return null;
+  return (
+    <svg viewBox="0 0 24 24" width={p.tam} height={p.tam} aria-hidden="true" style="flex: none; display: block">
+      <CaminhosCategoria categoria={p.categoria} cor={p.cor} />
+    </svg>
   );
 }
 
 /**
- * Selo de tipo nas medidas dos selos finais: 22 px (card de golpe) ou 16 px (HUD, time, listas). Com o glifo 5a do
- * tipo, é o quadrado arredondado do design; sem ele (tipos do protótipo), o selo de pixel da Arena, com o ícone 8×8 de
- * `tipos.json` nas medidas originais (`tamPixel` 14, 16 ou 22).
+ * Selo de tipo: com o glifo 5a do tipo, um SVG só com a geometria do `TIPO.svg` do design (`SELO` em `estilo.ts`),
+ * escalado para `tam` (px, ou `"100%"` para preencher o pai), de modo que raio, margem e glifo fiquem sempre na mesma
+ * proporção. Com `categoria`, o selo 6b entra encaixado no canto inferior direito, no mesmo SVG (`filete` é a cor do
+ * card em volta dele). Sem glifo (tipos do protótipo), o selo de pixel da Arena, com o ícone 8×8 de `tipos.json` nas
+ * medidas originais (`tamPixel` 14, 16 ou 22).
  */
 export function SeloTipo(p: {
   c: Conteudo;
   tipo: string;
-  tam: 16 | 22;
+  tam: number | '100%';
   tamPixel?: 14 | 16 | 22;
   apagado?: boolean;
   anel?: string;
-  /** Categoria do golpe encaixada no canto do selo (card do 6b); `filete` é a cor do card em volta dela. */
   categoria?: string;
   filete?: string;
 }) {
   const tipo = p.c.tipos[p.tipo];
   const fundo = p.apagado ? '#566c86' : (tipo?.cor ?? '#94b0c2');
-  const anel = p.anel ? `; box-shadow: 0 0 0 2px ${p.anel}` : '';
-  if (GLIFOS_TIPOS[p.tipo]) {
-    const m = SELO_TIPO[p.tam];
-    const C = SELO_CATEGORIA_CANTO;
-    const canto = p.categoria && CATEGORIAS_6B[p.categoria];
+  const g = GLIFOS_TIPOS[p.tipo];
+  if (g) {
+    const S = SELO;
+    const C = SELO_CATEGORIA;
+    const canto = !!p.categoria && !!CATEGORIAS_6B[p.categoria];
+    const raioPx = typeof p.tam === 'number' ? `${(p.tam * S.raio) / S.caixa}px` : `${(100 * S.raio) / S.caixa}%`;
+    const anel = p.anel ? `; border-radius: ${raioPx}; box-shadow: 0 0 0 2px ${p.anel}` : '';
+    const lado = typeof p.tam === 'number' ? `${p.tam}px` : p.tam;
+    // Canto: quadrado de `lado` unidades, saindo `deslocamento` para fora da caixa; o ícone de 24 reduzido para `icone` do lado.
+    const x0 = S.caixa - C.lado + C.deslocamento;
+    const icone = C.lado * C.icone;
+    const escalaIcone = icone / 24;
     return (
-      <span style={`flex: none; position: relative; display: block; width: ${p.tam}px; height: ${p.tam}px; border-radius: ${m.raio}px; background: ${fundo}${anel}`}>
-        <GlifoTipo tipo={p.tipo} tam={m.glifo} />
-        {canto && (
-          <span
-            style={`position: absolute; right: ${-C.deslocamento}px; bottom: ${-C.deslocamento}px; display: flex; align-items: center; justify-content: center; width: ${C.tam}px; height: ${C.tam}px; border-radius: ${C.raio}px; background: ${p.apagado ? '#94b0c2' : SELO_CATEGORIA.fundo}; box-shadow: 0 0 0 ${C.filete}px ${p.filete ?? '#1a1c2c'}`}
-          >
-            <IconeCategoria categoria={p.categoria!} tam={C.icone} cor={SELO_CATEGORIA.tinta} />
-          </span>
-        )}
+      <span style={`flex: none; position: relative; display: block; width: ${lado}; height: ${lado}${anel}`}>
+        <svg viewBox={`0 0 ${S.caixa} ${S.caixa}`} width="100%" height="100%" aria-hidden="true" style="display: block; overflow: visible">
+          <rect width={S.caixa} height={S.caixa} rx={S.raio} fill={fundo} />
+          <g transform={`translate(${S.glifoDeslocamento} ${S.glifoDeslocamento}) scale(${S.glifoEscala})`} style={`color: ${g.cor}`} dangerouslySetInnerHTML={{ __html: g.svg }} />
+          {canto && (
+            <g>
+              <rect x={x0} y={x0} width={C.lado} height={C.lado} rx={C.lado * C.raio} fill={p.apagado ? '#94b0c2' : C.fundo} stroke={p.filete ?? '#1a1c2c'} stroke-width={C.filete * 2} />
+              <rect x={x0} y={x0} width={C.lado} height={C.lado} rx={C.lado * C.raio} fill={p.apagado ? '#94b0c2' : C.fundo} />
+              <g transform={`translate(${x0 + (C.lado - icone) / 2} ${x0 + (C.lado - icone) / 2}) scale(${escalaIcone})`}>
+                <CaminhosCategoria categoria={p.categoria!} cor={C.tinta} />
+              </g>
+            </g>
+          )}
+        </svg>
       </span>
     );
   }
-  const tam = p.tamPixel ?? p.tam;
+  const tam = p.tamPixel ?? (typeof p.tam === 'number' ? p.tam : 16);
   const escala = tam === 22 ? 2 : 1;
   const off = tam === 22 ? 1 : tam === 16 ? 3 : 2;
+  const anel = p.anel ? `; box-shadow: 0 0 0 2px ${p.anel}` : '';
   return (
     <span style={`flex: none; position: relative; display: block; width: ${tam}px; height: ${tam}px; background: ${fundo}${anel}`}>
       <IconePixel linhas={tipo?.icone ?? ICONE_PADRAO} escala={escala} cor="#1a1c2c" left={off} top={off} />
@@ -81,31 +112,9 @@ export function Selos(p: { c: Conteudo; tipos: readonly string[]; apagado: boole
   return (
     <>
       {p.tipos.map((t) => (
-        <SeloTipo key={t} c={p.c} tipo={t} tam={16} tamPixel={p.tamPixel} apagado={p.apagado} anel={p.anel} />
+        <SeloTipo key={t} c={p.c} tipo={t} tam={SELO.lista} tamPixel={p.tamPixel} apagado={p.apagado} anel={p.anel} />
       ))}
     </>
-  );
-}
-
-/**
- * Ícones de categoria do golpe, opção 6b do Claude Design (`design/icones/categorias/`): Físico = garras,
- * Mágico = projétil, Especial = chevrons. Os traçados são os mesmos dos SVGs, numa caixa de 24×24.
- */
-const CATEGORIAS_6B: Record<string, { cheio?: string; traco?: string; largura?: number }> = {
-  fisico: { traco: 'M8 3C7 8 5.5 12 3 16M14 3c-1 6-2.5 11-5.5 16M20 3c-1 5-2.5 9-5 13', largura: 3.2 },
-  magico: { cheio: 'M16.5 7.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9z', traco: 'M2 12h8M4 7.5h6.5M4 16.5h6.5', largura: 2.6 },
-  especial: { cheio: 'M3 10.5 12 3l9 7.5V15L12 7.5 3 15zM3 18.5 12 11l9 7.5V23L12 15.5 3 23z' },
-};
-
-/** Ícone 6b da categoria, em `tam` px e na cor dada; categoria sem ícone não desenha nada. */
-export function IconeCategoria(p: { categoria: string; tam: number; cor: string }) {
-  const d = CATEGORIAS_6B[p.categoria];
-  if (!d) return null;
-  return (
-    <svg viewBox="0 0 24 24" width={p.tam} height={p.tam} aria-hidden="true" style="flex: none; display: block">
-      {d.cheio && <path d={d.cheio} fill={p.cor} fill-rule="evenodd" />}
-      {d.traco && <path d={d.traco} fill="none" stroke={p.cor} stroke-width={d.largura} stroke-linecap="round" stroke-linejoin="round" />}
-    </svg>
   );
 }
 

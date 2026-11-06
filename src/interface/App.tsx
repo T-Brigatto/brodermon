@@ -5,7 +5,7 @@ import { useEffect, useState } from 'preact/hooks';
 import type { Jogo } from '../app/jogo';
 import { confronto, eficacia, especieDe, golpeDe, perfilDoGolpe, recargaDe, type Lutador, type Tatica } from '../nucleo';
 import { descricaoGolpe } from './descricao';
-import { aoApertar, corHp, moldura } from './estilo';
+import { SELO, aoApertar, corHp, moldura } from './estilo';
 import { GLIFOS } from './glifos';
 import { BarraHp, IconePixel, Retrato, SeloTipo, Selos } from './pecas';
 import { Telas } from './telas';
@@ -260,7 +260,7 @@ function Golpes({ jogo: j }: { jogo: Jogo }) {
             style={`position: relative; height: 66px; margin: 0; padding: 10px 10px 0; border: 0; border-radius: 0; background: ${recarregando ? '#1d2035' : (tipo?.fundo ?? '#30344d')}; color: #f4f4f4; font-family: inherit; text-align: left; display: flex; flex-direction: column; gap: 9px; cursor: pointer; touch-action: none; box-shadow: ${moldura(borda)}`}
           >
             <span style="display: flex; align-items: center; gap: 10px; height: 22px; width: 100%">
-              <SeloTipo c={c} tipo={g.tipo} tam={22} apagado={recarregando} categoria={g.categoria} filete={recarregando ? '#1d2035' : (tipo?.fundo ?? '#30344d')} />
+              <SeloTipo c={c} tipo={g.tipo} tam={SELO.card} apagado={recarregando} categoria={g.categoria} filete={recarregando ? '#1d2035' : (tipo?.fundo ?? '#30344d')} />
               <span style={`flex: 1; min-width: 0; font-size: 15px; line-height: 16px; font-weight: 700; letter-spacing: .5px; color: ${recarregando ? '#94b0c2' : '#f4f4f4'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis`}>
                 {g.nome.toUpperCase()}
               </span>
