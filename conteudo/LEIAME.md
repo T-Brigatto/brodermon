@@ -285,6 +285,7 @@ As reações entre terrenos e névoas de elementos diferentes ainda não foram d
 - `olhaPara`: para onde o desenho olha na tira (`direita` ou `esquerda`); o jogo vira quando precisa.
 - `vistas` (opcional): `frente` e `costas`, cada uma com as mesmas animações, em quadros da mesma tira (mesmo `quadro` e mesmo `pe`). A vista segue para onde a criatura anda: de costas subindo para o fundo da arena, de frente descendo (mais de 45° da horizontal; volta ao lado abaixo de ~35°, para não piscar). Parada, andando na horizontal, golpeando ou empurrada, ela fica de lado, virada para o rival. Sem `vistas`, ela fica sempre de lado, espelhada. Frente e costas não são espelhadas.
 - `animacoes`: `parado` é obrigatória; `andando`, `ataque` e `dano` são opcionais (sem elas, vale a `parado`). Os quadros contam de 0.
+- `retrato` (opcional, em qualquer sprite): PNG quadrado na pasta `sprites/` do pacote (`sprites/retrato-aries.png`), de pelo menos 108 × 108, com o busto da criatura ocupando o quadro e fundo chapado escuro ou na cor do elemento, sem texto nem moldura (a especificação está em `docs/direcao-visual.md`). A interface chapada o mostra nas placas e nas pastilhas do time; sem ele, mostra o sprite em ampliação inteira.
 - Quando cada uma toca: `dano` enquanto a criatura pisca depois de levar dano; `ataque` fica no primeiro quadro enquanto ela carrega um golpe e toca uma vez quando o golpe sai; `andando` quando ela se move; senão `parado`, em laço.
 
 ### Importar uma folha de poses
@@ -327,7 +328,8 @@ node ferramentas/importar-folha.ts sprites-brutos/aries-estagio1-lado.png --fren
 
 ## regras.json
 
-São os números da batalha:
+São os números da batalha (e um interruptor de apresentação):
+- `interface`: qual tela de batalha o pacote usa. `arena` (padrão) é a HUD da Arena original, em pixel; `chapada` é a direção visual aprovada em `docs/direcao-visual.md` (o vale);
 - a fórmula de dano;
 - o ritmo: a pausa depois de cada golpe (`recargaGlobal`) e o multiplicador da recarga de todos os golpes (`recargaGolpes`). No vale, 2 s de pausa e recargas 1,5× as do guia, para dar tempo de ler a luta e pôr golpe na fila;
 - `anunciarGolpes`: o nome do golpe aparece sobre as duas criaturas (sem ele, só sobre o rival, como na Arena original);

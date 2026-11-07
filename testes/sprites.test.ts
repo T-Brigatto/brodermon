@@ -17,6 +17,23 @@ describe('sprite em tira', () => {
     expect(m).toMatchObject({ n: s.quadro, h: s.altura, pe: s.pe, topo: s.pe - s.altura + 1 });
   });
 
+  it('Áries e Sagitário têm retrato ilustrado, resolvido para a URL do PNG do pacote', () => {
+    for (const id of ['aries', 'sagitario']) {
+      const s = vale.sprites[id] as SpriteImagem;
+      expect(s.retrato, id).toMatch(new RegExp(`retrato-${id}.*\\.png$`));
+    }
+    expect((vale.sprites['briserecs'] as SpriteImagem).retrato).toBeUndefined();
+  });
+
+  it('o retrato é opcional em qualquer sprite e a interface do pacote é "arena" por padrão', () => {
+    const c = conteudo();
+    c.sprites['gotinha'] = { ...(c.sprites['gotinha'] as object), retrato: 'sprites/retrato-gotinha.png' } as never;
+    const carregado = carregarConteudo(c);
+    expect((carregado.sprites['gotinha'] as { retrato?: string }).retrato).toBe('sprites/retrato-gotinha.png');
+    expect(carregado.regras.interface).toBe('arena');
+    expect(vale.regras.interface).toBe('chapada');
+  });
+
   it('recusa tira sem a animação parado', () => {
     const c = conteudo();
     c.sprites['gotinha'] = { imagem: 'x.png', quadro: 32, pe: 30, altura: 20, animacoes: { andando: { quadros: [0], fps: 4 } } } as never;

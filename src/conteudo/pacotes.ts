@@ -22,14 +22,21 @@ import valeCampos from '../../conteudo/vale/campos.json';
 /** Tiras de sprite (PNG) de cada pacote, pelo caminho do arquivo; o Vite troca pela URL (ou embute, no build único). */
 const imagens = import.meta.glob('../../conteudo/*/sprites/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 
-/** Troca o caminho `imagem` de cada sprite do pacote pela URL do arquivo. */
+/** Troca os caminhos `imagem` (tira) e `retrato` de cada sprite do pacote pela URL do arquivo. */
 function comImagens(pasta: string, sprites: Record<string, object>): Record<string, object> {
+  const url = (id: string, caminho: string): string => {
+    const u = imagens[`../../conteudo/${pasta}/${caminho}`];
+    if (!u) throw new Error(`sprite "${id}" do pacote ${pasta}: não achei conteudo/${pasta}/${caminho}`);
+    return u;
+  };
   return Object.fromEntries(
     Object.entries(sprites).map(([id, s]) => {
-      if (!('imagem' in s) || typeof s.imagem !== 'string') return [id, s];
-      const url = imagens[`../../conteudo/${pasta}/${s.imagem}`];
-      if (!url) throw new Error(`sprite "${id}" do pacote ${pasta}: não achei conteudo/${pasta}/${s.imagem}`);
-      return [id, { ...s, imagem: url }];
+      const trocado: Record<string, unknown> = { ...s };
+      for (const campo of ['imagem', 'retrato'] as const) {
+        const caminho = trocado[campo];
+        if (typeof caminho === 'string') trocado[campo] = url(id, caminho);
+      }
+      return [id, trocado];
     }),
   );
 }

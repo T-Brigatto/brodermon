@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import type { Jogo } from '../app/jogo';
 import { confronto, eficacia, especieDe, golpeDe, perfilDoGolpe, recargaDe, type Lutador, type Tatica } from '../nucleo';
+import { AvisosChapados, CHAPADA, HudChapada, PainelChapado } from './chapada';
 import { descricaoGolpe } from './descricao';
 import { SELO, aoApertar, corHp, moldura } from './estilo';
 import { GLIFOS } from './glifos';
@@ -64,6 +65,32 @@ export function App({ jogo, aoCanvas }: { jogo: Jogo; aoCanvas: (el: HTMLCanvasE
   const rivaisDePe = rivais.filter((l) => !l.desmaiado).length;
   const tatica = TATICAS.find((t) => t[0] === j.tatica) ?? TATICAS[0]!;
 
+  const canvas = <ArenaCanvas jogo={j} aoCanvas={aoCanvas} K={tela.K} />;
+
+  // A direção visual aprovada (`regras.interface = "chapada"`): faixa escura, arena, painel; a HUD por cima da arena.
+  // As telas por cima (título, pausa, fim, ajuda) continuam na fonte de pixel.
+  if (c.regras.interface === 'chapada') {
+    return (
+      <div style="position: relative; width: 100vw; height: 100dvh; background: #0c0d16; display: flex; align-items: center; justify-content: center; overflow: hidden">
+        <div
+          data-screen-label="Arena"
+          style={`position: relative; flex: none; width: 390px; height: 844px; overflow: hidden; background: ${CHAPADA.fundo}; display: flex; flex-direction: column; font-family: ${CHAPADA.fonte}; color: ${CHAPADA.texto}; user-select: none; -webkit-user-select: none; touch-action: manipulation; transform: scale(${tela.escala}); transform-origin: center center`}
+        >
+          <div style={`flex: none; height: 60px; background: ${CHAPADA.faixa}`} />
+          <div style="position: relative; flex: none; width: 390px; height: 336px">
+            {canvas}
+            <AvisosChapados jogo={j} />
+          </div>
+          <PainelChapado jogo={j} />
+          <HudChapada jogo={j} />
+          <div style="font-family: 'Pixelify Sans', monospace; -webkit-font-smoothing: none">
+            <Telas jogo={j} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style="position: relative; width: 100vw; height: 100dvh; background: #0c0d16; display: flex; align-items: center; justify-content: center; overflow: hidden">
       <div
@@ -113,30 +140,7 @@ export function App({ jogo, aoCanvas }: { jogo: Jogo; aoCanvas: (el: HTMLCanvasE
 
         {/* Arena */}
         <div style="position: relative; flex: none; width: 390px; height: 336px">
-          <canvas
-            ref={aoCanvas}
-            width={390 * tela.K}
-            height={336 * tela.K}
-            role="img"
-            aria-label="Arena de batalha. Toque para mover sua criatura."
-            onPointerDown={(ev) => {
-              if (j.tela !== 'jogo') return;
-              ev.preventDefault();
-              const el = ev.currentTarget;
-              try {
-                el.setPointerCapture(ev.pointerId);
-              } catch {
-                // o ponteiro já foi solto
-              }
-              j.tocarArena(ev.clientX, ev.clientY, el.getBoundingClientRect(), true);
-            }}
-            onPointerMove={(ev) => {
-              if (j.tocando) j.tocarArena(ev.clientX, ev.clientY, ev.currentTarget.getBoundingClientRect(), false);
-            }}
-            onPointerUp={() => j.soltarArena()}
-            onPointerCancel={() => j.soltarArena()}
-            style="display: block; width: 390px; height: 336px; touch-action: none; cursor: crosshair"
-          />
+          {canvas}
           {j.msgT > 0 && j.msg && jogando && (
             <div aria-live="polite" style="position: absolute; left: 0; right: 0; top: 14px; display: flex; justify-content: center; pointer-events: none">
               <span style={`margin: 2px; padding: 8px 12px; background: #1a1c2c; color: ${j.msgCor}; font-size: 14px; line-height: 14px; font-weight: 700; letter-spacing: .5px; box-shadow: ${moldura('#333c57')}`}>{j.msg}</span>
@@ -217,6 +221,36 @@ export function App({ jogo, aoCanvas }: { jogo: Jogo; aoCanvas: (el: HTMLCanvasE
         <Telas jogo={j} />
       </div>
     </div>
+  );
+}
+
+/** O canvas da arena (390×336, em `K`× de resolução) com o toque para mover; igual nas duas interfaces. */
+function ArenaCanvas({ jogo: j, aoCanvas, K }: { jogo: Jogo; aoCanvas: (el: HTMLCanvasElement | null) => void; K: number }) {
+  return (
+    <canvas
+      ref={aoCanvas}
+      width={390 * K}
+      height={336 * K}
+      role="img"
+      aria-label="Arena de batalha. Toque para mover sua criatura."
+      onPointerDown={(ev) => {
+        if (j.tela !== 'jogo') return;
+        ev.preventDefault();
+        const el = ev.currentTarget;
+        try {
+          el.setPointerCapture(ev.pointerId);
+        } catch {
+          // o ponteiro já foi solto
+        }
+        j.tocarArena(ev.clientX, ev.clientY, el.getBoundingClientRect(), true);
+      }}
+      onPointerMove={(ev) => {
+        if (j.tocando) j.tocarArena(ev.clientX, ev.clientY, ev.currentTarget.getBoundingClientRect(), false);
+      }}
+      onPointerUp={() => j.soltarArena()}
+      onPointerCancel={() => j.soltarArena()}
+      style="display: block; width: 390px; height: 336px; touch-action: none; cursor: crosshair"
+    />
   );
 }
 

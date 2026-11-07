@@ -232,6 +232,27 @@ export function pintarRetrato(el: HTMLCanvasElement, c: Conteudo, especie: strin
   x.drawImage(img, Math.round(S / 2 - centro), Math.round((S - s.h) / 2) - s.topo);
 }
 
+/**
+ * Retrato da interface chapada: o sprite centrado num canvas quadrado de `caixa` px de tela, na maior ampliação inteira
+ * em que cabe (1×, 2×, 3×…), para o pixel art não borrar. Mede a criatura pelo que tem pixel no primeiro quadro.
+ * Desmaiado vira silhueta escura.
+ */
+export function pintarRetratoCaixa(el: HTMLCanvasElement, c: Conteudo, especie: string, paraDireita: boolean, desmaiado: boolean, caixa: number): void {
+  const s = spriteDe(c, especie);
+  const img = canvasDoSprite(c, especie, paraDireita, desmaiado ? '#3a4458' : null, s.animacoes?.parado.quadros[0] ?? 0);
+  el.width = el.height = caixa;
+  const x = el.getContext('2d');
+  if (!x) return;
+  x.imageSmoothingEnabled = false;
+  x.clearRect(0, 0, caixa, caixa);
+  const cx = caixaDe(img);
+  if (!cx) return;
+  const w = cx.x1 - cx.x0;
+  const h = cx.y1 - cx.y0;
+  const k = Math.max(1, Math.floor(Math.min(caixa / w, caixa / h)));
+  x.drawImage(img, cx.x0, cx.y0, w, h, Math.round((caixa - w * k) / 2), Math.round((caixa - h * k) / 2), w * k, h * k);
+}
+
 /** O que a criatura está fazendo, para escolher o quadro da tira. */
 export interface Momento {
   /** Relógio da animação, em segundos. */

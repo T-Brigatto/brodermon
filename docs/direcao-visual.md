@@ -53,6 +53,15 @@ A cor do elemento aparece **só no selo de tipo** (5a) e nunca em painel, botão
 - **Táticas**: quatro botões de 40 px; o ativo é âmbar com texto escuro, os outros neutros.
 - **Campo**: o pixel do jogo, intocado, com 60 px de faixa escura em cima; a HUD só encosta na borda superior (pausa 56 + placa do rival).
 
+## No jogo
+
+A batalha chapada está implementada em `src/interface/chapada.tsx` e entra quando o pacote tem `regras.interface = "chapada"` (o vale). O protótipo (`?pacote=prototipo`) continua com a HUD da Arena original em `App.tsx`, idêntica pixel a pixel. As telas por cima (título, pausa, troca, fim, ajuda) ainda seguem o estilo antigo, na fonte de pixel. Diferenças da prova que são regra do jogo, não desenho:
+
+- a **moldura da pastilha** é desenhada por cima do retrato (na prova F a arte cobria a moldura e a de "em campo" quase não aparecia);
+- a **eficácia contra o rival** (assistência ligada) aparece como a mesma marca de vantagem/desvantagem das pastilhas, no canto do selo de tipo do card; o número exato fica no rótulo de acessibilidade;
+- criatura **sem retrato** mostra o sprite centrado na maior ampliação inteira que cabe; **desmaiada**, a arte apaga e a pastilha ganha "KO";
+- o estado de **troca** ("Trocando…", "Troca em 2,0s") aparece à direita do rótulo "Seu time" só enquanto dura.
+
 ## Como seguir
 
 Toda tela nova nasce desta régua e é **renderizada e conferida antes de ser mostrada** (Edge headless em 390 × 844, como em `design/provas/`). Mudança de régua é decisão do usuário e entra aqui antes de entrar nas telas.

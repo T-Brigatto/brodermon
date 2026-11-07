@@ -229,6 +229,7 @@
   },
   "aries": {
     "imagem": "sprites/aries.png",
+    "retrato": "sprites/retrato-aries.png",
     "quadro": 40,
     "pe": 38,
     "altura": 20,
@@ -343,6 +344,7 @@
   },
   "sagitario": {
     "imagem": "sprites/sagitario.png",
+    "retrato": "sprites/retrato-sagitario.png",
     "quadro": 40,
     "pe": 38,
     "altura": 20,

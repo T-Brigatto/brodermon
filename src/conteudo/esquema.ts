@@ -104,10 +104,18 @@ export const esquemaTipo = z.object({
   fx: z.object({ estilo: z.enum(ESTILOS_FX), cores: z.array(cor).min(2), animacoes: esquemaAnimacoes.optional() }).optional(),
 });
 
+/**
+ * Retrato ilustrado da criatura (PNG quadrado, de pelo menos 108 × 108, busto ocupando o quadro, fundo chapado), na pasta
+ * `sprites/` do pacote; o registro dos pacotes troca pela URL. A interface chapada o usa nas placas e nas pastilhas do
+ * time; sem ele, mostra o sprite.
+ */
+const retrato = z.string().min(1).optional();
+
 export const esquemaSpritePixels = z
   .object({
     /** Cor de cada índice; o índice 0 é sempre transparente (use null). */
     paleta: z.array(cor.nullable()).min(2),
+    retrato,
     /** Uma string por linha; cada caractere (0–f) é um índice da paleta. Quadrado: N linhas de N caracteres. */
     pixels: z.array(z.string().regex(/^[0-9a-f]+$/, 'use só 0–9 e a–f')).min(1),
   })
@@ -149,6 +157,7 @@ export const VISTAS_SPRITE = ['lado', 'frente', 'costas'] as const;
 export const esquemaSpriteImagem = z.object({
   /** Caminho da tira dentro da pasta do pacote (`sprites/ID.png`); o registro dos pacotes troca pela URL. */
   imagem: z.string().min(1),
+  retrato,
   quadro: z.number().int().positive(),
   pe: z.number().int().min(0),
   /** Altura do bicho em pixels (dos pés ao topo), para a barra de HP, os textos e os efeitos. */
@@ -607,6 +616,11 @@ export const esquemaBatalha = z.object({
 const ponto = z.object({ x: z.number(), y: z.number() });
 
 export const esquemaRegras = z.object({
+  /**
+   * Apresentação, não regra de batalha: qual interface da tela de batalha o pacote usa. `arena` é a HUD da Arena original
+   * (pixel, idêntica ao `design/Arena.dc.html`); `chapada` é a direção visual aprovada (`docs/direcao-visual.md`).
+   */
+  interface: z.enum(['arena', 'chapada']).default('arena'),
   maxGolpes: z.number().int().positive(),
   dano: z.object({
     divisor: positivo,

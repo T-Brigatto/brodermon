@@ -1,4 +1,5 @@
 {
+  "interface": "chapada",
   "maxGolpes": 4,
   "dano": { "divisor": 18, "multiplicador": 3, "ajuste": 0.9, "aleatorioMin": 0.9, "aleatorioMax": 1.1, "minimo": 1, "stab": 1.5 },
   "recargaGlobal": { "ataque": 2.0, "buff": 2.0, "aoEntrar": 1.2 },

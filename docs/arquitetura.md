@@ -20,7 +20,7 @@ src/nucleo/           batalha pura: passo e golpes (batalha), dano e efeitos no 
                       chão da arena (campo: zonas, terrenos, névoas, objetos, agendados), projéteis,
                       geometria das formas, IA, movimento, sorteio
 src/desenho/          canvas: perspectiva da arena, cenário, sprites, fonte de pixel, cena (setas, minimapa), efeitos especiais (fx, animacoes, pixels)
-src/interface/        telas em Preact: HUD, cards de golpe, time, táticas, título, pausa, escolha, fim, ajuda
+src/interface/        telas em Preact: a batalha chapada (chapada.tsx, pacotes com regras.interface = "chapada"), a HUD da Arena original (App.tsx), título, pausa, escolha, fim, ajuda
 src/plataforma/       som (WebAudio) e preferências (localStorage)
 src/app/              jogo.ts (controlador), main.tsx (entrada), depuracao.ts (visualizador do núcleo)
 testes/               Vitest
