@@ -1,6 +1,6 @@
 # Direção visual aprovada (2026-11-06)
 
-A interface do Brodermon segue a **"chapada"**: navy neutro, painéis arredondados com degrau escuro, três cores com significado fixo e fonte geométrica. O pixel art (sprites, arena, efeitos) é a estrela; a interface é o palco e não imita nenhum outro jogo. A tela aprovada é [design/provas/batalha-chapada.html](../design/provas/batalha-chapada.html) (print em `batalha-chapada.png`). Ela foi escolhida entre três provas e refinada em quatro rodadas; o que está abaixo é a régua que saiu desse processo e vale para todas as telas.
+A interface do Brodermon segue a **"chapada"**: navy neutro, painéis arredondados com degrau escuro, três cores com significado fixo e fonte geométrica. O pixel art (sprites, arena, efeitos) é a estrela; a interface é o palco e não imita nenhum outro jogo. A tela aprovada é [design/provas/batalha-f.html](../design/provas/batalha-f.html) (print em `batalha-f.png`): golpes embaixo de tudo, blocos separados por divisores, pastilhas do time como retratos e cards de golpe opacos. As versões anteriores ficam como histórico: `batalha-chapada.html` (a primeira aprovada, 2026-11-06) e `batalha-c.html` (a compactação, com `batalha-c-standalone.html` para revisão externa). O que está abaixo é a régua que saiu desse processo e vale para todas as telas.
 
 Referências que o usuário trouxe e o que ficou de cada uma: o kit "Game UI Assets" chapado (painéis, degrau, botões coloridos: ficou a base), a HUD tecnológica (ficou só a ideia de luz no estado ativo, sem brilho) e a Tw Cen MT como fonte "simétrica" (ficou a Outfit, gêmea geométrica de webfont).
 
@@ -10,10 +10,15 @@ Referências que o usuário trouxe e o que ficou de cada uma: o kit "Game UI Ass
 |---|---|
 | Grade | 8 px. Respiro externo 12, espaço entre blocos 12, espaço interno 12 |
 | Raio | 12 px em painéis, cards, pastilhas e botões; 6 px em etiquetas pequenas; 4,5 px no selo de tipo (proporção do 5a) |
-| Alturas | placa 56 · card de golpe 72 · pastilha do time 56 · botão de tática 48 · botão quadrado (pausa) 56 |
+| Alturas | placa do rival 56 · placa do jogador 48 · card de golpe 72 · pastilha do time 54 · botão de tática 40 · botão quadrado (pausa) 56 · respiro inferior 24 |
 | Degrau | `box-shadow: 0 4px 0 <degrau>` em tudo que é painel ou botão; 2 px em etiquetas |
-| Retrato | 40 × 40, raio 8, fundo `#171c2c` |
-| Sprites | sempre em ampliação inteira: 40 no retrato, 32 na pastilha (tira), 26 no pixel 24 × 24 |
+| Divisor | 1 px `#2b3347` entre os blocos da HUD inferior (placa, time, táticas, golpes) |
+| Retrato | 40 × 40 na placa do rival, 36 × 36 na do jogador, raio 8, fundo `#171c2c`; a arte preenche o quadro (`background-size: cover`) |
+| Sprites | sempre em ampliação inteira: 24 ou 48 no pixel 24 × 24; a tira a 1,5× ou 2× com recorte no busto, só enquanto a criatura não tem retrato |
+
+## Retratos
+
+Cada criatura tem um **retrato** quadrado, usado na placa e na pastilha do time, no estilo dos ícones de campeão: busto ocupando o quadro, fundo chapado escuro ou na cor do elemento, olhar para a direita ou para a câmera, sem texto nem moldura. Entregue em PNG de pelo menos 108 × 108 (o dobro da pastilha) e guardado em `design/provas/img/retrato-<especie>.png`. Já existem Áries e Sagitário (gerados pelo usuário, 2026-11-06).
 
 ## Cores
 
@@ -41,10 +46,11 @@ A cor do elemento aparece **só no selo de tipo** (5a) e nunca em painel, botão
 ## Componentes da batalha
 
 - **Placa** (rival e você, o mesmo componente): retrato 40 à esquerda; duas linhas de 16 e 12 px com 6 px entre elas: nome em cima, barra de HP (8 px, raio 4) com o número à direita embaixo. No rival, os corações das vidas (11 px, vermelho, apagado em `#3a4458`) na linha do nome; em você, o selo de tipo de 16 px.
-- **Card de golpe** (72 px, padding 12): linha 1 com selo de tipo 22 px (categoria 6b encaixada no canto) e nome 14/16; linha 2 com alcance e recarga à esquerda (11 px secundário) e o **poder** à direita, número âmbar 18 px com "PODER" em 9 px. Golpe sem poder mostra "DEFESA" em verde no mesmo lugar.
-- **Recarga é um estado, não um dado**: o card escurece, o selo apaga (`saturate(0) brightness(0.6)`), uma barra âmbar de 4 px avança na base e os segundos aparecem em 13 px âmbar no canto superior direito. O poder continua no lugar, apagado.
-- **Pastilha do time** (56 px): sprite centrado e uma barra de 24 × 4 embaixo; a que está em campo tem anel interno de 2 px âmbar; vantagem e desvantagem são bolinhas de 14 px no canto (verde com seta para cima, vermelho com seta para baixo); HP baixo deixa a barra âmbar.
-- **Táticas**: quatro botões de 48 px; o ativo é âmbar com texto escuro, os outros neutros.
+- **Ordem da HUD inferior**: placa do jogador · time · táticas · golpes, cada bloco separado por um divisor. Sem textos explicativos ("Tática: …", "Toque para trocar").
+- **Card de golpe** (72 px, padding 12, dois por linha): fundo opaco `linear-gradient(180deg, #2f384e, #252c3f)` com um tingimento radial da cor do elemento no canto inferior esquerdo (42 % de opacidade, sumindo até a metade); linha 1 com o nome 13,5/16 e o **poder** à direita em âmbar 20 px (ou "DEF" em verde); linha 2 com o selo de tipo 22 px, os ícones de categoria e alcance em pastilhas `rgba(15,19,32,.55)` com traço `#e6ebf5`, e a recarga à direita em 13 px. O gradiente do Lab de Golpes ficou só como referência: na batalha o card é escuro e a cor do elemento é um tingimento.
+- **Recarga é um estado, não um dado**: o card vira `#1d2233`, a linha 1 e os ícones caem para 42 % de opacidade, uma barra âmbar de 3 px avança na base e os segundos continuam no lugar. O poder fica apagado, nunca some.
+- **Pastilha do time** (54 × 54, raio 10, seis por linha com 8 px entre elas): o retrato preenche o quadro por baixo de uma moldura interna de 2 px `#3a4458` e de uma vinheta (`inset 0 0 14px rgba(8,10,20,.75)` mais um fio claro em cima). Por cima: selo do elemento 14 px no canto superior esquerdo, marca de vantagem ou desvantagem 14 px no canto superior direito, barra de vida de 4 px na base. A que está em campo troca a moldura por âmbar com um halo de 1 px. HP baixo deixa a barra âmbar.
+- **Táticas**: quatro botões de 40 px; o ativo é âmbar com texto escuro, os outros neutros.
 - **Campo**: o pixel do jogo, intocado, com 60 px de faixa escura em cima; a HUD só encosta na borda superior (pausa 56 + placa do rival).
 
 ## Como seguir
